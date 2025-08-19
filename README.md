@@ -41,19 +41,19 @@ src/
 
 ```bash
 # Instalar dependencias
-npm install
+pnpm install
 
 # Modo desarrollo
-npm run dev
+pnpm run dev
 
 # Construir para producción
-npm run build
+pnpm run build
 
 # Vista previa de producción
-npm run preview
+pnpm run preview
 
 # Linting
-npm run lint
+pnpm run lint
 ```
 
 ## Características
