@@ -51,15 +51,15 @@ const mascotConfigs = {
 const animations = {
   subtle: {
     scale: [1, 1.01, 1],
-    transition: { duration: 3, repeat: Infinity, ease: 'easeInOut' }
+    transition: { duration: 3, repeat: Infinity, ease: 'easeInOut' as const }
   },
   urgent: {
     scale: [1, 1.03, 1],
-    transition: { duration: 1.5, repeat: Infinity, ease: 'easeInOut' }
+    transition: { duration: 1.5, repeat: Infinity, ease: 'easeInOut' as const }
   },
   minimal: {
     opacity: [1, 0.7, 1],
-    transition: { duration: 4, repeat: Infinity, ease: 'easeInOut' }
+    transition: { duration: 4, repeat: Infinity, ease: 'easeInOut' as const }
   }
 }
 
@@ -97,7 +97,7 @@ export function WaterMascot({
           backgroundColor: config.bgColor,
           border: `2px solid ${config.color}20`
         }}
-        animate={animations[config.animation]}
+        animate={animations[config.animation as keyof typeof animations]}
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.95 }}
       >

@@ -10,11 +10,17 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `npm run preview` - Preview production build
 - `npm run lint` - Run ESLint on TypeScript/TSX files with max 0 warnings
 
+### Testing Commands
+- `npm run test` - Run Playwright end-to-end tests
+- `npm run test:ui` - Run Playwright tests with UI mode
+- `npm run test:headed` - Run Playwright tests in headed mode (visible browser)
+
 ### Key Development Tasks
 - **Run development server**: `npm run dev`
 - **Type checking**: TypeScript compilation is included in build process
 - **Linting**: `npm run lint` (enforces React hooks rules and React refresh)
 - **Production build**: `npm run build` (includes TypeScript compilation)
+- **E2E Testing**: `npm run test` (Playwright tests configured for http://localhost:5173)
 
 ## Architecture Overview
 
@@ -63,18 +69,26 @@ Switch between Mock and real API implementations by modifying `src/infrastructur
 - **Lucide React** for icons
 - **Recharts** for data visualization
 - **React Leaflet** for maps
+- **Framer Motion** for animations
+- **Class Variance Authority** for component variants
 
 ### Development Tools
 - **ESLint** with TypeScript, React hooks, and React refresh rules
 - **PostCSS** with Autoprefixer
-- **Tailwind CSS** with animations
+- **Tailwind CSS** with animations and custom government color variables
+- **Playwright** for end-to-end testing
+
+### Export & Reporting
+- **jsPDF** and **jsPDF-autotable** for PDF generation
+- **XLSX** for Excel export functionality
 
 ## File Organization Patterns
 
 ### Component Structure
-- `src/presentation/components/ui/` - Base reusable components
+- `src/presentation/components/ui/` - Base reusable components (Radix UI + shadcn/ui)
 - `src/presentation/components/layout/` - Layout components (Navbar)
 - `src/presentation/components/charts/` - Chart components including NormalizedChart
+- `src/presentation/components/maps/` - Map components (Leaflet integration)
 - `src/presentation/pages/` - Main application pages
 
 ### Domain-Driven Structure
@@ -111,6 +125,8 @@ Change repository implementations in DI Container from Mock to API versions. No 
 
 - `src/infrastructure/di/Container.ts` - Central dependency injection configuration
 - `src/shared/services/DataNormalizationService.ts` - Data source normalization
+- `vite.config.ts` - Path aliases configured for clean imports (@domain, @application, etc.)
+- `tailwind.config.js` - Custom government theme colors and animations
 - `docs/ARCHITECTURE.md` - Detailed architecture documentation
 - `docs/DEVELOPMENT_GUIDE.md` - Comprehensive development patterns and examples
 
@@ -118,6 +134,16 @@ Change repository implementations in DI Container from Mock to API versions. No 
 
 - TypeScript strict mode enabled
 - ESLint enforces React hooks rules and component refresh patterns
-- Tailwind CSS for styling with custom government color variables
+- Path aliases: Use `@domain`, `@application`, `@infrastructure`, `@presentation`, `@shared` for imports
+- Tailwind CSS for styling with custom government color variables (gov-primary, gov-secondary, etc.)
 - Clean Architecture principles with clear layer separation
 - Repository pattern with dependency injection
+- Framer Motion for animations with cross-browser compatibility optimizations
+
+## Package Manager
+
+This project uses **pnpm** as the package manager. All installation commands should use `pnpm` instead of `npm`:
+- `pnpm install` - Install dependencies
+- `pnpm dev` - Start development server
+- `pnpm build` - Build for production
+- `pnpm test` - Run tests

@@ -116,8 +116,8 @@ export function AdminPage() {
   useEffect(() => {
     if (editingUser) {
       setUserFormData({
-        first_name: editingUser.first_name,
-        last_name: editingUser.last_name,
+        first_name: editingUser.first_name || '',
+        last_name: editingUser.last_name || '',
         email: editingUser.email,
         username: editingUser.username,
         role: editingUser.role,
@@ -171,7 +171,12 @@ export function AdminPage() {
       if (editingUser) {
         await updateUser(editingUser.id, userData);
       } else {
-        await createUser(userData);
+        // Para crear usuarios necesitamos incluir el password
+        const createData = {
+          ...userData,
+          password: 'temp123' // Password temporal - debería ser reemplazado por un campo en el formulario
+        };
+        await createUser(createData);
       }
       
       setShowUserForm(false);

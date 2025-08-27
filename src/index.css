@@ -5,129 +5,130 @@
 @import './styles/cross-browser-animations.css';
 
 @layer base {
-  :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 221.2 83.2% 53.3%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96%;
-    --secondary-foreground: 222.2 84% 4.9%;
-    --muted: 210 40% 96%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96%;
-    --accent-foreground: 222.2 84% 4.9%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 221.2 83.2% 53.3%;
-    --radius: 0.5rem;
-    --chart-1: 12 76% 61%;
-    --chart-2: 173 58% 39%;
-    --chart-3: 197 37% 24%;
-    --chart-4: 43 74% 66%;
-    --chart-5: 27 87% 67%;
+	:root {
+		--background: 0 0% 100%;
+		--foreground: 222.2 84% 4.9%;
+		--card: 0 0% 100%;
+		--card-foreground: 222.2 84% 4.9%;
+		--popover: 0 0% 100%;
+		--popover-foreground: 222.2 84% 4.9%;
+		--primary: 221.2 83.2% 53.3%;
+		--primary-foreground: 210 40% 98%;
+		--secondary: 210 40% 96%;
+		--secondary-foreground: 222.2 84% 4.9%;
+		--muted: 210 40% 96%;
+		--muted-foreground: 215.4 16.3% 46.9%;
+		--accent: 210 40% 96%;
+		--accent-foreground: 222.2 84% 4.9%;
+		--destructive: 0 84.2% 60.2%;
+		--destructive-foreground: 210 40% 98%;
+		--border: 214.3 31.8% 91.4%;
+		--input: 214.3 31.8% 91.4%;
+		--ring: 221.2 83.2% 53.3%;
+		--radius: 0.5rem;
+		--chart-1: 12 76% 61%;
+		--chart-2: 173 58% 39%;
+		--chart-3: 197 37% 24%;
+		--chart-4: 43 74% 66%;
+		--chart-5: 27 87% 67%;
 
-    /* Variables CSS personalizadas para el sistema - Light Mode (manteniendo colores originales) */
-    --gov-neutral: #f8fafc;
-    --gov-white: #ffffff;
-    --gov-black: #1e293b;
-    --gov-gray-a: #64748b;
-    --gov-gray-b: #94a3b8;
-    --gov-primary: #1e40af;
-    --gov-secondary: #dc2626;
-    --gov-green: #16a34a;
-    --gov-orange: #ea580c;
-    --gov-purple: #7c3aed;
-    --gov-accent: #e2e8f0;
-  }
+		/* Variables CSS personalizadas para el sistema - Light Mode (manteniendo colores originales) */
+		--gov-neutral: #f8fafc;
+		--gov-white: #ffffff;
+		--gov-black: #1e293b;
+		--gov-gray-a: #64748b;
+		--gov-gray-b: #94a3b8;
+		--gov-primary: #1e40af;
+		--gov-secondary: #dc2626;
+		--gov-green: #16a34a;
+		--gov-orange: #ea580c;
+		--gov-purple: #7c3aed;
+		--gov-accent: #e2e8f0;
+	}
 
-  .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 217.2 91.2% 59.8%;
-    --primary-foreground: 222.2 84% 4.9%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 224.3 76.3% 94.1%;
-    --chart-1: 220 70% 50%;
-    --chart-2: 160 60% 45%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
+	.dark {
+		--background: 222.2 84% 4.9%;
+		--foreground: 210 40% 98%;
+		--card: 222.2 84% 4.9%;
+		--card-foreground: 210 40% 98%;
+		--popover: 222.2 84% 4.9%;
+		--popover-foreground: 210 40% 98%;
+		--primary: 217.2 91.2% 59.8%;
+		--primary-foreground: 222.2 84% 4.9%;
+		--secondary: 217.2 32.6% 17.5%;
+		--secondary-foreground: 210 40% 98%;
+		--muted: 217.2 32.6% 17.5%;
+		--muted-foreground: 215 20.2% 65.1%;
+		--accent: 217.2 32.6% 17.5%;
+		--accent-foreground: 210 40% 98%;
+		--destructive: 0 62.8% 30.6%;
+		--destructive-foreground: 210 40% 98%;
+		--border: 217.2 32.6% 17.5%;
+		--input: 217.2 32.6% 17.5%;
+		--ring: 224.3 76.3% 94.1%;
+		--chart-1: 220 70% 50%;
+		--chart-2: 160 60% 45%;
+		--chart-3: 30 80% 55%;
+		--chart-4: 280 65% 60%;
+		--chart-5: 340 75% 55%;
 
-    /* Variables CSS personalizadas para modo oscuro */
-    --gov-neutral: #0f172a;
-    --gov-white: #1e293b;
-    --gov-black: #f1f5f9;
-    --gov-gray-a: #94a3b8;
-    --gov-gray-b: #64748b;
-    --gov-primary: #3b82f6;
-    --gov-secondary: #ef4444;
-    --gov-green: #22c55e;
-    --gov-orange: #f97316;
-    --gov-purple: #8b5cf6;
-    --gov-accent: #334155;
-  }
+		/* Variables CSS personalizadas para modo oscuro */
+		--gov-neutral: #0f172a;
+		--gov-white: #1e293b;
+		--gov-black: #f1f5f9;
+		--gov-gray-a: #94a3b8;
+		--gov-gray-b: #64748b;
+		--gov-primary: #3b82f6;
+		--gov-secondary: #ef4444;
+		--gov-green: #22c55e;
+		--gov-orange: #f97316;
+		--gov-purple: #8b5cf6;
+		--gov-accent: #334155;
+	}
 }
 
 @layer base {
-  * {
-    @apply border-border;
-  }
-  
-  html {
-    transition: color-scheme 0.3s ease-in-out;
-  }
-  
-  body {
-    @apply bg-background text-foreground transition-colors duration-300;
-  }
+	* {
+		@apply border-border;
+	}
 
-  /* Smooth transitions for theme changes */
-  *, *::before, *::after {
-    transition: 
-      background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-      border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-      color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-      fill 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-      stroke 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-      opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-      box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-      transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  }
+	html {
+		transition: color-scheme 0.3s ease-in-out;
+	}
+
+	body {
+		@apply bg-background text-foreground transition-colors duration-300;
+	}
+
+	/* Smooth transitions for theme changes */
+	*,
+	*::before,
+	*::after {
+		transition: background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+			border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+			color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+			fill 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+			stroke 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+			opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+			box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+			transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+	}
 }
 
 /* Fix para z-index de Leaflet vs Modales */
 .leaflet-pane {
-  z-index: 1 !important;
+	z-index: 1 !important;
 }
 
 .leaflet-container {
-  z-index: 1 !important;
+	z-index: 1 !important;
 }
 
 .leaflet-control-container {
-  z-index: 2 !important;
+	z-index: 2 !important;
 }
 
 /* Asegurar que los modales estén por encima */
 [data-radix-popper-content-wrapper] {
-  z-index: 10000 !important;
+	z-index: 10000 !important;
 }

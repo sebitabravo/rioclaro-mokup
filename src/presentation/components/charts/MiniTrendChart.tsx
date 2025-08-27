@@ -2,8 +2,19 @@ import { LineChart, Line, ResponsiveContainer, Area, AreaChart } from "recharts"
 import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
 
+interface ChartDataPoint {
+  value: number;
+  timestamp?: string;
+  [key: string]: unknown;
+}
+
+interface SimplifiedDataPoint {
+  index: number;
+  value: number;
+}
+
 interface MiniTrendChartProps {
-  data: any[];
+  data: ChartDataPoint[];
   color: string;
   height?: number;
   animated?: boolean;
@@ -17,8 +28,7 @@ export function MiniTrendChart({
   animated = true, 
   type = 'line' 
 }: MiniTrendChartProps) {
-  const [animatedData, setAnimatedData] = useState<any[]>([]);
-  const [isVisible, setIsVisible] = useState(false);
+  const [animatedData, setAnimatedData] = useState<SimplifiedDataPoint[]>([]);
 
   // Simplificar datos para mini gráfico (solo últimos 8 puntos)
   const simplifiedData = data.slice(-8).map((item, index) => ({
@@ -37,7 +47,6 @@ export function MiniTrendChart({
     
     // Animación progresiva de datos
     const timer = setTimeout(() => {
-      setIsVisible(true);
       let currentIndex = 0;
       const interval = setInterval(() => {
         if (currentIndex < simplifiedData.length) {
@@ -52,7 +61,7 @@ export function MiniTrendChart({
     }, 100);
 
     return () => clearTimeout(timer);
-  }, [data, animated, simplifiedData.length]);
+  }, [data, animated, simplifiedData]);
 
   const chartData = animated ? animatedData : simplifiedData;
 

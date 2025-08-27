@@ -254,7 +254,7 @@ export class ExportService {
         5: { cellWidth: 25 }, // Estación
       },
       margin: { left: 10, right: 10 },
-      didDrawPage: (data: any) => {
+      didDrawPage: (data: { pageNumber: number }) => {
         // Footer en cada página
         this.addPDFFooter(doc, pageWidth, pageHeight, data.pageNumber);
       }

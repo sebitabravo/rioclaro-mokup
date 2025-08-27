@@ -83,7 +83,7 @@ export const useStationStore = create<StationState>((set, get) => ({
   createStation: async (stationData: CreateStationData) => {
     set({ loading: true, error: null });
     try {
-      const container = DIContainer.getInstance();
+      // const container = DIContainer.getInstance();
       // Necesitamos crear el use case para crear estación
       // Por ahora simulamos la creación
       const newStation: Station = {

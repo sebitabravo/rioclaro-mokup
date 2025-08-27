@@ -33,7 +33,7 @@ const animations = {
       transition: { 
         repeat: Infinity, 
         duration: 0.6,
-        ease: 'easeInOut'
+        ease: "easeInOut" as const
       }
     },
     tap: { scale: 0.95 }

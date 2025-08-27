@@ -1,15 +1,14 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import { divIcon } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import type { Station } from '@domain/entities/Station';
 import { formatWaterLevel, formatDateTime } from '@shared/utils/formatters';
 import { AlertTriangle, AlertCircle } from 'lucide-react';
-import { motion } from 'framer-motion';
 
 // Fix for default markers in React Leaflet
 import { Icon } from 'leaflet';
-delete (Icon.Default.prototype as any)._getIconUrl;
+delete (Icon.Default.prototype as unknown as { _getIconUrl: unknown })._getIconUrl;
 Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
   iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
@@ -33,29 +32,6 @@ interface MapUpdaterProps {
 function MapUpdater({ center, zoom, stations }: MapUpdaterProps) {
   const map = useMap();
   
-  const calculateBounds = () => {
-    if (stations.length === 0) return;
-    
-    const latitudes = stations.map(s => s.latitude);
-    const longitudes = stations.map(s => s.longitude);
-    
-    const minLat = Math.min(...latitudes);
-    const maxLat = Math.max(...latitudes);
-    const minLng = Math.min(...longitudes);
-    const maxLng = Math.max(...longitudes);
-    
-    // Añadir padding para que los markers no estén en los bordes
-    const latPadding = (maxLat - minLat) * 0.1 || 0.01;
-    const lngPadding = (maxLng - minLng) * 0.1 || 0.01;
-    
-    const bounds = [
-      [minLat - latPadding, minLng - lngPadding],
-      [maxLat + latPadding, maxLng + lngPadding]
-    ] as [[number, number], [number, number]];
-    
-    return bounds;
-  };
-
   useEffect(() => {
     // Forzar invalidación del tamaño del mapa
     setTimeout(() => {
@@ -63,6 +39,29 @@ function MapUpdater({ center, zoom, stations }: MapUpdaterProps) {
     }, 100);
     
     if (stations.length > 0) {
+      const calculateBounds = () => {
+        if (stations.length === 0) return;
+        
+        const latitudes = stations.map(s => s.latitude);
+        const longitudes = stations.map(s => s.longitude);
+        
+        const minLat = Math.min(...latitudes);
+        const maxLat = Math.max(...latitudes);
+        const minLng = Math.min(...longitudes);
+        const maxLng = Math.max(...longitudes);
+        
+        // Añadir padding para que los markers no estén en los bordes
+        const latPadding = (maxLat - minLat) * 0.1 || 0.01;
+        const lngPadding = (maxLng - minLng) * 0.1 || 0.01;
+        
+        const bounds = [
+          [minLat - latPadding, minLng - lngPadding],
+          [maxLat + latPadding, maxLng + lngPadding]
+        ] as [[number, number], [number, number]];
+        
+        return bounds;
+      };
+
       const bounds = calculateBounds();
       if (bounds) {
         map.fitBounds(bounds, { padding: [20, 20] });
@@ -86,7 +85,7 @@ export function StationsMap({
   const [mapZoom, setMapZoom] = useState(zoom);
 
   // Calcular el centro basado en las estaciones
-  const calculateStationsCenter = (): [number, number] => {
+  const calculateStationsCenter = useCallback((): [number, number] => {
     if (stations.length === 0) return center;
     
     const latitudes = stations.map(s => s.latitude);
@@ -96,7 +95,7 @@ export function StationsMap({
     const avgLng = longitudes.reduce((a, b) => a + b, 0) / longitudes.length;
     
     return [avgLat, avgLng];
-  };
+  }, [stations, center]);
 
   // Auto-centrar en las estaciones cuando se cargan
   useEffect(() => {
@@ -104,7 +103,7 @@ export function StationsMap({
       const stationsCenter = calculateStationsCenter();
       setMapCenter(stationsCenter);
     }
-  }, [stations]);
+  }, [stations, calculateStationsCenter]);
 
   // Forzar actualización del tamaño cuando la altura cambie
   useEffect(() => {
