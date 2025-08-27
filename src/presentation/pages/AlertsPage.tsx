@@ -228,7 +228,7 @@ export function AlertsPage() {
                         key={station.id}
                         className={`p-4 rounded-lg border ${
                           stationAlerts.some(a => a.type === 'critical') 
-                            ? 'border-gov-secondary bg-red-50'
+                            ? 'border-gov-secondary bg-gov-secondary/10'
                             : stationAlerts.some(a => a.type === 'warning')
                             ? 'border-gov-orange bg-orange-50'
                             : 'border-gov-accent bg-gov-white'
@@ -362,8 +362,8 @@ export function AlertsPage() {
                     className={`flex items-center justify-between p-4 rounded-lg border ${
                       module.active
                         ? module.required
-                          ? 'bg-blue-50 border-blue-200'
-                          : 'bg-green-50 border-green-200'
+                          ? 'bg-gov-primary/10 border-gov-primary/30'
+                          : 'bg-gov-green/10 border-gov-green/30'
                         : 'bg-gov-white border-gov-accent'
                     }`}
                   >
@@ -375,7 +375,7 @@ export function AlertsPage() {
                         <p className="font-medium text-gov-black">{module.name}</p>
                         <p className="text-sm text-gov-gray-b">{module.description}</p>
                         {module.required && (
-                          <p className="text-xs text-blue-600 mt-1">* Módulo obligatorio</p>
+                          <p className="text-xs text-gov-primary mt-1">* Módulo obligatorio</p>
                         )}
                       </div>
                     </div>
@@ -383,7 +383,7 @@ export function AlertsPage() {
                     <div className="flex items-center space-x-3">
                       <div className={`text-sm font-medium ${
                         module.active 
-                          ? module.required ? 'text-blue-600' : 'text-gov-green'
+                          ? module.required ? 'text-gov-primary' : 'text-gov-green'
                           : 'text-gov-gray-a'
                       }`}>
                         {module.active ? 'Activo' : 'Inactivo'}

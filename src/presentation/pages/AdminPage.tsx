@@ -3,7 +3,7 @@ import { Navbar } from "@presentation/components/layout/Navbar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@presentation/components/ui/card";
 import { Button } from "@presentation/components/ui/button";
 import { Input } from "@presentation/components/ui/input";
-import { Users, MapPin, UserCheck, Plus, Edit, Trash2, AlertTriangle, X, Check } from "lucide-react";
+import { Users, MapPin, UserCheck, Plus, Edit, Trash2, AlertTriangle, X, Settings, CheckCircle, AlertCircle } from "lucide-react";
 import { useUserStore } from "@presentation/stores/UserStore";
 import { useStationStore } from "@presentation/stores/StationStore";
 import type { User } from "@domain/entities/User";
@@ -41,6 +41,71 @@ export function AdminPage() {
     longitude: '',
     threshold: ''
   });
+
+  // Alert-related states
+  const [modules, setModules] = useState([
+    {
+      id: 'water_level',
+      name: 'Monitoreo de Nivel de Agua',
+      description: 'Módulo principal del sistema (obligatorio)',
+      active: true,
+      required: true
+    },
+    {
+      id: 'turbidity',
+      name: 'Monitoreo de Turbidez',
+      description: 'Medición de calidad del agua',
+      active: false,
+      required: false
+    },
+    {
+      id: 'flow_rate',
+      name: 'Monitoreo de Caudal',
+      description: 'Medición de velocidad del agua',
+      active: true,
+      required: false
+    },
+    {
+      id: 'ph_monitoring',
+      name: 'Monitoreo de pH',
+      description: 'Medición de acidez del agua',
+      active: false,
+      required: false
+    },
+    {
+      id: 'temperature',
+      name: 'Monitoreo de Temperatura',
+      description: 'Medición de temperatura del agua',
+      active: true,
+      required: false
+    }
+  ]);
+
+  // Mock data for active alerts
+  const mockActiveAlerts = [
+    {
+      id: 1,
+      station_id: 3,
+      station_name: "Río Claro Sur",
+      type: "critical" as const,
+      message: "Nivel del agua superó el umbral crítico",
+      level: 3.2,
+      threshold: 3.0,
+      status: "active" as const,
+      created_at: "2025-01-13T09:45:00Z"
+    },
+    {
+      id: 2,
+      station_id: 1,
+      station_name: "Río Claro Norte",
+      type: "warning" as const,
+      message: "Nivel del agua se aproxima al umbral",
+      level: 2.8,
+      threshold: 3.0,
+      status: "active" as const,
+      created_at: "2025-01-13T11:20:00Z"
+    }
+  ];
 
   useEffect(() => {
     fetchUsers();
@@ -170,6 +235,17 @@ export function AdminPage() {
     }
   };
 
+  // Alert-related functions
+  const toggleModule = (moduleId: string) => {
+    if (moduleId === 'water_level') return; // Cannot disable main module
+    
+    setModules(prev => prev.map(module => 
+      module.id === moduleId 
+        ? { ...module, active: !module.active }
+        : module
+    ));
+  };
+
   if (usersLoading || stationsLoading) {
     return (
       <div className="min-h-screen bg-gov-neutral">
@@ -197,30 +273,68 @@ export function AdminPage() {
           {/* Tab Navigation */}
           <div className="flex flex-col sm:flex-row gap-2">
             <Button
-              variant={activeTab === "users" ? "default" : "outline"}
+              variant="outline"
               onClick={() => setActiveTab("users")}
-              className="flex items-center space-x-2"
+              className={`flex items-center space-x-2 ${
+                activeTab === "users"
+                  ? "bg-gov-primary text-white border-gov-primary hover:bg-gov-primary/90"
+                  : "bg-white text-gov-black border-gov-accent hover:bg-gov-accent hover:text-gov-black"
+              }`}
             >
               <Users className="h-4 w-4" />
               <span>Usuarios</span>
             </Button>
             
             <Button
-              variant={activeTab === "stations" ? "default" : "outline"}
+              variant="outline"
               onClick={() => setActiveTab("stations")}
-              className="flex items-center space-x-2"
+              className={`flex items-center space-x-2 ${
+                activeTab === "stations"
+                  ? "bg-gov-primary text-white border-gov-primary hover:bg-gov-primary/90"
+                  : "bg-white text-gov-black border-gov-accent hover:bg-gov-accent hover:text-gov-black"
+              }`}
             >
               <MapPin className="h-4 w-4" />
               <span>Estaciones</span>
             </Button>
             
             <Button
-              variant={activeTab === "assignments" ? "default" : "outline"}
+              variant="outline"
               onClick={() => setActiveTab("assignments")}
-              className="flex items-center space-x-2"
+              className={`flex items-center space-x-2 ${
+                activeTab === "assignments"
+                  ? "bg-gov-primary text-white border-gov-primary hover:bg-gov-primary/90"
+                  : "bg-white text-gov-black border-gov-accent hover:bg-gov-accent hover:text-gov-black"
+              }`}
             >
               <UserCheck className="h-4 w-4" />
               <span>Asignaciones</span>
+            </Button>
+            
+            <Button
+              variant="outline"
+              onClick={() => setActiveTab("alerts")}
+              className={`flex items-center space-x-2 ${
+                activeTab === "alerts"
+                  ? "bg-gov-primary text-white border-gov-primary hover:bg-gov-primary/90"
+                  : "bg-white text-gov-black border-gov-accent hover:bg-gov-accent hover:text-gov-black"
+              }`}
+            >
+              <AlertTriangle className="h-4 w-4" />
+              <span>Alertas</span>
+            </Button>
+            
+            <Button
+              variant="outline"
+              onClick={() => setActiveTab("modules")}
+              className={`flex items-center space-x-2 ${
+                activeTab === "modules"
+                  ? "bg-gov-primary text-white border-gov-primary hover:bg-gov-primary/90"
+                  : "bg-white text-gov-black border-gov-accent hover:bg-gov-accent hover:text-gov-black"
+              }`}
+            >
+              <Settings className="h-4 w-4" />
+              <span>Módulos</span>
             </Button>
           </div>
 
@@ -690,6 +804,135 @@ export function AdminPage() {
                             ) : null;
                           })}
                         </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Alerts Tab */}
+          {activeTab === "alerts" && (
+            <div className="space-y-6">
+              {/* Alertas Activas */}
+              <Card className="bg-gov-white border-gov-accent">
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2 text-gov-secondary">
+                    <AlertTriangle className="h-5 w-5" />
+                    <span>Alertas Activas ({mockActiveAlerts.length})</span>
+                  </CardTitle>
+                  <CardDescription>Estado actual de las alertas del sistema</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {mockActiveAlerts.length === 0 ? (
+                      <div className="text-center py-8">
+                        <CheckCircle className="h-12 w-12 mx-auto text-gov-green mb-4" />
+                        <p className="text-gov-gray-a">No hay alertas activas</p>
+                      </div>
+                    ) : (
+                      mockActiveAlerts.map((alert) => (
+                        <div
+                          key={alert.id}
+                          className={`p-4 rounded-lg text-white ${
+                            alert.type === 'critical' ? 'bg-gov-secondary' : 'bg-gov-orange'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-3">
+                              {alert.type === 'critical' ? (
+                                <AlertTriangle className="h-5 w-5" />
+                              ) : (
+                                <AlertCircle className="h-5 w-5" />
+                              )}
+                              <div>
+                                <p className="font-medium">{alert.station_name}</p>
+                                <p className="text-sm opacity-90">
+                                  {alert.message} ({alert.level}m {alert.type === 'critical' ? '>' : '≈'} {alert.threshold}m)
+                                </p>
+                                <p className="text-xs opacity-75 mt-1">
+                                  {new Date(alert.created_at).toLocaleString('es-CL')}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <div className={`px-2 py-1 rounded text-xs font-medium ${
+                                alert.type === 'critical' ? 'bg-white text-gov-secondary' : 'bg-white text-gov-orange'
+                              }`}>
+                                {alert.type === 'critical' ? 'CRÍTICO' : 'ADVERTENCIA'}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          {/* Modules Tab */}
+          {activeTab === "modules" && (
+            <Card className="bg-gov-white border-gov-accent">
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2 text-gov-black">
+                  <Settings className="h-5 w-5 text-gov-primary" />
+                  <span>Configuración de Módulos</span>
+                </CardTitle>
+                <CardDescription>
+                  Activa o desactiva módulos del sistema de monitoreo
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {modules.map((module) => (
+                    <div
+                      key={module.id}
+                      className={`flex items-center justify-between p-4 rounded-lg border ${
+                        module.active
+                          ? module.required
+                            ? 'bg-gov-primary/10 border-gov-primary/30'
+                            : 'bg-gov-green/10 border-gov-green/30'
+                          : 'bg-gov-white border-gov-accent'
+                      }`}
+                    >
+                      <div className="flex items-center space-x-3">
+                        <div className={`w-3 h-3 rounded-full ${
+                          module.active ? 'bg-gov-green' : 'bg-gov-gray-a'
+                        }`} />
+                        <div>
+                          <p className="font-medium text-gov-black">{module.name}</p>
+                          <p className="text-sm text-gov-gray-b">{module.description}</p>
+                          {module.required && (
+                            <p className="text-xs text-gov-primary mt-1">* Módulo obligatorio</p>
+                          )}
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center space-x-3">
+                        <div className={`text-sm font-medium ${
+                          module.active 
+                            ? module.required ? 'text-gov-primary' : 'text-gov-green'
+                            : 'text-gov-gray-a'
+                        }`}>
+                          {module.active ? 'Activo' : 'Inactivo'}
+                        </div>
+                        
+                        {!module.required && (
+                          <Button
+                            variant={module.active ? "outline" : "default"}
+                            size="sm"
+                            onClick={() => toggleModule(module.id)}
+                            className={module.active 
+                              ? "bg-transparent border-gov-secondary text-gov-secondary hover:bg-gov-secondary hover:text-white" 
+                              : "bg-gov-green text-white hover:bg-gov-green/90"
+                            }
+                          >
+                            {module.active ? 'Desactivar' : 'Activar'}
+                          </Button>
+                        )}
                       </div>
                     </div>
                   ))}
