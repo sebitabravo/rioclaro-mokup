@@ -122,7 +122,7 @@ export function StationsMap({
     if (station.current_level > station.threshold) {
       return 'critical';
     }
-    if (station.current_level > station.threshold * 0.85) {
+    if (station.current_level > station.threshold * 0.8) {
       return 'warning';
     }
     return 'normal';
@@ -203,6 +203,18 @@ export function StationsMap({
   const centerMapOnStation = (station: Station) => {
     setMapCenter([station.latitude, station.longitude]);
     setMapZoom(15);
+  };
+
+  // Función para restablecer la vista por defecto
+  const resetMapView = () => {
+    if (stations.length > 0) {
+      const stationsCenter = calculateStationsCenter();
+      setMapCenter(stationsCenter);
+      setMapZoom(12);
+    } else {
+      setMapCenter([-39.2851, -71.9374]);
+      setMapZoom(13);
+    }
   };
 
   return (
@@ -287,7 +299,12 @@ export function StationsMap({
                 click: () => handleMarkerClick(station),
               }}
             >
-              <Popup className="custom-popup">
+              <Popup 
+                className="custom-popup"
+                eventHandlers={{
+                  remove: () => resetMapView(),
+                }}
+              >
                 <div className="p-0 min-w-[280px] bg-white rounded-lg overflow-hidden shadow-xl">
                   {/* Header con gradiente - más compacto */}
                   <div className={`px-3 py-2 text-white relative ${
@@ -321,73 +338,108 @@ export function StationsMap({
                     </div>
 
                     {/* Métricas principales - más compactas */}
-                    <div className="grid grid-cols-2 gap-2">
-                      <div className="bg-gray-50 rounded-lg p-2 text-center">
-                        <div className="text-xs text-gov-gray-a uppercase tracking-wide font-medium mb-0.5">Nivel Actual</div>
-                        <div className={`text-base font-bold leading-tight ${
-                          station.current_level > station.threshold ? 'text-gov-secondary' : 'text-gov-green'
-                        }`}>
-                          {formatWaterLevel(station.current_level)}
+                    {station.status === 'maintenance' ? (
+                      // Mostrar aviso especial para estaciones en mantenimiento
+                      <div className="bg-gray-100 border border-gray-300 rounded-lg p-2 text-center">
+                        <div className="text-sm text-gov-gray-a mb-1">🔧 En Mantenimiento</div>
+                        <div className="text-xs text-gov-gray-b">
+                          Último dato: {formatWaterLevel(station.current_level)}
                         </div>
                       </div>
-                      
-                      <div className="bg-orange-50 rounded-lg p-2 text-center">
-                        <div className="text-xs text-gov-gray-a uppercase tracking-wide font-medium mb-0.5">Umbral</div>
-                        <div className="text-base font-bold leading-tight text-gov-orange">
-                          {formatWaterLevel(station.threshold)}
+                    ) : (
+                      // Mostrar métricas normales para estaciones activas
+                      <div className="grid grid-cols-2 gap-2">
+                        <div className="bg-gray-50 rounded-lg p-2 text-center">
+                          <div className="text-xs text-gov-gray-a uppercase tracking-wide font-medium mb-0.5">Nivel Actual</div>
+                          <div className={`text-base font-bold leading-tight ${
+                            station.current_level > station.threshold ? 'text-gov-secondary' : 'text-gov-green'
+                          }`}>
+                            {formatWaterLevel(station.current_level)}
+                          </div>
                         </div>
-                      </div>
-                    </div>
-
-                    {/* Barra de progreso del nivel - más compacta */}
-                    <div className="space-y-1">
-                      <div className="flex justify-between text-xs">
-                        <span className="text-gov-gray-a">Nivel de riesgo</span>
-                        <span className="font-medium text-gov-black">
-                          {((station.current_level / station.threshold) * 100).toFixed(0)}%
-                        </span>
-                      </div>
-                      <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
-                        <div
-                          className={`h-full transition-all duration-300 ${
-                            station.current_level > station.threshold ? 'bg-gov-secondary' :
-                            station.current_level > station.threshold * 0.8 ? 'bg-gov-orange' : 'bg-gov-green'
-                          }`}
-                          style={{
-                            width: `${Math.min((station.current_level / station.threshold) * 100, 100)}%`
-                          }}
-                        />
-                      </div>
-                    </div>
-
-                    {/* Última medición - más compacta */}
-                    <div className="bg-blue-50 rounded-lg p-2">
-                      <div className="text-xs text-gov-gray-a uppercase tracking-wide font-medium mb-0.5">Última medición</div>
-                      <div className="text-xs text-gov-black font-medium leading-tight">
-                        {formatDateTime(station.last_measurement)}
-                      </div>
-                    </div>
-
-                    {/* Alertas - más compactas */}
-                    {status === 'critical' && (
-                      <div className="bg-red-50 border border-red-200 rounded-lg p-2">
-                        <div className="flex items-center space-x-1.5 text-gov-secondary">
-                          <AlertTriangle className="h-3 w-3" />
-                          <span className="font-semibold text-xs">¡NIVEL CRÍTICO SUPERADO!</span>
+                        
+                        <div className="bg-orange-50 rounded-lg p-2 text-center">
+                          <div className="text-xs text-gov-gray-a uppercase tracking-wide font-medium mb-0.5">Umbral</div>
+                          <div className="text-base font-bold leading-tight text-gov-orange">
+                            {formatWaterLevel(station.threshold)}
+                          </div>
                         </div>
-                        <p className="text-xs text-gov-secondary mt-0.5 ml-4.5">
-                          Excede umbral por {(station.current_level - station.threshold).toFixed(2)}m
-                        </p>
                       </div>
                     )}
 
-                    {status === 'warning' && (
-                      <div className="bg-orange-50 border border-orange-200 rounded-lg p-2">
-                        <div className="flex items-center space-x-1.5 text-gov-orange">
-                          <AlertCircle className="h-3 w-3" />
-                          <span className="font-semibold text-xs">NIVEL DE ADVERTENCIA</span>
+                    {/* Barra de progreso del nivel - solo para estaciones activas */}
+                    {station.status === 'active' && (
+                      <div className="space-y-1">
+                        <div className="flex justify-between text-xs">
+                          <span className="text-gov-gray-a">Nivel de riesgo</span>
+                          <span className="font-medium text-gov-black">
+                            {((station.current_level / station.threshold) * 100).toFixed(0)}%
+                          </span>
+                        </div>
+                        <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                          <div
+                            className={`h-full transition-all duration-300 ${
+                              station.current_level > station.threshold ? 'bg-gov-secondary' :
+                              station.current_level > station.threshold * 0.8 ? 'bg-gov-orange' : 'bg-gov-green'
+                            }`}
+                            style={{
+                              width: `${Math.min((station.current_level / station.threshold) * 100, 100)}%`
+                            }}
+                          />
                         </div>
                       </div>
+                    )}
+
+                    {/* Última medición - más compacta */}
+                    <div className={`rounded-lg p-2 ${
+                      station.status === 'maintenance' ? 'bg-gray-100 border border-gray-300' : 'bg-blue-50'
+                    }`}>
+                      <div className="text-xs text-gov-gray-a uppercase tracking-wide font-medium mb-0.5">
+                        {station.status === 'maintenance' ? 'Última medición (antes del mantenimiento)' : 'Última medición'}
+                      </div>
+                      <div className={`text-xs font-medium leading-tight ${
+                        station.status === 'maintenance' ? 'text-gov-gray-a' : 'text-gov-black'
+                      }`}>
+                        {formatDateTime(station.last_measurement)}
+                      </div>
+                      {station.status === 'maintenance' && (
+                        <div className="mt-1 text-xs text-gov-gray-b italic">
+                          Datos no actualizados durante mantenimiento
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Alertas - más compactas */}
+                    {station.status === 'maintenance' ? (
+                      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-1.5">
+                        <div className="flex items-center space-x-1.5 text-yellow-600">
+                          <AlertCircle className="h-3 w-3" />
+                          <span className="font-semibold text-xs">MANTENIMIENTO</span>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        {status === 'critical' && (
+                          <div className="bg-red-50 border border-red-200 rounded-lg p-2">
+                            <div className="flex items-center space-x-1.5 text-gov-secondary">
+                              <AlertTriangle className="h-3 w-3" />
+                              <span className="font-semibold text-xs">¡NIVEL CRÍTICO SUPERADO!</span>
+                            </div>
+                            <p className="text-xs text-gov-secondary mt-0.5 ml-4.5">
+                              Excede umbral por {(station.current_level - station.threshold).toFixed(2)}m
+                            </p>
+                          </div>
+                        )}
+
+                        {status === 'warning' && (
+                          <div className="bg-orange-50 border border-orange-200 rounded-lg p-2">
+                            <div className="flex items-center space-x-1.5 text-gov-orange">
+                              <AlertCircle className="h-3 w-3" />
+                              <span className="font-semibold text-xs">NIVEL DE ADVERTENCIA</span>
+                            </div>
+                          </div>
+                        )}
+                      </>
                     )}
                   </div>
                   
