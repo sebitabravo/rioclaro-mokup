@@ -82,9 +82,9 @@ export function ReportsPage() {
 
       <main className="container mx-auto px-4 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2 text-gov-black">Reportes</h1>
+          <h1 className="text-3xl font-bold mb-2 text-gov-black">Análisis de Datos</h1>
           <p className="text-lg text-gov-gray-a">
-            Análisis y reportes históricos del sistema de monitoreo
+            Análisis estadísticos, tendencias y reportes técnicos del monitoreo hídrico
           </p>
         </div>
 
