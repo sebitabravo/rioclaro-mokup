@@ -180,12 +180,12 @@ export function MapPage() {
                 </div>
 
                 {summary.critical > 0 && (
-                  <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                  <div className="mt-4 p-3 bg-gov-secondary/10 border border-gov-secondary/30 rounded-lg">
                     <div className="flex items-center space-x-2 text-gov-secondary mb-2">
                       <AlertTriangle className="h-4 w-4" />
                       <span className="text-sm font-medium">¡Alerta Crítica!</span>
                     </div>
-                    <p className="text-xs text-red-700">
+                    <p className="text-xs text-gov-secondary">
                       {summary.critical} estación{summary.critical > 1 ? 'es' : ''} 
                       {summary.critical > 1 ? ' superan' : ' supera'} el umbral crítico
                     </p>
@@ -242,12 +242,12 @@ export function MapPage() {
                   </div>
 
                   {selectedStation.current_level > selectedStation.threshold && (
-                    <div className="mt-3 p-2 bg-red-50 border border-red-200 rounded text-center">
+                    <div className="mt-3 p-2 bg-gov-secondary/10 border border-gov-secondary/30 rounded text-center">
                       <div className="flex items-center justify-center space-x-1 text-gov-secondary">
                         <AlertTriangle className="h-4 w-4" />
                         <span className="font-medium text-xs">NIVEL CRÍTICO</span>
                       </div>
-                      <p className="text-xs text-red-700 mt-1">
+                      <p className="text-xs text-gov-secondary mt-1">
                         Excede por {(selectedStation.current_level - selectedStation.threshold).toFixed(2)}m
                       </p>
                     </div>

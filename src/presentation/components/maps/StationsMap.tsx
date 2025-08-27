@@ -337,12 +337,12 @@ export function StationsMap({
                     </div>
 
                     {status === 'critical' && (
-                      <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded text-center">
+                      <div className="mt-2 p-2 bg-gov-secondary/10 border border-gov-secondary/30 rounded text-center">
                         <div className="flex items-center justify-center space-x-1 text-gov-secondary">
                           <AlertTriangle className="h-4 w-4" />
                           <span className="font-medium text-xs">¡NIVEL CRÍTICO SUPERADO!</span>
                         </div>
-                        <p className="text-xs text-red-700 mt-1">
+                        <p className="text-xs text-gov-secondary mt-1">
                           Excede umbral por {(station.current_level - station.threshold).toFixed(2)}m
                         </p>
                       </div>

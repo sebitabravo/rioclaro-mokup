@@ -85,7 +85,7 @@ export function HomePage() {
             <CardHeader className="text-center">
               <MapPin className="h-8 w-8 mx-auto mb-2" />
               <CardTitle className="text-2xl md:text-3xl font-bold">3</CardTitle>
-              <CardDescription className="text-blue-100">Estaciones Activas</CardDescription>
+              <CardDescription className="text-gov-white/70">Estaciones Activas</CardDescription>
             </CardHeader>
           </Card>
 
@@ -93,7 +93,7 @@ export function HomePage() {
             <CardHeader className="text-center">
               <TrendingUp className="h-8 w-8 mx-auto mb-2" />
               <CardTitle className="text-2xl md:text-3xl font-bold">2.45m</CardTitle>
-              <CardDescription className="text-green-100">Nivel Promedio Actual</CardDescription>
+              <CardDescription className="text-gov-white/70">Nivel Promedio Actual</CardDescription>
             </CardHeader>
           </Card>
 
@@ -101,7 +101,7 @@ export function HomePage() {
             <CardHeader className="text-center">
               <AlertTriangle className="h-8 w-8 mx-auto mb-2" />
               <CardTitle className="text-2xl md:text-3xl font-bold">1</CardTitle>
-              <CardDescription className="text-red-100">Alerta Activa</CardDescription>
+              <CardDescription className="text-gov-white/70">Alerta Activa</CardDescription>
             </CardHeader>
           </Card>
         </div>
