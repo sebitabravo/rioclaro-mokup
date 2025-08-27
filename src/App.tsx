@@ -7,15 +7,21 @@ import { ActivityReportPage } from '@presentation/pages/ActivityReportPage'
 import { AdminPage } from '@presentation/pages/AdminPage'
 
 const pageVariants = {
-  initial: { opacity: 0, x: 20 },
-  in: { opacity: 1, x: 0 },
-  out: { opacity: 0, x: -20 }
+  initial: { 
+    opacity: 0
+  },
+  in: { 
+    opacity: 1
+  },
+  out: { 
+    opacity: 0
+  }
 }
 
 const pageTransition = {
   type: 'tween' as const,
-  ease: 'anticipate' as const,
-  duration: 0.4
+  ease: 'easeInOut' as const,
+  duration: 0.2
 }
 
 function AnimatedRoute({ children }: { children: React.ReactNode }) {

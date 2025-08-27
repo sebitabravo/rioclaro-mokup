@@ -5,6 +5,7 @@ import 'leaflet/dist/leaflet.css';
 import type { Station } from '@domain/entities/Station';
 import { formatWaterLevel, formatDateTime } from '@shared/utils/formatters';
 import { AlertTriangle, AlertCircle } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 // Fix for default markers in React Leaflet
 import { Icon } from 'leaflet';
@@ -162,8 +163,53 @@ export function StationsMap({
         break;
     }
 
+    // Add animation classes based on status
+    let animationCSS = '';
+    switch (status) {
+      case 'critical':
+        animationCSS = `
+          animation: critical-pulse 1.5s infinite ease-in-out;
+          @keyframes critical-pulse {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+            50% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+          }
+        `;
+        break;
+      case 'warning':
+        animationCSS = `
+          animation: warning-shake 2s infinite ease-in-out;
+          @keyframes warning-shake {
+            0%, 90%, 100% { transform: translateX(0) scale(1); }
+            10%, 30%, 50%, 70% { transform: translateX(-2px) scale(1.02); }
+            20%, 40%, 60%, 80% { transform: translateX(2px) scale(1.02); }
+          }
+        `;
+        break;
+      case 'normal':
+        animationCSS = `
+          animation: normal-pulse 2s infinite ease-in-out;
+          @keyframes normal-pulse {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4); }
+            50% { transform: scale(1.02); box-shadow: 0 0 0 8px rgba(34, 197, 94, 0); }
+          }
+        `;
+        break;
+      case 'maintenance':
+        animationCSS = `
+          animation: maintenance-blink 3s infinite ease-in-out;
+          @keyframes maintenance-blink {
+            0%, 50%, 100% { opacity: 1; }
+            25%, 75% { opacity: 0.6; }
+          }
+        `;
+        break;
+    }
+
     return divIcon({
       html: `
+        <style>
+          ${animationCSS}
+        </style>
         <div style="
           background-color: ${color};
           width: 30px;
@@ -178,10 +224,12 @@ export function StationsMap({
           color: white;
           font-weight: bold;
           cursor: pointer;
-          transition: transform 0.2s ease;
+          transition: all 0.2s ease;
+          position: relative;
         " 
-        onmouseover="this.style.transform='scale(1.1)'"
-        onmouseout="this.style.transform='scale(1)'"
+        class="station-marker-${status}"
+        onmouseover="this.style.transform='scale(1.1)'; this.style.zIndex='1000'"
+        onmouseout="this.style.transform='scale(1)'; this.style.zIndex='auto'"
         >
           <span style="filter: drop-shadow(0 1px 1px rgba(0,0,0,0.5));">
             ${iconSymbol}
