@@ -92,22 +92,28 @@ export const mockUsers: User[] = [
   },
 ];
 
-export const mockMeasurements: Measurement[] = Array.from({ length: 24 }, (_, i) => ({
-  id: i + 1,
-  station: 1,
-  station_name: "Estación Río Claro Norte",
-  variable_type: "water_level",
-  value: 2.3 + Math.sin(i * 0.5) * 0.4 + Math.random() * 0.2,
-  unit: "m",
-  timestamp: new Date(Date.now() - (23 - i) * 60 * 60 * 1000).toISOString(),
-  is_critical: false,
-  quality: "good",
-}));
+export const mockMeasurements: Measurement[] = Array.from({ length: 72 }, (_, i) => {
+  const stationId = (i % 3) + 1; // Distribuir entre estaciones 1, 2, 3
+  const stationNames = ["Estación Río Claro Norte", "Estación Río Claro Centro", "Estación Río Claro Sur"];
+  const baseValues = [2.3, 1.8, 3.1]; // Valores base por estación
+  
+  return {
+    id: i + 1,
+    station_id: stationId,
+    station_name: stationNames[stationId - 1],
+    variable_type: "water_level",
+    value: baseValues[stationId - 1] + Math.sin(i * 0.3) * 0.4 + Math.random() * 0.3 - 0.15,
+    unit: "m",
+    timestamp: new Date(Date.now() - (71 - i) * 60 * 60 * 1000).toISOString(),
+    is_critical: false,
+    quality: "good",
+  };
+});
 
 export const mockAlerts: Alert[] = [
   {
     id: 1,
-    station: 3,
+    station_id: 3,
     station_name: "Estación Río Claro Sur",
     variable_type: "water_level",
     threshold_value: 3.0,
@@ -120,7 +126,7 @@ export const mockAlerts: Alert[] = [
   },
   {
     id: 2,
-    station: 1,
+    station_id: 1,
     station_name: "Estación Río Claro Norte",
     variable_type: "water_level",
     threshold_value: 3.0,

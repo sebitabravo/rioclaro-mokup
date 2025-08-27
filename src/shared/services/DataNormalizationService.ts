@@ -28,6 +28,19 @@ export enum DataSourceType {
 
 export class DataNormalizationService {
   static normalize(rawData: any[], sourceType: DataSourceType): ChartDataSet {
+    // Validar que rawData sea un array válido
+    if (!rawData || !Array.isArray(rawData)) {
+      return {
+        data: [],
+        metadata: {
+          type: sourceType,
+          source: 'empty',
+          unit: 'm',
+          range: { min: 0, max: 0 }
+        }
+      };
+    }
+
     switch (sourceType) {
       case DataSourceType.MEASUREMENT:
         return this.normalizeMeasurements(rawData);
@@ -59,6 +72,19 @@ export class DataNormalizationService {
   }
 
   private static normalizeMeasurements(data: any[]): ChartDataSet {
+    // Validación adicional por si acaso
+    if (!data || !Array.isArray(data) || data.length === 0) {
+      return {
+        data: [],
+        metadata: {
+          type: 'measurement',
+          source: 'measurements',
+          unit: 'm',
+          range: { min: 0, max: 0 }
+        }
+      };
+    }
+
     const normalizedData = data.map(item => ({
       timestamp: item.timestamp || item.created_at || item.date,
       value: parseFloat(item.value || item.water_level || item.level || 0),

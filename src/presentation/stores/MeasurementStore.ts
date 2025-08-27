@@ -4,39 +4,28 @@ import { DIContainer } from '@infrastructure/di/Container';
 import { DataNormalizationService, ChartDataSet, DataSourceType } from '@shared/services/DataNormalizationService';
 
 interface MeasurementState {
-  latestMeasurements: Measurement[];
-  historicalMeasurements: Measurement[];
+  measurements: Measurement[]; // Unified measurements array
   loading: boolean;
   error: string | null;
-  
-  // Normalized chart data
-  normalizedLatest: ChartDataSet | null;
-  normalizedHistorical: ChartDataSet | null;
   
   // Actions
   fetchLatestMeasurements: (stationId?: number) => Promise<void>;
   fetchHistoricalMeasurements: (filters: MeasurementFilters) => Promise<void>;
-  getNormalizedData: (type: 'latest' | 'historical', sourceType?: DataSourceType) => ChartDataSet;
   clearError: () => void;
 }
 
 export const useMeasurementStore = create<MeasurementState>((set, get) => ({
-  latestMeasurements: [],
-  historicalMeasurements: [],
+  measurements: [],
   loading: false,
   error: null,
-  normalizedLatest: null,
-  normalizedHistorical: null,
 
   fetchLatestMeasurements: async (stationId?: number) => {
     set({ loading: true, error: null });
     try {
       const container = DIContainer.getInstance();
       const measurements = await container.getLatestMeasurementsUseCase.execute(stationId);
-      const normalized = DataNormalizationService.normalize(measurements, DataSourceType.MEASUREMENT);
       set({ 
-        latestMeasurements: measurements, 
-        normalizedLatest: normalized,
+        measurements,
         loading: false 
       });
     } catch (error) {
@@ -52,10 +41,8 @@ export const useMeasurementStore = create<MeasurementState>((set, get) => ({
     try {
       const container = DIContainer.getInstance();
       const measurements = await container.getHistoricalMeasurementsUseCase.execute(filters);
-      const normalized = DataNormalizationService.normalize(measurements, DataSourceType.MEASUREMENT);
       set({ 
-        historicalMeasurements: measurements,
-        normalizedHistorical: normalized,
+        measurements,
         loading: false 
       });
     } catch (error) {
@@ -66,11 +53,6 @@ export const useMeasurementStore = create<MeasurementState>((set, get) => ({
     }
   },
 
-  getNormalizedData: (type: 'latest' | 'historical', sourceType: DataSourceType = DataSourceType.MEASUREMENT) => {
-    const state = get();
-    const data = type === 'latest' ? state.latestMeasurements : state.historicalMeasurements;
-    return DataNormalizationService.normalize(data, sourceType);
-  },
 
   clearError: () => {
     set({ error: null });

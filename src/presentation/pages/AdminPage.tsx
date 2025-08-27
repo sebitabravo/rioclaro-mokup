@@ -3,19 +3,172 @@ import { Navbar } from "@presentation/components/layout/Navbar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@presentation/components/ui/card";
 import { Button } from "@presentation/components/ui/button";
 import { Input } from "@presentation/components/ui/input";
-import { Users, MapPin, UserCheck, Plus, Edit, Trash2 } from "lucide-react";
+import { Users, MapPin, UserCheck, Plus, Edit, Trash2, AlertTriangle, X, Check } from "lucide-react";
 import { useUserStore } from "@presentation/stores/UserStore";
 import { useStationStore } from "@presentation/stores/StationStore";
+import type { User } from "@domain/entities/User";
+import type { Station } from "@domain/entities/Station";
 
 export function AdminPage() {
   const [activeTab, setActiveTab] = useState("users");
-  const { users, loading: usersLoading, fetchUsers } = useUserStore();
-  const { stations, loading: stationsLoading, fetchStations } = useStationStore();
+  const { users, loading: usersLoading, error: userError, fetchUsers, createUser, updateUser, deleteUser } = useUserStore();
+  const { stations, loading: stationsLoading, error: stationError, fetchStations, createStation, updateStation, deleteStation } = useStationStore();
+  
+  // Form states
+  const [showUserForm, setShowUserForm] = useState(false);
+  const [showStationForm, setShowStationForm] = useState(false);
+  const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [editingStation, setEditingStation] = useState<Station | null>(null);
+  const [userToDelete, setUserToDelete] = useState<User | null>(null);
+  const [stationToDelete, setStationToDelete] = useState<Station | null>(null);
+  
+  // Form data states
+  const [userFormData, setUserFormData] = useState({
+    first_name: '',
+    last_name: '',
+    email: '',
+    username: '',
+    role: 'Observador',
+    is_staff: false,
+    is_superuser: false
+  });
+  
+  const [stationFormData, setStationFormData] = useState({
+    name: '',
+    code: '',
+    location: '',
+    latitude: '',
+    longitude: '',
+    threshold: ''
+  });
 
   useEffect(() => {
     fetchUsers();
     fetchStations();
   }, [fetchUsers, fetchStations]);
+
+  // Reset forms when editing changes
+  useEffect(() => {
+    if (editingUser) {
+      setUserFormData({
+        first_name: editingUser.first_name,
+        last_name: editingUser.last_name,
+        email: editingUser.email,
+        username: editingUser.username,
+        role: editingUser.role,
+        is_staff: editingUser.is_staff,
+        is_superuser: editingUser.is_superuser
+      });
+    } else {
+      setUserFormData({
+        first_name: '',
+        last_name: '',
+        email: '',
+        username: '',
+        role: 'Observador',
+        is_staff: false,
+        is_superuser: false
+      });
+    }
+  }, [editingUser]);
+
+  useEffect(() => {
+    if (editingStation) {
+      setStationFormData({
+        name: editingStation.name,
+        code: editingStation.code,
+        location: editingStation.location,
+        latitude: editingStation.latitude.toString(),
+        longitude: editingStation.longitude.toString(),
+        threshold: editingStation.threshold.toString()
+      });
+    } else {
+      setStationFormData({
+        name: '',
+        code: '',
+        location: '',
+        latitude: '',
+        longitude: '',
+        threshold: ''
+      });
+    }
+  }, [editingStation]);
+
+  const handleSubmitUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const userData = {
+        ...userFormData,
+        is_staff: userFormData.role === 'Técnico' || userFormData.role === 'Administrador',
+        is_superuser: userFormData.role === 'Administrador'
+      };
+      
+      if (editingUser) {
+        await updateUser(editingUser.id, userData);
+      } else {
+        await createUser(userData);
+      }
+      
+      setShowUserForm(false);
+      setEditingUser(null);
+      await fetchUsers();
+    } catch (error) {
+      console.error('Error al guardar usuario:', error);
+    }
+  };
+
+  const handleSubmitStation = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const stationData = {
+        name: stationFormData.name,
+        code: stationFormData.code,
+        location: stationFormData.location,
+        latitude: parseFloat(stationFormData.latitude),
+        longitude: parseFloat(stationFormData.longitude),
+        threshold: parseFloat(stationFormData.threshold),
+        current_level: 0,
+        status: 'active' as const,
+        last_measurement: new Date().toISOString()
+      };
+      
+      if (editingStation) {
+        await updateStation(editingStation.id, stationData);
+      } else {
+        await createStation(stationData);
+      }
+      
+      setShowStationForm(false);
+      setEditingStation(null);
+      await fetchStations();
+    } catch (error) {
+      console.error('Error al guardar estación:', error);
+    }
+  };
+
+  const handleDeleteUser = async () => {
+    if (userToDelete) {
+      try {
+        await deleteUser(userToDelete.id);
+        setUserToDelete(null);
+        await fetchUsers();
+      } catch (error) {
+        console.error('Error al eliminar usuario:', error);
+      }
+    }
+  };
+
+  const handleDeleteStation = async () => {
+    if (stationToDelete) {
+      try {
+        await deleteStation(stationToDelete.id);
+        setStationToDelete(null);
+        await fetchStations();
+      } catch (error) {
+        console.error('Error al eliminar estación:', error);
+      }
+    }
+  };
 
   if (usersLoading || stationsLoading) {
     return (
@@ -83,7 +236,13 @@ export function AdminPage() {
                         Administrar usuarios del sistema
                       </CardDescription>
                     </div>
-                    <Button className="bg-gov-primary text-white hover:bg-gov-primary/90">
+                    <Button 
+                      className="bg-gov-primary text-white hover:bg-gov-primary/90"
+                      onClick={() => {
+                        setEditingUser(null);
+                        setShowUserForm(true);
+                      }}
+                    >
                       <Plus className="h-4 w-4 mr-2" />
                       Nuevo Usuario
                     </Button>
@@ -122,10 +281,23 @@ export function AdminPage() {
                               </p>
                             </div>
                             <div className="flex space-x-2">
-                              <Button variant="outline" size="sm" className="bg-transparent border-gov-primary text-gov-primary">
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                className="bg-transparent border-gov-primary text-gov-primary"
+                                onClick={() => {
+                                  setEditingUser(user);
+                                  setShowUserForm(true);
+                                }}
+                              >
                                 <Edit className="h-4 w-4" />
                               </Button>
-                              <Button variant="outline" size="sm" className="bg-transparent border-gov-secondary text-gov-secondary">
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                className="bg-transparent border-gov-secondary text-gov-secondary"
+                                onClick={() => setUserToDelete(user)}
+                              >
                                 <Trash2 className="h-4 w-4" />
                               </Button>
                             </div>
@@ -137,35 +309,118 @@ export function AdminPage() {
                 </CardContent>
               </Card>
 
-              {/* New User Form */}
-              <Card className="bg-gov-white border-gov-accent">
-                <CardHeader>
-                  <CardTitle className="text-gov-black">Crear Nuevo Usuario</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="text-sm font-medium text-gov-black">Nombre</label>
-                      <Input placeholder="Ingrese el nombre" className="mt-1" />
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-gov-black">Apellido</label>
-                      <Input placeholder="Ingrese el apellido" className="mt-1" />
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-gov-black">Email</label>
-                      <Input type="email" placeholder="usuario@digital.gob.cl" className="mt-1" />
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-gov-black">Usuario</label>
-                      <Input placeholder="nombre.usuario" className="mt-1" />
-                    </div>
-                  </div>
-                  <Button className="mt-4 bg-gov-primary text-white hover:bg-gov-primary/90">
-                    Crear Usuario
-                  </Button>
-                </CardContent>
-              </Card>
+              {/* User Form Modal */}
+              {showUserForm && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                  <Card className="bg-gov-white border-gov-accent w-full max-w-md mx-4">
+                    <CardHeader>
+                      <div className="flex items-center justify-between">
+                        <CardTitle className="text-gov-black">
+                          {editingUser ? 'Editar Usuario' : 'Crear Nuevo Usuario'}
+                        </CardTitle>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => {
+                            setShowUserForm(false);
+                            setEditingUser(null);
+                          }}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <form onSubmit={handleSubmitUser} className="space-y-4">
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <label className="text-sm font-medium text-gov-black">Nombre</label>
+                            <Input 
+                              value={userFormData.first_name}
+                              onChange={(e) => setUserFormData(prev => ({ ...prev, first_name: e.target.value }))}
+                              placeholder="Ingrese el nombre" 
+                              className="mt-1" 
+                              required
+                            />
+                          </div>
+                          <div>
+                            <label className="text-sm font-medium text-gov-black">Apellido</label>
+                            <Input 
+                              value={userFormData.last_name}
+                              onChange={(e) => setUserFormData(prev => ({ ...prev, last_name: e.target.value }))}
+                              placeholder="Ingrese el apellido" 
+                              className="mt-1" 
+                              required
+                            />
+                          </div>
+                        </div>
+                        
+                        <div>
+                          <label className="text-sm font-medium text-gov-black">Email</label>
+                          <Input 
+                            type="email" 
+                            value={userFormData.email}
+                            onChange={(e) => setUserFormData(prev => ({ ...prev, email: e.target.value }))}
+                            placeholder="usuario@digital.gob.cl" 
+                            className="mt-1" 
+                            required
+                          />
+                        </div>
+                        
+                        <div>
+                          <label className="text-sm font-medium text-gov-black">Usuario</label>
+                          <Input 
+                            value={userFormData.username}
+                            onChange={(e) => setUserFormData(prev => ({ ...prev, username: e.target.value }))}
+                            placeholder="nombre.usuario" 
+                            className="mt-1" 
+                            required
+                          />
+                        </div>
+                        
+                        <div>
+                          <label className="text-sm font-medium text-gov-black">Rol</label>
+                          <select 
+                            value={userFormData.role}
+                            onChange={(e) => setUserFormData(prev => ({ ...prev, role: e.target.value }))}
+                            className="mt-1 w-full px-3 py-2 border border-gov-accent rounded-md focus:outline-none focus:ring-2 focus:ring-gov-primary"
+                          >
+                            <option value="Observador">Observador</option>
+                            <option value="Técnico">Técnico</option>
+                            <option value="Administrador">Administrador</option>
+                          </select>
+                        </div>
+                        
+                        {userError && (
+                          <div className="p-2 bg-gov-secondary text-white rounded text-sm">
+                            {userError}
+                          </div>
+                        )}
+                        
+                        <div className="flex space-x-2 pt-4">
+                          <Button 
+                            type="submit"
+                            className="flex-1 bg-gov-primary text-white hover:bg-gov-primary/90"
+                            disabled={usersLoading}
+                          >
+                            {usersLoading ? 'Guardando...' : (editingUser ? 'Actualizar' : 'Crear Usuario')}
+                          </Button>
+                          <Button 
+                            type="button"
+                            variant="outline"
+                            onClick={() => {
+                              setShowUserForm(false);
+                              setEditingUser(null);
+                            }}
+                          >
+                            Cancelar
+                          </Button>
+                        </div>
+                      </form>
+                    </CardContent>
+                  </Card>
+                </div>
+              )}
             </div>
           )}
 
@@ -180,7 +435,13 @@ export function AdminPage() {
                       Administrar estaciones de monitoreo
                     </CardDescription>
                   </div>
-                  <Button className="bg-gov-green text-white hover:bg-gov-green/90">
+                  <Button 
+                    className="bg-gov-green text-white hover:bg-gov-green/90"
+                    onClick={() => {
+                      setEditingStation(null);
+                      setShowStationForm(true);
+                    }}
+                  >
                     <Plus className="h-4 w-4 mr-2" />
                     Nueva Estación
                   </Button>
@@ -219,10 +480,23 @@ export function AdminPage() {
                             {station.status === "active" ? "Activa" : "Mantenimiento"}
                           </div>
                           <div className="flex space-x-2">
-                            <Button variant="outline" size="sm" className="bg-transparent border-gov-primary text-gov-primary">
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              className="bg-transparent border-gov-primary text-gov-primary"
+                              onClick={() => {
+                                setEditingStation(station);
+                                setShowStationForm(true);
+                              }}
+                            >
                               <Edit className="h-4 w-4" />
                             </Button>
-                            <Button variant="outline" size="sm" className="bg-transparent border-gov-secondary text-gov-secondary">
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              className="bg-transparent border-gov-secondary text-gov-secondary"
+                              onClick={() => setStationToDelete(station)}
+                            >
                               <Trash2 className="h-4 w-4" />
                             </Button>
                           </div>
@@ -233,6 +507,133 @@ export function AdminPage() {
                 </div>
               </CardContent>
             </Card>
+          )}
+
+          {/* Station Form Modal */}
+          {showStationForm && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+              <Card className="bg-gov-white border-gov-accent w-full max-w-md mx-4">
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-gov-black">
+                      {editingStation ? 'Editar Estación' : 'Nueva Estación'}
+                    </CardTitle>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => {
+                        setShowStationForm(false);
+                        setEditingStation(null);
+                      }}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <form onSubmit={handleSubmitStation} className="space-y-4">
+                    <div>
+                      <label className="text-sm font-medium text-gov-black">Nombre</label>
+                      <Input 
+                        value={stationFormData.name}
+                        onChange={(e) => setStationFormData(prev => ({ ...prev, name: e.target.value }))}
+                        placeholder="Río Claro Norte" 
+                        className="mt-1" 
+                        required
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="text-sm font-medium text-gov-black">Código</label>
+                      <Input 
+                        value={stationFormData.code}
+                        onChange={(e) => setStationFormData(prev => ({ ...prev, code: e.target.value }))}
+                        placeholder="RCN-001" 
+                        className="mt-1" 
+                        required
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="text-sm font-medium text-gov-black">Ubicación</label>
+                      <Input 
+                        value={stationFormData.location}
+                        onChange={(e) => setStationFormData(prev => ({ ...prev, location: e.target.value }))}
+                        placeholder="Sector Norte, km 15" 
+                        className="mt-1" 
+                        required
+                      />
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="text-sm font-medium text-gov-black">Latitud</label>
+                        <Input 
+                          type="number"
+                          step="any"
+                          value={stationFormData.latitude}
+                          onChange={(e) => setStationFormData(prev => ({ ...prev, latitude: e.target.value }))}
+                          placeholder="-36.7485" 
+                          className="mt-1" 
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-gov-black">Longitud</label>
+                        <Input 
+                          type="number"
+                          step="any"
+                          value={stationFormData.longitude}
+                          onChange={(e) => setStationFormData(prev => ({ ...prev, longitude: e.target.value }))}
+                          placeholder="-72.1219" 
+                          className="mt-1" 
+                          required
+                        />
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <label className="text-sm font-medium text-gov-black">Umbral Crítico (m)</label>
+                      <Input 
+                        type="number"
+                        step="0.1"
+                        value={stationFormData.threshold}
+                        onChange={(e) => setStationFormData(prev => ({ ...prev, threshold: e.target.value }))}
+                        placeholder="3.0" 
+                        className="mt-1" 
+                        required
+                      />
+                    </div>
+                    
+                    {stationError && (
+                      <div className="p-2 bg-gov-secondary text-white rounded text-sm">
+                        {stationError}
+                      </div>
+                    )}
+                    
+                    <div className="flex space-x-2 pt-4">
+                      <Button 
+                        type="submit"
+                        className="flex-1 bg-gov-green text-white hover:bg-gov-green/90"
+                        disabled={stationsLoading}
+                      >
+                        {stationsLoading ? 'Guardando...' : (editingStation ? 'Actualizar' : 'Crear Estación')}
+                      </Button>
+                      <Button 
+                        type="button"
+                        variant="outline"
+                        onClick={() => {
+                          setShowStationForm(false);
+                          setEditingStation(null);
+                        }}
+                      >
+                        Cancelar
+                      </Button>
+                    </div>
+                  </form>
+                </CardContent>
+              </Card>
+            </div>
           )}
 
           {/* Assignments Tab */}
@@ -297,6 +698,81 @@ export function AdminPage() {
             </Card>
           )}
         </div>
+
+        {/* Delete Confirmation Modals */}
+        {userToDelete && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <Card className="bg-gov-white border-gov-accent w-full max-w-sm mx-4">
+              <CardHeader>
+                <CardTitle className="text-gov-black flex items-center space-x-2">
+                  <AlertTriangle className="h-5 w-5 text-gov-secondary" />
+                  <span>Confirmar Eliminación</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gov-gray-a mb-4">
+                  ¿Está seguro que desea eliminar al usuario <strong>{userToDelete.first_name} {userToDelete.last_name}</strong>?
+                </p>
+                <p className="text-sm text-gov-gray-b mb-4">
+                  Esta acción no se puede deshacer.
+                </p>
+                <div className="flex space-x-2">
+                  <Button 
+                    onClick={handleDeleteUser}
+                    className="flex-1 bg-gov-secondary text-white hover:bg-gov-secondary/90"
+                    disabled={usersLoading}
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    {usersLoading ? 'Eliminando...' : 'Eliminar'}
+                  </Button>
+                  <Button 
+                    variant="outline"
+                    onClick={() => setUserToDelete(null)}
+                  >
+                    Cancelar
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {stationToDelete && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <Card className="bg-gov-white border-gov-accent w-full max-w-sm mx-4">
+              <CardHeader>
+                <CardTitle className="text-gov-black flex items-center space-x-2">
+                  <AlertTriangle className="h-5 w-5 text-gov-secondary" />
+                  <span>Confirmar Eliminación</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gov-gray-a mb-4">
+                  ¿Está seguro que desea eliminar la estación <strong>{stationToDelete.name}</strong>?
+                </p>
+                <p className="text-sm text-gov-gray-b mb-4">
+                  Esta acción no se puede deshacer y se perderán todos los datos asociados.
+                </p>
+                <div className="flex space-x-2">
+                  <Button 
+                    onClick={handleDeleteStation}
+                    className="flex-1 bg-gov-secondary text-white hover:bg-gov-secondary/90"
+                    disabled={stationsLoading}
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    {stationsLoading ? 'Eliminando...' : 'Eliminar'}
+                  </Button>
+                  <Button 
+                    variant="outline"
+                    onClick={() => setStationToDelete(null)}
+                  >
+                    Cancelar
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
       </main>
     </div>
   );

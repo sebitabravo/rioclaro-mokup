@@ -11,7 +11,7 @@ export class MockMeasurementRepository implements MeasurementRepository {
     let filtered = [...this.measurements];
     
     if (stationId) {
-      filtered = filtered.filter(m => m.station === stationId);
+      filtered = filtered.filter(m => m.station_id === stationId);
     }
     
     // Ordenar por timestamp descendente y tomar los últimos 24
@@ -26,7 +26,7 @@ export class MockMeasurementRepository implements MeasurementRepository {
     let filtered = [...this.measurements];
     
     if (filters.station_id) {
-      filtered = filtered.filter(m => m.station === filters.station_id);
+      filtered = filtered.filter(m => m.station_id === filters.station_id);
     }
     
     if (filters.variable_type) {

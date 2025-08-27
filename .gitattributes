@@ -1,0 +1,10 @@
+# Set the default behavior to automatically normalize line endings
+* text=auto
+
+# Force Unix-style (LF) endings for all text files
+*.js text eol=lf
+*.ts text eol=lf
+*.tsx text eol=lf
+*.json text eol=lf
+*.md text eol=lf
+*.yaml text eol=lf

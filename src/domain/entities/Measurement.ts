@@ -1,6 +1,6 @@
 export interface Measurement {
   id: number;
-  station: number;
+  station_id: number;
   station_name?: string;
   variable_type: string;
   value: number;
