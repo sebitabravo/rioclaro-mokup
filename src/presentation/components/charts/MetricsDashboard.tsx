@@ -66,13 +66,15 @@ export function MetricsDashboard({ measurementData, className = "" }: MetricsDas
                 </CardTitle>
               </CardHeader>
               <CardContent className="pt-0">
-                <MetricChart
-                  rawData={measurementData}
-                  sourceType={DataSourceType.MEASUREMENT}
-                  metricType={metric.id}
-                  height={180}
-                  showLegend={false}
-                />
+                <div className="w-full bg-gray-50 rounded-lg p-2">
+                  <MetricChart
+                    rawData={measurementData}
+                    sourceType={DataSourceType.MEASUREMENT}
+                    metricType={metric.id}
+                    height={180}
+                    showLegend={false}
+                  />
+                </div>
               </CardContent>
             </Card>
           );

@@ -12,37 +12,44 @@ import {
 	Activity,
 	MapPin,
 	AlertTriangle,
-	Droplets
+	Droplets,
+	Waves,
+	BarChart3,
+	Gauge,
+	TrendingUp,
+	TrendingDown
 } from 'lucide-react';
 import { useStationStore } from '@presentation/stores/StationStore';
 import { useMeasurementStore } from '@presentation/stores/MeasurementStore';
 import { formatDateTime, formatWaterLevel } from '@shared/utils/formatters';
-import { MetricsDashboard } from '@presentation/components/charts/MetricsDashboard';
+import { StationsMap } from '@presentation/components/maps/StationsMap';
+import { MiniTrendChart } from '@presentation/components/charts/MiniTrendChart';
+import type { Station } from '@domain/entities/Station';
 
 // Función para generar datos mock de métricas
 function generateMockMetricData() {
 	const now = new Date();
 	const data = [];
 	
-	// Generar datos para las últimas 24 horas
-	for (let i = 23; i >= 0; i--) {
-		const timestamp = new Date(now.getTime() - i * 60 * 60 * 1000);
+	// Generar datos para las últimas 24 horas (cada 2 horas para tener más puntos)
+	for (let i = 11; i >= 0; i--) {
+		const timestamp = new Date(now.getTime() - i * 2 * 60 * 60 * 1000);
 		
-		// Simular diferentes patrones para cada métrica
-		const hour = 23 - i;
-		const baseTime = hour / 24;
+		// Simular diferentes patrones para cada métrica con valores más visibles
+		const hour = 11 - i;
+		const baseTime = hour / 12;
 		
-		// Nivel del agua (patrón de marea + variaciones)
-		const waterLevel = 2.1 + Math.sin(baseTime * Math.PI * 2) * 0.4 + Math.random() * 0.15;
+		// Nivel del agua (rango más amplio: 1.5m - 3.5m)
+		const waterLevel = 2.5 + Math.sin(baseTime * Math.PI * 2) * 0.8 + Math.random() * 0.3;
 		
-		// Flujo (relacionado con nivel pero con más variabilidad)
-		const flow = waterLevel * 1.5 + Math.sin(baseTime * Math.PI * 4) * 0.3 + Math.random() * 0.2;
+		// Flujo (rango: 8-20 m³/s)
+		const flow = 14 + Math.sin(baseTime * Math.PI * 1.5) * 4 + Math.random() * 2;
 		
-		// Caudal (más estable, relacionado con flujo)
-		const flowRate = (flow * 1000) + Math.sin(baseTime * Math.PI * 3) * 50 + Math.random() * 30;
+		// Caudal (rango: 600-1400 L/s)
+		const flowRate = 1000 + Math.sin(baseTime * Math.PI * 2.5) * 300 + Math.random() * 100;
 		
-		// Velocidad (variable, depende del nivel)
-		const velocity = Math.max(0.1, waterLevel * 0.8 + Math.sin(baseTime * Math.PI * 6) * 0.2 + Math.random() * 0.15);
+		// Velocidad (rango: 0.5-2.5 m/s)
+		const velocity = 1.5 + Math.sin(baseTime * Math.PI * 3) * 0.8 + Math.random() * 0.3;
 		
 		data.push({
 			timestamp: timestamp.toISOString(),
@@ -54,7 +61,12 @@ function generateMockMetricData() {
 			water_level: waterLevel,
 			flow: flow,
 			flow_rate: flowRate,
-			velocity: velocity
+			velocity: velocity,
+			// Agregar también con nombres en español para compatibilidad
+			nivel: waterLevel,
+			flujo: flow,
+			caudal: flowRate,
+			velocidad: velocity
 		});
 	}
 	
@@ -211,10 +223,133 @@ export function DashboardPage() {
 						</Card>
 					</div>
 
-					{/* Dashboard de Métricas Especializadas */}
-					<MetricsDashboard 
-						measurementData={mockMetricData}
-					/>
+					{/* Métricas con Mini-Gráficos de Tendencia */}
+					<div className='grid grid-cols-2 md:grid-cols-4 gap-3'>
+						{/* Flujo de Agua */}
+						<Card className='bg-gov-white border-gov-accent'>
+							<CardHeader className='flex flex-row items-center justify-between space-y-0 pb-1'>
+								<CardTitle className='text-sm font-medium text-gov-gray-a'>
+									Flujo
+								</CardTitle>
+								<Waves className='h-4 w-4 text-gov-green' />
+							</CardHeader>
+							<CardContent className='pt-1'>
+								<div className='text-xl font-bold text-gov-green'>
+									{((mockMetricData[mockMetricData.length - 1] as any)?.flow || 14).toFixed(1)} m³/s
+								</div>
+								<div className='h-10 mt-2 mb-1'>
+									<MiniTrendChart 
+										data={mockMetricData.map(d => ({ value: (d as any).flow || 14 }))}
+										color="#16a34a"
+										height={40}
+									/>
+								</div>
+								<div className='flex items-center space-x-1'>
+									<TrendingUp className='h-3 w-3 text-gov-green' />
+									<p className='text-xs text-gov-gray-b'>+2.3% última hora</p>
+								</div>
+							</CardContent>
+						</Card>
+
+						{/* Nivel del Agua */}
+						<Card className='bg-gov-white border-gov-accent'>
+							<CardHeader className='flex flex-row items-center justify-between space-y-0 pb-1'>
+								<CardTitle className='text-sm font-medium text-gov-gray-a'>
+									Nivel
+								</CardTitle>
+								<BarChart3 className='h-4 w-4 text-gov-primary' />
+							</CardHeader>
+							<CardContent className='pt-1'>
+								<div className='text-xl font-bold text-gov-primary'>
+									{((mockMetricData[mockMetricData.length - 1] as any)?.water_level || 2.5).toFixed(1)}m
+								</div>
+								<div className='h-10 mt-2 mb-1'>
+									<MiniTrendChart 
+										data={mockMetricData.map(d => ({ value: (d as any).water_level || 2.5 }))}
+										color="#1e40af"
+										height={40}
+									/>
+								</div>
+								<div className='flex items-center space-x-1'>
+									<TrendingDown className='h-3 w-3 text-gov-orange' />
+									<p className='text-xs text-gov-gray-b'>-0.8% última hora</p>
+								</div>
+							</CardContent>
+						</Card>
+
+						{/* Caudal */}
+						<Card className='bg-gov-white border-gov-accent'>
+							<CardHeader className='flex flex-row items-center justify-between space-y-0 pb-1'>
+								<CardTitle className='text-sm font-medium text-gov-gray-a'>
+									Caudal
+								</CardTitle>
+								<Droplets className='h-4 w-4 text-purple-600' />
+							</CardHeader>
+							<CardContent className='pt-1'>
+								<div className='text-xl font-bold text-purple-600'>
+									{Math.round((mockMetricData[mockMetricData.length - 1] as any)?.flow_rate || 1000)} L/s
+								</div>
+								<div className='h-10 mt-2 mb-1'>
+									<MiniTrendChart 
+										data={mockMetricData.map(d => ({ value: (d as any).flow_rate || 1000 }))}
+										color="#7c3aed"
+										height={40}
+									/>
+								</div>
+								<div className='flex items-center space-x-1'>
+									<TrendingUp className='h-3 w-3 text-gov-green' />
+									<p className='text-xs text-gov-gray-b'>+1.5% última hora</p>
+								</div>
+							</CardContent>
+						</Card>
+
+						{/* Velocidad */}
+						<Card className='bg-gov-white border-gov-accent'>
+							<CardHeader className='flex flex-row items-center justify-between space-y-0 pb-1'>
+								<CardTitle className='text-sm font-medium text-gov-gray-a'>
+									Velocidad
+								</CardTitle>
+								<Gauge className='h-4 w-4 text-gov-secondary' />
+							</CardHeader>
+							<CardContent className='pt-1'>
+								<div className='text-xl font-bold text-gov-secondary'>
+									{((mockMetricData[mockMetricData.length - 1] as any)?.velocity || 1.5).toFixed(1)} m/s
+								</div>
+								<div className='h-10 mt-2 mb-1'>
+									<MiniTrendChart 
+										data={mockMetricData.map(d => ({ value: (d as any).velocity || 1.5 }))}
+										color="#f97316"
+										height={40}
+									/>
+								</div>
+								<div className='flex items-center space-x-1'>
+									<TrendingUp className='h-3 w-3 text-gov-green' />
+									<p className='text-xs text-gov-gray-b'>+0.7% última hora</p>
+								</div>
+							</CardContent>
+						</Card>
+					</div>
+
+					{/* Mapa de Estaciones */}
+					<Card className='bg-gov-white border-gov-accent mt-3'>
+						<CardHeader className='pb-2 pt-3'>
+							<CardTitle className='flex items-center space-x-2 text-gov-black text-base'>
+								<MapPin className='h-4 w-4 text-gov-primary' />
+								<span>Estaciones de Monitoreo</span>
+							</CardTitle>
+						</CardHeader>
+						<CardContent className='pt-0'>
+							<div className='w-full h-80'>
+								<StationsMap 
+									stations={stations}
+									onStationClick={(station: Station) => {
+										console.log('Estación seleccionada:', station);
+									}}
+									height="320px"
+								/>
+							</div>
+						</CardContent>
+					</Card>
 				</div>
 			</main>
 		</div>

@@ -84,19 +84,19 @@ export function MetricChart({
     let value;
     switch (metricType) {
       case 'flujo':
-        value = item.flow || item.value || 0;
+        value = item.flow || item.flujo || item.value || 0;
         break;
       case 'nivel':
-        value = item.water_level || item.value || 0;
+        value = item.water_level || item.nivel || item.value || 0;
         break;
       case 'caudal':
-        value = item.flow_rate || item.value || 0;
+        value = item.flow_rate || item.caudal || item.value || 0;
         break;
       case 'velocidad':
-        value = item.velocity || item.value || 0;
+        value = item.velocity || item.velocidad || item.value || 0;
         break;
       case 'temperatura':
-        value = item.temperature || item.value || 20 + Math.random() * 5;
+        value = item.temperature || item.temperatura || item.value || 20 + Math.random() * 5;
         break;
       default:
         value = item.value || 0;
