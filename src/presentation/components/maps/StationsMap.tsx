@@ -4,7 +4,7 @@ import { divIcon } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import type { Station } from '@domain/entities/Station';
 import { formatWaterLevel, formatDateTime } from '@shared/utils/formatters';
-import { AlertTriangle, CheckCircle, AlertCircle } from 'lucide-react';
+import { AlertTriangle, AlertCircle } from 'lucide-react';
 
 // Fix for default markers in React Leaflet
 import { Icon } from 'leaflet';
@@ -26,25 +26,94 @@ interface StationsMapProps {
 interface MapUpdaterProps {
   center: [number, number];
   zoom: number;
+  stations: Station[];
 }
 
-function MapUpdater({ center, zoom }: MapUpdaterProps) {
+function MapUpdater({ center, zoom, stations }: MapUpdaterProps) {
   const map = useMap();
+  
+  const calculateBounds = () => {
+    if (stations.length === 0) return;
+    
+    const latitudes = stations.map(s => s.latitude);
+    const longitudes = stations.map(s => s.longitude);
+    
+    const minLat = Math.min(...latitudes);
+    const maxLat = Math.max(...latitudes);
+    const minLng = Math.min(...longitudes);
+    const maxLng = Math.max(...longitudes);
+    
+    // Añadir padding para que los markers no estén en los bordes
+    const latPadding = (maxLat - minLat) * 0.1 || 0.01;
+    const lngPadding = (maxLng - minLng) * 0.1 || 0.01;
+    
+    const bounds = [
+      [minLat - latPadding, minLng - lngPadding],
+      [maxLat + latPadding, maxLng + lngPadding]
+    ] as [[number, number], [number, number]];
+    
+    return bounds;
+  };
+
   useEffect(() => {
-    map.setView(center, zoom);
-  }, [center, zoom, map]);
+    // Forzar invalidación del tamaño del mapa
+    setTimeout(() => {
+      map.invalidateSize();
+    }, 100);
+    
+    if (stations.length > 0) {
+      const bounds = calculateBounds();
+      if (bounds) {
+        map.fitBounds(bounds, { padding: [20, 20] });
+      }
+    } else {
+      map.setView(center, zoom);
+    }
+  }, [center, zoom, map, stations]);
+  
   return null;
 }
 
 export function StationsMap({ 
   stations, 
-  center = [-39.2851, -71.9374], // Pucón coordinates
+  center = [-39.2851, -71.9374], // Pucón coordinates (fallback)
   zoom = 13,
   height = '400px',
   onStationClick
 }: StationsMapProps) {
   const [mapCenter, setMapCenter] = useState<[number, number]>(center);
   const [mapZoom, setMapZoom] = useState(zoom);
+
+  // Calcular el centro basado en las estaciones
+  const calculateStationsCenter = (): [number, number] => {
+    if (stations.length === 0) return center;
+    
+    const latitudes = stations.map(s => s.latitude);
+    const longitudes = stations.map(s => s.longitude);
+    
+    const avgLat = latitudes.reduce((a, b) => a + b, 0) / latitudes.length;
+    const avgLng = longitudes.reduce((a, b) => a + b, 0) / longitudes.length;
+    
+    return [avgLat, avgLng];
+  };
+
+  // Auto-centrar en las estaciones cuando se cargan
+  useEffect(() => {
+    if (stations.length > 0) {
+      const stationsCenter = calculateStationsCenter();
+      setMapCenter(stationsCenter);
+    }
+  }, [stations]);
+
+  // Forzar actualización del tamaño cuando la altura cambie
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      // Trigger a resize event to force map to redraw
+      window.dispatchEvent(new Event('resize'));
+    }, 200);
+    
+    return () => clearTimeout(timer);
+  }, [height]);
 
   const getStationStatus = (station: Station) => {
     if (station.status !== 'active') {
@@ -166,12 +235,18 @@ export function StationsMap({
         <div className="flex flex-col space-y-1">
           <button
             onClick={() => {
-              setMapCenter([-39.2851, -71.9374]);
-              setMapZoom(13);
+              if (stations.length > 0) {
+                const stationsCenter = calculateStationsCenter();
+                setMapCenter(stationsCenter);
+                setMapZoom(12); // Zoom más apropiado para ver todas las estaciones
+              } else {
+                setMapCenter([-39.2851, -71.9374]);
+                setMapZoom(13);
+              }
             }}
             className="px-2 py-1 text-xs bg-gov-primary text-white rounded hover:bg-gov-primary/90 transition-colors"
           >
-            Ver Todo
+            Ver Estaciones
           </button>
           {stations.filter(s => getStationStatus(s) === 'critical').length > 0 && (
             <button
@@ -188,12 +263,12 @@ export function StationsMap({
       </div>
 
       <MapContainer
-        center={center}
-        zoom={zoom}
+        center={stations.length > 0 ? calculateStationsCenter() : center}
+        zoom={stations.length > 0 ? 12 : zoom}
         style={{ height, width: '100%' }}
         className="rounded-lg border border-gov-accent"
       >
-        <MapUpdater center={mapCenter} zoom={mapZoom} />
+        <MapUpdater center={mapCenter} zoom={mapZoom} stations={stations} />
         
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
