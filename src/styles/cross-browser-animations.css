@@ -1,0 +1,202 @@
+/* Cross-browser optimized animations */
+/* These animations are designed to work better across different browsers */
+
+@keyframes fadeInOptimized {
+  from {
+    opacity: 0;
+    transform: translateZ(0); /* Force hardware acceleration */
+  }
+  to {
+    opacity: 1;
+    transform: translateZ(0);
+  }
+}
+
+@keyframes slideUpOptimized {
+  from {
+    opacity: 0;
+    transform: translateY(20px) translateZ(0);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) translateZ(0);
+  }
+}
+
+@keyframes pulseOptimized {
+  0%, 100% {
+    transform: scale(1) translateZ(0);
+  }
+  50% {
+    transform: scale(1.02) translateZ(0);
+  }
+}
+
+/* Reduced motion preferences support */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Safari-specific optimizations */
+@supports (-webkit-appearance: none) {
+  .motion-optimized {
+    -webkit-backface-visibility: hidden;
+    -webkit-transform: translateZ(0);
+    backface-visibility: hidden;
+    transform: translateZ(0);
+  }
+
+  .motion-optimized::before,
+  .motion-optimized::after {
+    -webkit-backface-visibility: hidden;
+    -webkit-transform: translateZ(0);
+    backface-visibility: hidden;
+    transform: translateZ(0);
+  }
+}
+
+/* Firefox-specific optimizations */
+@-moz-document url-prefix() {
+  .motion-optimized {
+    /* Firefox optimizations */
+    will-change: auto; /* Better performance in Firefox */
+  }
+}
+
+/* Utility classes for cross-browser animations */
+.animate-fade-in-optimized {
+  animation: fadeInOptimized 0.5s ease-out forwards;
+}
+
+.animate-slide-up-optimized {
+  animation: slideUpOptimized 0.5s ease-out forwards;
+}
+
+.animate-pulse-optimized {
+  animation: pulseOptimized 1.5s ease-in-out 2; /* Limited repetitions */
+}
+
+/* Performance optimized box-shadow animations */
+@keyframes glowOptimized {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+  }
+  50% {
+    box-shadow: 0 0 8px rgba(59, 130, 246, 0.2);
+  }
+}
+
+.animate-glow-optimized {
+  animation: glowOptimized 2s ease-in-out 1; /* Single iteration for better performance */
+}
+
+/* Station marker animations - optimized for maps */
+@keyframes markerPulse {
+  0% {
+    transform: scale(1) translateZ(0);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.1) translateZ(0);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1) translateZ(0);
+    opacity: 0.8;
+  }
+}
+
+.station-marker-pulse {
+  animation: markerPulse 2s ease-in-out infinite;
+}
+
+/* Limit infinite animations for better performance */
+@media (max-width: 768px) {
+  .station-marker-pulse {
+    animation: markerPulse 2s ease-in-out 3; /* Limit on mobile */
+  }
+}
+
+/* Button hover effects - optimized */
+@keyframes buttonHover {
+  from {
+    transform: scale(1) translateZ(0);
+  }
+  to {
+    transform: scale(1.02) translateZ(0);
+  }
+}
+
+.button-hover-optimized {
+  transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
+}
+
+.button-hover-optimized:hover {
+  animation: buttonHover 0.2s ease-out forwards;
+}
+
+/* Loading spinner - optimized */
+@keyframes spinOptimized {
+  from {
+    transform: rotate(0deg) translateZ(0);
+  }
+  to {
+    transform: rotate(360deg) translateZ(0);
+  }
+}
+
+.animate-spin-optimized {
+  animation: spinOptimized 1s linear infinite;
+}
+
+/* Card entry animations */
+@keyframes cardEntry {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.99) translateZ(0);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1) translateZ(0);
+  }
+}
+
+.animate-card-entry {
+  animation: cardEntry 0.25s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* Stagger animation for lists */
+.animate-stagger {
+  animation: fadeInOptimized 0.5s ease-out forwards;
+}
+
+.animate-stagger:nth-child(1) { animation-delay: 0ms; }
+.animate-stagger:nth-child(2) { animation-delay: 50ms; }
+.animate-stagger:nth-child(3) { animation-delay: 100ms; }
+.animate-stagger:nth-child(4) { animation-delay: 150ms; }
+.animate-stagger:nth-child(5) { animation-delay: 200ms; }
+
+/* Performance monitoring classes */
+.performance-monitor {
+  /* These classes help identify performance bottlenecks */
+  position: relative;
+}
+
+.performance-monitor::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  pointer-events: none;
+  z-index: 9999;
+}

@@ -1,5 +1,4 @@
 import { motion, AnimatePresence } from 'framer-motion'
-import { WaterDrop } from '@shared/components/MotionWrapper'
 
 interface PageLoaderProps {
   isLoading: boolean
@@ -16,100 +15,40 @@ export function PageLoader({ isLoading, title = 'Cargando', subtitle = 'Preparan
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.3 }}
+          transition={{ duration: 0.2 }}
         >
           <motion.div
             className="text-center"
-            initial={{ scale: 0.8, y: 20 }}
-            animate={{ scale: 1, y: 0 }}
-            exit={{ scale: 0.8, y: -20 }}
-            transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.9, opacity: 0 }}
+            transition={{ duration: 0.15, ease: 'easeOut' }}
           >
-            {/* River Animation */}
-            <div className="relative mb-8">
-              <div className="flex space-x-1 justify-center items-end">
-                {[...Array(5)].map((_, i) => (
-                  <motion.div
-                    key={i}
-                    className="w-2 bg-gradient-to-t from-blue-500 to-blue-300 rounded-full"
-                    style={{ height: `${20 + i * 8}px` }}
-                    animate={{
-                      height: [`${20 + i * 8}px`, `${40 + i * 8}px`, `${20 + i * 8}px`],
-                      opacity: [0.3, 1, 0.3]
-                    }}
-                    transition={{
-                      duration: 1.5,
-                      repeat: Infinity,
-                      delay: i * 0.2,
-                      ease: 'easeInOut'
-                    }}
-                  />
-                ))}
-              </div>
-              
-              {/* Floating water drops */}
-              <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                {[...Array(3)].map((_, i) => (
-                  <motion.div
-                    key={i}
-                    className="absolute"
-                    style={{ 
-                      left: `${(i - 1) * 20}px`,
-                      top: `${i * 10}px`
-                    }}
-                    animate={{
-                      y: [0, -20, 0],
-                      opacity: [0.5, 1, 0.5],
-                      scale: [0.8, 1.2, 0.8]
-                    }}
-                    transition={{
-                      duration: 2,
-                      repeat: Infinity,
-                      delay: i * 0.4,
-                      ease: 'easeInOut'
-                    }}
-                  >
-                    <WaterDrop color="#3b82f6" />
-                  </motion.div>
-                ))}
-              </div>
-            </div>
+            {/* Simple spinner */}
+            <motion.div
+              className="w-8 h-8 border-3 border-gov-primary border-t-transparent rounded-full mx-auto mb-4"
+              animate={{ rotate: 360 }}
+              transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+            />
 
             {/* Loading text */}
             <motion.h2 
-              className="text-2xl font-bold text-gov-primary mb-2"
-              animate={{ opacity: [0.5, 1, 0.5] }}
-              transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+              className="text-xl font-bold text-gov-primary mb-2"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.1 }}
             >
               {title}
             </motion.h2>
             
             <motion.p 
-              className="text-gov-gray-a"
+              className="text-gov-gray-a text-sm"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ delay: 0.5 }}
+              transition={{ delay: 0.2 }}
             >
               {subtitle}
             </motion.p>
-
-            {/* Progress indicator */}
-            <motion.div
-              className="w-48 h-1 bg-gov-accent rounded-full mx-auto mt-6 overflow-hidden"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.8 }}
-            >
-              <motion.div
-                className="h-full bg-gradient-to-r from-blue-500 to-green-500 rounded-full"
-                animate={{ x: [-200, 200] }}
-                transition={{
-                  duration: 1.5,
-                  repeat: Infinity,
-                  ease: 'easeInOut'
-                }}
-              />
-            </motion.div>
           </motion.div>
         </motion.div>
       )}
