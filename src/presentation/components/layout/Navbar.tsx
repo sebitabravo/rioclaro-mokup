@@ -1,12 +1,11 @@
 import { Button } from "@presentation/components/ui/button";
-import { Activity, Users, MapPin, Home, Clock, TrendingUp } from "lucide-react";
+import { Activity, Users, Home, Clock, TrendingUp } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@shared/utils/cn";
 
 const navigation = [
   { name: "Inicio", href: "/", icon: Home },
   { name: "Dashboard", href: "/dashboard", icon: Activity },
-  { name: "Estaciones", href: "/stations", icon: MapPin },
   { name: "Análisis", href: "/reports", icon: TrendingUp },
   { name: "Historial", href: "/activity", icon: Clock },
   { name: "Admin", href: "/admin", icon: Users },

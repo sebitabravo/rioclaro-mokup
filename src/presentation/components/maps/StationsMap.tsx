@@ -230,8 +230,8 @@ export function StationsMap({
         </div>
       </div>
 
-      {/* Quick Actions */}
-      <div className="absolute top-4 left-4 z-[1000] bg-white rounded-lg shadow-lg p-2 border border-gov-accent">
+      {/* Quick Actions - Movido a la parte inferior izquierda */}
+      <div className="absolute bottom-4 left-4 z-[1000] bg-white rounded-lg shadow-lg p-2 border border-gov-accent">
         <div className="flex flex-col space-y-1">
           <button
             onClick={() => {
@@ -288,82 +288,116 @@ export function StationsMap({
               }}
             >
               <Popup className="custom-popup">
-                <div className="p-2 min-w-[250px]">
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="font-bold text-gov-black text-sm">{station.name}</h3>
-                    <div className={`px-2 py-1 rounded text-xs font-medium text-white ${
-                      status === 'critical' ? 'bg-gov-secondary' :
-                      status === 'warning' ? 'bg-gov-orange' :
-                      status === 'maintenance' ? 'bg-gov-gray-a' : 'bg-gov-green'
-                    }`}>
-                      {status === 'critical' ? 'CRÍTICO' :
-                       status === 'warning' ? 'ADVERTENCIA' :
-                       status === 'maintenance' ? 'MANTENIMIENTO' : 'NORMAL'}
+                <div className="p-0 min-w-[280px] bg-white rounded-lg overflow-hidden shadow-xl">
+                  {/* Header con gradiente - más compacto */}
+                  <div className={`px-3 py-2 text-white relative ${
+                    status === 'critical' ? 'bg-gradient-to-r from-gov-secondary to-red-600' :
+                    status === 'warning' ? 'bg-gradient-to-r from-gov-orange to-orange-600' :
+                    status === 'maintenance' ? 'bg-gradient-to-r from-gov-gray-a to-gray-600' : 
+                    'bg-gradient-to-r from-gov-primary to-blue-600'
+                  }`}>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="font-bold text-sm leading-tight">{station.name}</h3>
+                        <p className="text-xs opacity-90 font-mono leading-tight">{station.code}</p>
+                      </div>
+                      <div className={`px-2 py-1 rounded-full text-xs font-semibold bg-white/20 backdrop-blur-sm border border-white/30`}>
+                        {status === 'critical' ? 'CRÍTICO' :
+                         status === 'warning' ? 'ADVERTENCIA' :
+                         status === 'maintenance' ? 'MANTENIMIENTO' : 'NORMAL'}
+                      </div>
                     </div>
                   </div>
                   
-                  <div className="space-y-2 text-xs">
-                    <div className="flex justify-between">
-                      <span className="text-gov-gray-a">Código:</span>
-                      <span className="font-mono text-gov-black">{station.code}</span>
-                    </div>
-                    
-                    <div className="flex justify-between">
-                      <span className="text-gov-gray-a">Ubicación:</span>
-                      <span className="text-gov-black text-right max-w-[150px]">{station.location}</span>
-                    </div>
-                    
-                    <div className="flex justify-between">
-                      <span className="text-gov-gray-a">Nivel Actual:</span>
-                      <span className={`font-bold ${
-                        station.current_level > station.threshold ? 'text-gov-secondary' : 'text-gov-green'
-                      }`}>
-                        {formatWaterLevel(station.current_level)}
-                      </span>
-                    </div>
-                    
-                    <div className="flex justify-between">
-                      <span className="text-gov-gray-a">Umbral:</span>
-                      <span className="text-gov-orange font-medium">
-                        {formatWaterLevel(station.threshold)}
-                      </span>
-                    </div>
-                    
-                    <div className="flex justify-between">
-                      <span className="text-gov-gray-a">Última medición:</span>
-                      <span className="text-gov-black text-right">
-                        {formatDateTime(station.last_measurement)}
-                      </span>
+                  {/* Contenido principal - más compacto */}
+                  <div className="p-3 space-y-2">
+                    {/* Ubicación - más compacta */}
+                    <div className="flex items-start space-x-2">
+                      <div className="w-1.5 h-1.5 rounded-full bg-gov-gray-a mt-1.5"></div>
+                      <div className="flex-1">
+                        <span className="text-xs text-gov-gray-a uppercase tracking-wide font-medium">Ubicación</span>
+                        <p className="text-xs text-gov-black font-medium leading-tight">{station.location}</p>
+                      </div>
                     </div>
 
-                    {status === 'critical' && (
-                      <div className="mt-2 p-2 bg-gov-secondary/10 border border-gov-secondary/30 rounded text-center">
-                        <div className="flex items-center justify-center space-x-1 text-gov-secondary">
-                          <AlertTriangle className="h-4 w-4" />
-                          <span className="font-medium text-xs">¡NIVEL CRÍTICO SUPERADO!</span>
+                    {/* Métricas principales - más compactas */}
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="bg-gray-50 rounded-lg p-2 text-center">
+                        <div className="text-xs text-gov-gray-a uppercase tracking-wide font-medium mb-0.5">Nivel Actual</div>
+                        <div className={`text-base font-bold leading-tight ${
+                          station.current_level > station.threshold ? 'text-gov-secondary' : 'text-gov-green'
+                        }`}>
+                          {formatWaterLevel(station.current_level)}
                         </div>
-                        <p className="text-xs text-gov-secondary mt-1">
+                      </div>
+                      
+                      <div className="bg-orange-50 rounded-lg p-2 text-center">
+                        <div className="text-xs text-gov-gray-a uppercase tracking-wide font-medium mb-0.5">Umbral</div>
+                        <div className="text-base font-bold leading-tight text-gov-orange">
+                          {formatWaterLevel(station.threshold)}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Barra de progreso del nivel - más compacta */}
+                    <div className="space-y-1">
+                      <div className="flex justify-between text-xs">
+                        <span className="text-gov-gray-a">Nivel de riesgo</span>
+                        <span className="font-medium text-gov-black">
+                          {((station.current_level / station.threshold) * 100).toFixed(0)}%
+                        </span>
+                      </div>
+                      <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                        <div
+                          className={`h-full transition-all duration-300 ${
+                            station.current_level > station.threshold ? 'bg-gov-secondary' :
+                            station.current_level > station.threshold * 0.8 ? 'bg-gov-orange' : 'bg-gov-green'
+                          }`}
+                          style={{
+                            width: `${Math.min((station.current_level / station.threshold) * 100, 100)}%`
+                          }}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Última medición - más compacta */}
+                    <div className="bg-blue-50 rounded-lg p-2">
+                      <div className="text-xs text-gov-gray-a uppercase tracking-wide font-medium mb-0.5">Última medición</div>
+                      <div className="text-xs text-gov-black font-medium leading-tight">
+                        {formatDateTime(station.last_measurement)}
+                      </div>
+                    </div>
+
+                    {/* Alertas - más compactas */}
+                    {status === 'critical' && (
+                      <div className="bg-red-50 border border-red-200 rounded-lg p-2">
+                        <div className="flex items-center space-x-1.5 text-gov-secondary">
+                          <AlertTriangle className="h-3 w-3" />
+                          <span className="font-semibold text-xs">¡NIVEL CRÍTICO SUPERADO!</span>
+                        </div>
+                        <p className="text-xs text-gov-secondary mt-0.5 ml-4.5">
                           Excede umbral por {(station.current_level - station.threshold).toFixed(2)}m
                         </p>
                       </div>
                     )}
 
                     {status === 'warning' && (
-                      <div className="mt-2 p-2 bg-orange-50 border border-orange-200 rounded text-center">
-                        <div className="flex items-center justify-center space-x-1 text-gov-orange">
-                          <AlertCircle className="h-4 w-4" />
-                          <span className="font-medium text-xs">NIVEL DE ADVERTENCIA</span>
+                      <div className="bg-orange-50 border border-orange-200 rounded-lg p-2">
+                        <div className="flex items-center space-x-1.5 text-gov-orange">
+                          <AlertCircle className="h-3 w-3" />
+                          <span className="font-semibold text-xs">NIVEL DE ADVERTENCIA</span>
                         </div>
                       </div>
                     )}
                   </div>
                   
-                  <div className="mt-3 pt-2 border-t border-gov-accent">
+                  {/* Footer con botón - más compacto */}
+                  <div className="px-3 py-2 bg-gray-50 border-t border-gray-100">
                     <button
                       onClick={() => handleMarkerClick(station)}
-                      className="w-full px-3 py-1 bg-gov-primary text-white text-xs rounded hover:bg-gov-primary/90 transition-colors"
+                      className="w-full px-3 py-1.5 bg-gov-primary text-white text-xs font-medium rounded-lg hover:bg-gov-primary/90 transition-all duration-200 shadow-sm hover:shadow-md"
                     >
-                      Ver Detalles
+                      Ver Detalles Completos
                     </button>
                   </div>
                 </div>
