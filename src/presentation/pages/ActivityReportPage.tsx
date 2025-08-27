@@ -3,6 +3,7 @@ import { Navbar } from '@presentation/components/layout/Navbar';
 import { Card, CardContent, CardHeader, CardTitle } from '@presentation/components/ui/card';
 import { Button } from '@presentation/components/ui/button';
 import { Input } from '@presentation/components/ui/input';
+import { ExportButton } from '@presentation/components/ui/ExportButton';
 import {
   Activity,
   Search,
@@ -26,31 +27,31 @@ import { formatDateTime } from '@shared/utils/formatters';
 // Repositorio mock
 const activityLogRepo = new MockActivityLogRepository();
 
-// Mapeo de tipos de actividad a íconos y colores
+// Mapeo de tipos de actividad a íconos y colores gubernamentales
 const activityTypeConfig = {
-  user_login: { icon: User, color: 'text-blue-600', bg: 'bg-blue-50', label: 'Inicio de sesión' },
-  user_logout: { icon: User, color: 'text-gray-600', bg: 'bg-gray-50', label: 'Cierre de sesión' },
-  station_created: { icon: MapPin, color: 'text-green-600', bg: 'bg-green-50', label: 'Estación creada' },
-  station_updated: { icon: MapPin, color: 'text-yellow-600', bg: 'bg-yellow-50', label: 'Estación actualizada' },
-  station_deleted: { icon: MapPin, color: 'text-red-600', bg: 'bg-red-50', label: 'Estación eliminada' },
-  measurement_recorded: { icon: Activity, color: 'text-green-600', bg: 'bg-green-50', label: 'Medición registrada' },
-  alert_triggered: { icon: AlertTriangle, color: 'text-red-600', bg: 'bg-red-50', label: 'Alerta activada' },
-  alert_resolved: { icon: CheckCircle, color: 'text-green-600', bg: 'bg-green-50', label: 'Alerta resuelta' },
-  report_generated: { icon: Download, color: 'text-blue-600', bg: 'bg-blue-50', label: 'Reporte generado' },
-  report_downloaded: { icon: Download, color: 'text-purple-600', bg: 'bg-purple-50', label: 'Reporte descargado' },
-  system_maintenance: { icon: Server, color: 'text-orange-600', bg: 'bg-orange-50', label: 'Mantenimiento' },
-  data_export: { icon: Download, color: 'text-indigo-600', bg: 'bg-indigo-50', label: 'Exportación de datos' },
-  configuration_changed: { icon: Settings, color: 'text-yellow-600', bg: 'bg-yellow-50', label: 'Configuración modificada' },
-  backup_created: { icon: Server, color: 'text-blue-600', bg: 'bg-blue-50', label: 'Respaldo creado' },
-  threshold_updated: { icon: AlertTriangle, color: 'text-orange-600', bg: 'bg-orange-50', label: 'Umbral actualizado' }
+  user_login: { icon: User, color: 'text-gov-primary', bg: 'bg-gov-primary/10', label: 'Inicio de sesión' },
+  user_logout: { icon: User, color: 'text-gov-gray-a', bg: 'bg-gray-50', label: 'Cierre de sesión' },
+  station_created: { icon: MapPin, color: 'text-gov-green', bg: 'bg-gov-green/10', label: 'Estación creada' },
+  station_updated: { icon: MapPin, color: 'text-gov-orange', bg: 'bg-yellow-50', label: 'Estación actualizada' },
+  station_deleted: { icon: MapPin, color: 'text-gov-secondary', bg: 'bg-gov-secondary/10', label: 'Estación eliminada' },
+  measurement_recorded: { icon: Activity, color: 'text-gov-green', bg: 'bg-gov-green/10', label: 'Medición registrada' },
+  alert_triggered: { icon: AlertTriangle, color: 'text-gov-secondary', bg: 'bg-gov-secondary/10', label: 'Alerta activada' },
+  alert_resolved: { icon: CheckCircle, color: 'text-gov-green', bg: 'bg-gov-green/10', label: 'Alerta resuelta' },
+  report_generated: { icon: Download, color: 'text-gov-primary', bg: 'bg-gov-primary/10', label: 'Reporte generado' },
+  report_downloaded: { icon: Download, color: 'text-gov-purple', bg: 'bg-purple-50', label: 'Reporte descargado' },
+  system_maintenance: { icon: Server, color: 'text-gov-orange', bg: 'bg-orange-50', label: 'Mantenimiento' },
+  data_export: { icon: Download, color: 'text-gov-primary', bg: 'bg-indigo-50', label: 'Exportación de datos' },
+  configuration_changed: { icon: Settings, color: 'text-gov-orange', bg: 'bg-yellow-50', label: 'Configuración modificada' },
+  backup_created: { icon: Server, color: 'text-gov-primary', bg: 'bg-gov-primary/10', label: 'Respaldo creado' },
+  threshold_updated: { icon: AlertTriangle, color: 'text-gov-orange', bg: 'bg-orange-50', label: 'Umbral actualizado' }
 } as const;
 
-// Mapeo de estados a colores
+// Mapeo de estados a colores gubernamentales
 const statusConfig = {
-  success: { color: 'text-green-600', bg: 'bg-green-100', label: 'Exitoso' },
-  warning: { color: 'text-yellow-600', bg: 'bg-yellow-100', label: 'Advertencia' },
-  error: { color: 'text-red-600', bg: 'bg-red-100', label: 'Error' },
-  info: { color: 'text-blue-600', bg: 'bg-blue-100', label: 'Información' }
+  success: { color: 'text-gov-green', bg: 'bg-gov-green/20', label: 'Exitoso' },
+  warning: { color: 'text-gov-orange', bg: 'bg-yellow-100', label: 'Advertencia' },
+  error: { color: 'text-gov-secondary', bg: 'bg-gov-secondary/20', label: 'Error' },
+  info: { color: 'text-gov-primary', bg: 'bg-gov-primary/20', label: 'Información' }
 };
 
 export function ActivityReportPage() {
@@ -148,14 +149,12 @@ export function ActivityReportPage() {
               Filtros
             </Button>
             
-            <Button
-              variant="outline"
+            <ExportButton
+              data={logs}
+              disabled={loading || logs.length === 0}
               size="sm"
               className="bg-transparent border-gov-accent text-gov-gray-a hover:bg-gov-accent hover:text-gov-black"
-            >
-              <Download className="h-4 w-4 mr-2" />
-              Exportar
-            </Button>
+            />
           </div>
         </div>
 
@@ -181,7 +180,7 @@ export function ActivityReportPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-green-600">
+                <div className="text-2xl font-bold text-gov-green">
                   {stats.byStatus.success || 0}
                 </div>
                 <p className="text-xs text-gov-gray-b">Sin errores</p>
@@ -209,7 +208,7 @@ export function ActivityReportPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-red-600">
+                <div className="text-2xl font-bold text-gov-secondary">
                   {stats.byStatus.error || 0}
                 </div>
                 <p className="text-xs text-gov-gray-b">Fallos del sistema</p>
