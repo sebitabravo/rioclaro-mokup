@@ -3,11 +3,12 @@ import { Navbar } from "@presentation/components/layout/Navbar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@presentation/components/ui/card";
 import { Button } from "@presentation/components/ui/button";
 import { Input } from "@presentation/components/ui/input";
-import { TrendingUp, AlertTriangle, BarChart3, Download, Calendar, Waves, Droplets, Gauge } from "lucide-react";
-import { useReportStore } from "@presentation/stores/ReportStore";
+import { ExportButton } from "@presentation/components/ui/ExportButton";
+import { TrendingUp, AlertTriangle, BarChart3, Calendar, Waves, Droplets, Gauge } from "lucide-react";
 import { NormalizedChart } from "@presentation/components/charts/NormalizedChart";
 import { MetricChart, MetricType } from "@presentation/components/charts/MetricChart";
 import { DataSourceType } from "@shared/services/DataNormalizationService";
+import { ReportActivityService } from "@shared/services/ReportActivityService";
 
 // Datos mock para el demo
 const mockDailyData = [
@@ -62,19 +63,6 @@ export function ReportsPage() {
     start: "2025-01-07",
     end: "2025-01-13",
   });
-
-  const { exporting, exportReport } = useReportStore();
-
-  const handleExportReport = async (reportType: string) => {
-    try {
-      await exportReport(reportType, {
-        start_date: dateRange.start,
-        end_date: dateRange.end,
-      }, 'csv');
-    } catch (error) {
-      console.error('Error al exportar reporte:', error);
-    }
-  };
 
   return (
     <div className="min-h-screen bg-gov-neutral">
@@ -132,36 +120,52 @@ export function ReportsPage() {
               {/* Tab Navigation */}
               <div className="flex flex-col sm:flex-row gap-2">
                 <Button
-                  variant={activeTab === "daily-average" ? "default" : "outline"}
+                  variant="outline"
                   onClick={() => setActiveTab("daily-average")}
-                  className="flex items-center space-x-2"
+                  className={`flex items-center space-x-2 transition-colors ${
+                    activeTab === "daily-average"
+                      ? "bg-gov-primary text-white border-gov-primary hover:bg-gov-primary/90"
+                      : "bg-white text-gov-black border-gov-accent hover:bg-gov-accent hover:text-gov-black"
+                  }`}
                 >
                   <TrendingUp className="h-4 w-4" />
                   <span>Promedios Diarios</span>
                 </Button>
 
                 <Button
-                  variant={activeTab === "detailed-analysis" ? "default" : "outline"}
+                  variant="outline"
                   onClick={() => setActiveTab("detailed-analysis")}
-                  className="flex items-center space-x-2"
+                  className={`flex items-center space-x-2 transition-colors ${
+                    activeTab === "detailed-analysis"
+                      ? "bg-gov-primary text-white border-gov-primary hover:bg-gov-primary/90"
+                      : "bg-white text-gov-black border-gov-accent hover:bg-gov-accent hover:text-gov-black"
+                  }`}
                 >
                   <Waves className="h-4 w-4" />
                   <span>Análisis Detallado</span>
                 </Button>
                 
                 <Button
-                  variant={activeTab === "critical-events" ? "default" : "outline"}
+                  variant="outline"
                   onClick={() => setActiveTab("critical-events")}
-                  className="flex items-center space-x-2"
+                  className={`flex items-center space-x-2 transition-colors ${
+                    activeTab === "critical-events"
+                      ? "bg-gov-primary text-white border-gov-primary hover:bg-gov-primary/90"
+                      : "bg-white text-gov-black border-gov-accent hover:bg-gov-accent hover:text-gov-black"
+                  }`}
                 >
                   <AlertTriangle className="h-4 w-4" />
                   <span>Eventos Críticos</span>
                 </Button>
                 
                 <Button
-                  variant={activeTab === "comparative" ? "default" : "outline"}
+                  variant="outline"
                   onClick={() => setActiveTab("comparative")}
-                  className="flex items-center space-x-2"
+                  className={`flex items-center space-x-2 transition-colors ${
+                    activeTab === "comparative"
+                      ? "bg-gov-primary text-white border-gov-primary hover:bg-gov-primary/90"
+                      : "bg-white text-gov-black border-gov-accent hover:bg-gov-accent hover:text-gov-black"
+                  }`}
                 >
                   <BarChart3 className="h-4 w-4" />
                   <span>Comparativo</span>
@@ -179,15 +183,12 @@ export function ReportsPage() {
                           Promedio diario del nivel del agua por estación
                         </CardDescription>
                       </div>
-                      <Button
-                        variant="outline"
+                      <ExportButton
+                        data={ReportActivityService.generateReportActivities('Promedios Diarios')}
+                        disabled={false}
+                        size="default"
                         className="bg-transparent border-gov-green text-gov-green hover:bg-gov-green hover:text-white"
-                        onClick={() => handleExportReport('daily-average')}
-                        disabled={exporting}
-                      >
-                        <Download className="h-4 w-4 mr-2" />
-                        {exporting ? "Exportando..." : "Exportar"}
-                      </Button>
+                      />
                     </div>
                   </CardHeader>
                   <CardContent>
@@ -229,36 +230,52 @@ export function ReportsPage() {
                     <CardContent>
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                         <Button
-                          variant={selectedMetric === "nivel" ? "default" : "outline"}
+                          variant="outline"
                           onClick={() => setSelectedMetric("nivel")}
-                          className="flex items-center space-x-2 h-auto p-3"
+                          className={`flex items-center space-x-2 h-auto p-3 transition-colors ${
+                            selectedMetric === "nivel"
+                              ? "bg-gov-primary text-white border-gov-primary hover:bg-gov-primary/90"
+                              : "bg-white text-gov-black border-gov-accent hover:bg-gov-accent hover:text-gov-black"
+                          }`}
                         >
                           <BarChart3 className="h-4 w-4" />
                           <span>Nivel</span>
                         </Button>
                         
                         <Button
-                          variant={selectedMetric === "flujo" ? "default" : "outline"}
+                          variant="outline"
                           onClick={() => setSelectedMetric("flujo")}
-                          className="flex items-center space-x-2 h-auto p-3"
+                          className={`flex items-center space-x-2 h-auto p-3 transition-colors ${
+                            selectedMetric === "flujo"
+                              ? "bg-gov-primary text-white border-gov-primary hover:bg-gov-primary/90"
+                              : "bg-white text-gov-black border-gov-accent hover:bg-gov-accent hover:text-gov-black"
+                          }`}
                         >
                           <Waves className="h-4 w-4" />
                           <span>Flujo</span>
                         </Button>
                         
                         <Button
-                          variant={selectedMetric === "caudal" ? "default" : "outline"}
+                          variant="outline"
                           onClick={() => setSelectedMetric("caudal")}
-                          className="flex items-center space-x-2 h-auto p-3"
+                          className={`flex items-center space-x-2 h-auto p-3 transition-colors ${
+                            selectedMetric === "caudal"
+                              ? "bg-gov-primary text-white border-gov-primary hover:bg-gov-primary/90"
+                              : "bg-white text-gov-black border-gov-accent hover:bg-gov-accent hover:text-gov-black"
+                          }`}
                         >
                           <Droplets className="h-4 w-4" />
                           <span>Caudal</span>
                         </Button>
                         
                         <Button
-                          variant={selectedMetric === "velocidad" ? "default" : "outline"}
+                          variant="outline"
                           onClick={() => setSelectedMetric("velocidad")}
-                          className="flex items-center space-x-2 h-auto p-3"
+                          className={`flex items-center space-x-2 h-auto p-3 transition-colors ${
+                            selectedMetric === "velocidad"
+                              ? "bg-gov-primary text-white border-gov-primary hover:bg-gov-primary/90"
+                              : "bg-white text-gov-black border-gov-accent hover:bg-gov-accent hover:text-gov-black"
+                          }`}
                         >
                           <Gauge className="h-4 w-4" />
                           <span>Velocidad</span>
@@ -279,15 +296,12 @@ export function ReportsPage() {
                             Gráfico especializado con datos cada 6 horas
                           </CardDescription>
                         </div>
-                        <Button
-                          variant="outline"
+                        <ExportButton
+                          data={ReportActivityService.generateStationMetricsActivities()}
+                          disabled={false}
+                          size="default"
                           className="bg-transparent border-gov-primary text-gov-primary hover:bg-gov-primary hover:text-white"
-                          onClick={() => handleExportReport(`detailed-${selectedMetric}`)}
-                          disabled={exporting}
-                        >
-                          <Download className="h-4 w-4 mr-2" />
-                          {exporting ? "Exportando..." : "Exportar"}
-                        </Button>
+                        />
                       </div>
                     </CardHeader>
                     <CardContent>
@@ -350,15 +364,12 @@ export function ReportsPage() {
                           Registros donde el nivel superó el umbral crítico
                         </CardDescription>
                       </div>
-                      <Button
-                        variant="outline"
+                      <ExportButton
+                        data={ReportActivityService.generateTrendAnalysisActivities()}
+                        disabled={false}
+                        size="default"
                         className="bg-transparent border-gov-orange text-gov-orange hover:bg-gov-orange hover:text-white"
-                        onClick={() => handleExportReport('critical-events')}
-                        disabled={exporting}
-                      >
-                        <Download className="h-4 w-4 mr-2" />
-                        {exporting ? "Exportando..." : "Exportar"}
-                      </Button>
+                      />
                     </div>
                   </CardHeader>
                   <CardContent>
