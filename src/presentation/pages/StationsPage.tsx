@@ -1,9 +1,10 @@
-import { useEffect } from "react";
-import { Navbar } from "@presentation/components/layout/Navbar";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@presentation/components/ui/card";
-import { MapPin } from "lucide-react";
-import { useStationStore } from "@presentation/stores/StationStore";
-import { formatDateTime, formatWaterLevel } from "@shared/utils/formatters";
+import { useEffect } from 'react';
+import { Navbar } from '@presentation/components/layout/Navbar';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@presentation/components/ui/card';
+import { MapPin } from 'lucide-react';
+import { useStationStore } from '@presentation/stores/StationStore';
+import { LoadingState } from '@presentation/components/ui/status-components';
+import { formatDateTime, formatWaterLevel } from '@shared/utils/formatters';
 
 export function StationsPage() {
   const { stations, loading, fetchStations } = useStationStore();
