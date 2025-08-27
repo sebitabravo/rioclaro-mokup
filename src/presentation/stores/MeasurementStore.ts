@@ -1,7 +1,6 @@
 import { create } from 'zustand';
 import { Measurement, MeasurementFilters } from '@domain/entities/Measurement';
 import { DIContainer } from '@infrastructure/di/Container';
-import { DataNormalizationService, ChartDataSet, DataSourceType } from '@shared/services/DataNormalizationService';
 
 interface MeasurementState {
   measurements: Measurement[]; // Unified measurements array
@@ -14,7 +13,7 @@ interface MeasurementState {
   clearError: () => void;
 }
 
-export const useMeasurementStore = create<MeasurementState>((set, get) => ({
+export const useMeasurementStore = create<MeasurementState>((set) => ({
   measurements: [],
   loading: false,
   error: null,

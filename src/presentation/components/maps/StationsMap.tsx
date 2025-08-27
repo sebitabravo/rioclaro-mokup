@@ -4,7 +4,7 @@ import { divIcon } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import type { Station } from '@domain/entities/Station';
 import { formatWaterLevel, formatDateTime } from '@shared/utils/formatters';
-import { AlertTriangle, CheckCircle, AlertCircle, Wrench } from 'lucide-react';
+import { AlertTriangle, CheckCircle, AlertCircle } from 'lucide-react';
 
 // Fix for default markers in React Leaflet
 import { Icon } from 'leaflet';
