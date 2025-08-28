@@ -57,7 +57,7 @@ export class ExportService {
         await this.exportToExcel(data, filename, options);
         break;
       case 'csv':
-        await this.exportToCSV(data, filename, options);
+        await this.exportToCSV(data, filename);
         break;
       case 'pdf':
         await this.exportToPDF(data, filename, options);
@@ -129,7 +129,6 @@ export class ExportService {
   private static async exportToCSV(
     data: ActivityLog[],
     filename: string,
-    _options: ExportOptions
   ): Promise<void> {
     // Preparar datos para CSV
     const csvData = data.map(log => ({

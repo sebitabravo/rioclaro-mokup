@@ -26,8 +26,10 @@ export enum DataSourceType {
   JSON = 'json'
 }
 
+import type { ChartDataArray } from '../types/chart-data';
+
 export class DataNormalizationService {
-  static normalize(rawData: any[], sourceType: DataSourceType): ChartDataSet {
+  static normalize(rawData: ChartDataArray, sourceType: DataSourceType): ChartDataSet {
     // Validar que rawData sea un array válido
     if (!rawData || !Array.isArray(rawData)) {
       return {
@@ -71,7 +73,7 @@ export class DataNormalizationService {
     }
   }
 
-  private static normalizeMeasurements(data: any[]): ChartDataSet {
+  private static normalizeMeasurements(data: ChartDataArray): ChartDataSet {
     // Validación adicional por si acaso
     if (!data || !Array.isArray(data) || data.length === 0) {
       return {
@@ -85,7 +87,7 @@ export class DataNormalizationService {
       };
     }
 
-    const normalizedData = data.map(item => ({
+    const normalizedData = data.map((item: any) => ({
       timestamp: item.timestamp || item.created_at || item.date,
       value: parseFloat(item.value || item.water_level || item.level || 0),
       label: item.station_name || item.station || 'Sin estación',
@@ -103,8 +105,8 @@ export class DataNormalizationService {
     };
   }
 
-  private static normalizeStations(data: any[]): ChartDataSet {
-    const normalizedData = data.map(item => ({
+  private static normalizeStations(data: ChartDataArray): ChartDataSet {
+    const normalizedData = data.map((item: any) => ({
       timestamp: item.last_measurement || item.updated_at || new Date().toISOString(),
       value: parseFloat(item.current_level || item.level || item.value || 0),
       label: item.name || item.station_name || 'Sin nombre',
@@ -122,8 +124,8 @@ export class DataNormalizationService {
     };
   }
 
-  private static normalizeAlerts(data: any[]): ChartDataSet {
-    const normalizedData = data.map(item => ({
+  private static normalizeAlerts(data: ChartDataArray): ChartDataSet {
+    const normalizedData = data.map((item: any) => ({
       timestamp: item.created_at || item.timestamp || item.date,
       value: parseFloat(item.level || item.value || item.threshold || 0),
       label: item.message || item.description || 'Alerta',
@@ -141,8 +143,8 @@ export class DataNormalizationService {
     };
   }
 
-  private static normalizeReports(data: any[]): ChartDataSet {
-    const normalizedData = data.map(item => ({
+  private static normalizeReports(data: ChartDataArray): ChartDataSet {
+    const normalizedData = data.map((item: any) => ({
       timestamp: item.date || item.timestamp || item.created_at,
       value: parseFloat(item.average_level || item.max_level || item.value || 0),
       label: item.period || item.type || 'Reporte',
@@ -160,8 +162,8 @@ export class DataNormalizationService {
     };
   }
 
-  private static normalizeApiV1(data: any[]): ChartDataSet {
-    const normalizedData = data.map(item => ({
+  private static normalizeApiV1(data: ChartDataArray): ChartDataSet {
+    const normalizedData = data.map((item: any) => ({
       timestamp: item.time || item.date || item.timestamp,
       value: parseFloat(item.level || item.measurement || item.data || 0),
       label: item.location || item.name || 'API V1',
@@ -179,8 +181,8 @@ export class DataNormalizationService {
     };
   }
 
-  private static normalizeApiV2(data: any[]): ChartDataSet {
-    const normalizedData = data.map(item => ({
+  private static normalizeApiV2(data: ChartDataArray): ChartDataSet {
+    const normalizedData = data.map((item: any) => ({
       timestamp: item.datetime || item.timestamp || item.recorded_at,
       value: parseFloat(item.water_height || item.height || item.level || 0),
       label: item.sensor_name || item.device || 'API V2',
@@ -198,8 +200,8 @@ export class DataNormalizationService {
     };
   }
 
-  private static normalizeCsv(data: any[]): ChartDataSet {
-    const normalizedData = data.map(item => ({
+  private static normalizeCsv(data: ChartDataArray): ChartDataSet {
+    const normalizedData = data.map((item: any) => ({
       timestamp: item.fecha || item.timestamp || item.date || item.time,
       value: parseFloat(item.nivel || item.level || item.value || item.medicion || 0),
       label: item.estacion || item.station || item.nombre || 'CSV',
@@ -217,9 +219,9 @@ export class DataNormalizationService {
     };
   }
 
-  private static normalizeJson(data: any[]): ChartDataSet {
+  private static normalizeJson(data: ChartDataArray): ChartDataSet {
     const normalizedData = data.map((item, index) => {
-      const keys = Object.keys(item);
+      const keys = Object.keys(item as Record<string, unknown>);
       const timestampKey = keys.find(k => 
         k.toLowerCase().includes('time') || 
         k.toLowerCase().includes('date') || 
@@ -238,9 +240,9 @@ export class DataNormalizationService {
       );
 
       return {
-        timestamp: timestampKey ? item[timestampKey] : new Date().toISOString(),
-        value: parseFloat(valueKey ? item[valueKey] : Object.values(item)[0] as string || 0),
-        label: labelKey ? item[labelKey] : `Item ${index + 1}`,
+        timestamp: timestampKey ? String(item[timestampKey]) : new Date().toISOString(),
+        value: parseFloat(valueKey ? String(item[valueKey]) : String(Object.values(item as Record<string, unknown>)[0]) || '0'),
+        label: labelKey ? String(item[labelKey]) : `Item ${index + 1}`,
         station: item.id?.toString() || index.toString()
       };
     });

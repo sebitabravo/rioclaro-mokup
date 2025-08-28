@@ -1,4 +1,4 @@
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
   data?: T;
   error?: string;
   message?: string;
@@ -53,7 +53,8 @@ export class ApiClient {
       }
 
       return { data };
-    } catch (error) {
+    } catch (error: unknown) {
+      console.error('API Error:', error);
       return { error: "Error de conexión con el servidor" };
     }
   }
@@ -62,21 +63,21 @@ export class ApiClient {
     return this.request<T>(endpoint, { method: "GET" });
   }
 
-  async post<T>(endpoint: string, body?: any): Promise<ApiResponse<T>> {
+  async post<T>(endpoint: string, body?: unknown): Promise<ApiResponse<T>> {
     return this.request<T>(endpoint, {
       method: "POST",
       body: body ? JSON.stringify(body) : undefined,
     });
   }
 
-  async put<T>(endpoint: string, body?: any): Promise<ApiResponse<T>> {
+  async put<T>(endpoint: string, body?: unknown): Promise<ApiResponse<T>> {
     return this.request<T>(endpoint, {
       method: "PUT",
       body: body ? JSON.stringify(body) : undefined,
     });
   }
 
-  async patch<T>(endpoint: string, body?: any): Promise<ApiResponse<T>> {
+  async patch<T>(endpoint: string, body?: unknown): Promise<ApiResponse<T>> {
     return this.request<T>(endpoint, {
       method: "PATCH",
       body: body ? JSON.stringify(body) : undefined,
@@ -88,5 +89,5 @@ export class ApiClient {
   }
 }
 
-const API_BASE_URL = (import.meta as any).env?.VITE_API_URL || "http://localhost:8000/api";
+const API_BASE_URL = (import.meta as unknown as { env: Record<string, string> }).env?.VITE_API_URL || "http://localhost:8000/api";
 export const apiClient = new ApiClient(API_BASE_URL);
