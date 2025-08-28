@@ -103,45 +103,10 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
   </div>
 );
 
-/**
- * Hook para colores consistentes por tipo de dato
- */
-export const useDataColors = () => ({
-  nivel: {
-    text: 'text-gov-primary',
-    bg: 'bg-gov-primary',
-    border: 'border-gov-primary',
-    light: 'bg-gov-primary/10'
-  },
-  flujo: {
-    text: 'text-gov-green',
-    bg: 'bg-gov-green',
-    border: 'border-gov-green',
-    light: 'bg-gov-green/10'
-  },
-  caudal: {
-    text: 'text-gov-orange',
-    bg: 'bg-gov-orange',
-    border: 'border-gov-orange',
-    light: 'bg-orange-50'
-  },
-  velocidad: {
-    text: 'text-gov-purple',
-    bg: 'bg-gov-purple',
-    border: 'border-gov-purple',
-    light: 'bg-purple-50'
-  },
-  alerta: {
-    text: 'text-gov-secondary',
-    bg: 'bg-gov-secondary',
-    border: 'border-gov-secondary',
-    light: 'bg-gov-secondary/10'
-  }
-});
+export { useDataColors, useAlertSeverityConfig } from './status-hooks';
 
 export default {
   LoadingState,
   StatusMessage,
-  EmptyState,
-  useDataColors
+  EmptyState
 };
