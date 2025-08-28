@@ -83,11 +83,13 @@ export function useBrowserDetect(): BrowserInfo {
   return browserInfo
 }
 
+import type { AnimationConfig } from '../types/animation-types';
+
 // Hook for browser-specific optimizations
 export function useBrowserOptimizations() {
   const browserInfo = useBrowserDetect()
 
-  const getAnimationConfig = (baseConfig: any) => {
+  const getAnimationConfig = (baseConfig: AnimationConfig) => {
     if (browserInfo.prefersReducedMotion) {
       return {
         ...baseConfig,
@@ -101,7 +103,7 @@ export function useBrowserOptimizations() {
       case 'safari':
         return {
           ...baseConfig,
-          duration: baseConfig.duration * 0.8, // Faster animations in Safari
+          duration: (baseConfig.duration || 0.5) * 0.8, // Faster animations in Safari
           ease: 'easeOut', // Simpler easing for better performance
           repeat: Math.min(baseConfig.repeat || 0, 3) // Limit repetitions
         }
@@ -109,7 +111,7 @@ export function useBrowserOptimizations() {
       case 'firefox':
         return {
           ...baseConfig,
-          duration: baseConfig.duration * 0.9, // Slightly faster in Firefox
+          duration: (baseConfig.duration || 0.5) * 0.9, // Slightly faster in Firefox
           repeat: Math.min(baseConfig.repeat || 0, 2) // More conservative with repetitions
         }
 
