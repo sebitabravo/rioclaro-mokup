@@ -1,4 +1,5 @@
 import { motion, type Variants } from 'framer-motion'
+import type { SafeVariants } from '../types/motion-types'
 import { ReactNode, useEffect, useState } from 'react'
 
 interface MotionWrapperProps {
@@ -185,9 +186,9 @@ export function MotionWrapper({
     visible: {
       ...variants[variant].visible,
       transition: {
-        ...((variants[variant].visible as any).transition || {}),
+        ...((variants[variant].visible as { transition?: Record<string, unknown> }).transition || {}),
         // Reducir duración en Safari para mejor rendimiento
-        duration: (((variants[variant].visible as any).transition?.duration as number) || 0.5) * 0.8,
+        duration: (((variants[variant].visible as { transition?: { duration?: number } }).transition?.duration) || 0.5) * 0.8,
         // Usar ease más simple en Safari
         ease: 'easeOut'
       }
@@ -199,9 +200,9 @@ export function MotionWrapper({
     visible: {
       ...safariOptimizedVariants.visible,
       transition: {
-        ...((safariOptimizedVariants.visible as any).transition || {}),
+        ...((safariOptimizedVariants.visible as { transition?: Record<string, unknown> }).transition || {}),
         ...(duration && { duration }),
-        ...(infinite && ((safariOptimizedVariants.visible as any).transition?.repeat !== Infinity) && { repeat: 3 }) // Limitar infinito en Safari
+        ...(infinite && ((safariOptimizedVariants.visible as { transition?: { repeat?: number } }).transition?.repeat !== Infinity) && { repeat: 3 }) // Limitar infinito en Safari
       }
     }
   } : safariOptimizedVariants
@@ -211,7 +212,7 @@ export function MotionWrapper({
       className={className}
       initial="hidden"
       animate="visible"
-      variants={customVariants}
+      variants={customVariants as SafeVariants}
       style={{
         transitionDelay: `${delay}ms`,
         // Optimizaciones adicionales para Safari

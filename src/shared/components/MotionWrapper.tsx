@@ -1,4 +1,5 @@
 import { motion, type Variants } from 'framer-motion'
+import type { SafeVariants } from '../types/motion-types'
 import { ReactNode, useEffect, useState } from 'react'
 import { useBrowserDetect } from '../hooks/useBrowserDetect'
 
@@ -186,9 +187,9 @@ export function MotionWrapper({
           visible: {
             ...baseVariants.visible,
             transition: {
-              ...((baseVariants.visible as any).transition || {}),
-              duration: (((baseVariants.visible as any).transition?.duration as number) || 0.5) * 0.8,
-              repeat: Math.min(((baseVariants.visible as any).transition?.repeat as number) || 0, 3),
+              ...((baseVariants.visible as { transition?: Record<string, unknown> }).transition || {}),
+              duration: (((baseVariants.visible as { transition?: { duration?: number } }).transition?.duration) || 0.5) * 0.8,
+              repeat: Math.min(((baseVariants.visible as { transition?: { repeat?: number } }).transition?.repeat) || 0, 3),
               ease: 'easeOut'
             }
           }
@@ -200,9 +201,9 @@ export function MotionWrapper({
           visible: {
             ...baseVariants.visible,
             transition: {
-              ...((baseVariants.visible as any).transition || {}),
-              duration: (((baseVariants.visible as any).transition?.duration as number) || 0.5) * 0.9,
-              repeat: Math.min(((baseVariants.visible as any).transition?.repeat as number) || 0, 2),
+              ...((baseVariants.visible as { transition?: Record<string, unknown> }).transition || {}),
+              duration: (((baseVariants.visible as { transition?: { duration?: number } }).transition?.duration) || 0.5) * 0.9,
+              repeat: Math.min(((baseVariants.visible as { transition?: { repeat?: number } }).transition?.repeat) || 0, 2),
             }
           }
         }
@@ -218,7 +219,7 @@ export function MotionWrapper({
     visible: {
       ...optimizedVariants.visible,
       transition: {
-        ...((optimizedVariants.visible as any).transition || {}),
+        ...((optimizedVariants.visible as { transition?: Record<string, unknown> }).transition || {}),
         ...(duration && { duration }),
         ...(infinite && browserInfo.name === 'safari' && { repeat: 3 })
       }
@@ -243,7 +244,7 @@ export function MotionWrapper({
       className={className}
       initial="hidden"
       animate="visible"
-      variants={customVariants}
+      variants={customVariants as SafeVariants}
       style={getTransformStyle()}
     >
       {children}

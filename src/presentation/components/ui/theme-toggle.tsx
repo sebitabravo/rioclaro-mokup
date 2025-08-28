@@ -7,7 +7,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@presentation/components/ui/dropdown-menu'
-import { useTheme } from '@shared/contexts/ThemeContext'
+import { useTheme } from '@shared/contexts/theme-hook'
 import { cn } from '@shared/utils/cn'
 
 const themes = [
@@ -29,7 +29,9 @@ const themes = [
 ]
 
 export function ThemeToggle() {
-  const { theme, setTheme, effectiveTheme } = useTheme()
+  const themeContext = useTheme()
+  if (!themeContext) return null
+  const { theme, setTheme, effectiveTheme } = themeContext
 
   const currentTheme = themes.find(t => t.value === theme) || themes[2]
   const CurrentIcon = currentTheme.icon
