@@ -1,10 +1,14 @@
 import { Routes, Route, useLocation } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
-import { HomePage } from '@presentation/pages/HomePage'
-import { DashboardPage } from '@presentation/pages/DashboardPage'
-import { ReportsPage } from '@presentation/pages/ReportsPage'
-import { ActivityReportPage } from '@presentation/pages/ActivityReportPage'
-import { AdminPage } from '@presentation/pages/AdminPage'
+import { Suspense, lazy } from 'react'
+import { PageLoading } from '@presentation/components/ui/page-loading'
+
+// Lazy loading de las páginas para mejorar rendimiento
+const HomePage = lazy(() => import('@presentation/pages/HomePage').then(m => ({ default: m.HomePage })))
+const DashboardPage = lazy(() => import('@presentation/pages/DashboardPage').then(m => ({ default: m.DashboardPage })))
+const ReportsPage = lazy(() => import('@presentation/pages/ReportsPage').then(m => ({ default: m.ReportsPage })))
+const ActivityReportPage = lazy(() => import('@presentation/pages/ActivityReportPage').then(m => ({ default: m.ActivityReportPage })))
+const AdminPage = lazy(() => import('@presentation/pages/AdminPage').then(m => ({ default: m.AdminPage })))
 
 const pageVariants = {
   initial: { 
@@ -43,13 +47,15 @@ export function App() {
 
   return (
     <AnimatePresence mode="wait" initial={false}>
-      <Routes location={location} key={location.pathname}>
-        <Route path="/" element={<AnimatedRoute><HomePage /></AnimatedRoute>} />
-        <Route path="/dashboard" element={<AnimatedRoute><DashboardPage /></AnimatedRoute>} />
-        <Route path="/reports" element={<AnimatedRoute><ReportsPage /></AnimatedRoute>} />
-        <Route path="/activity" element={<AnimatedRoute><ActivityReportPage /></AnimatedRoute>} />
-        <Route path="/admin" element={<AnimatedRoute><AdminPage /></AnimatedRoute>} />
-      </Routes>
+      <Suspense fallback={<PageLoading />}>
+        <Routes location={location} key={location.pathname}>
+          <Route path="/" element={<AnimatedRoute><HomePage /></AnimatedRoute>} />
+          <Route path="/dashboard" element={<AnimatedRoute><DashboardPage /></AnimatedRoute>} />
+          <Route path="/reports" element={<AnimatedRoute><ReportsPage /></AnimatedRoute>} />
+          <Route path="/activity" element={<AnimatedRoute><ActivityReportPage /></AnimatedRoute>} />
+          <Route path="/admin" element={<AnimatedRoute><AdminPage /></AnimatedRoute>} />
+        </Routes>
+      </Suspense>
     </AnimatePresence>
   )
 }

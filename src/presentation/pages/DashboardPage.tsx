@@ -6,7 +6,6 @@ import {
 	CardHeader,
 	CardTitle
 } from '@presentation/components/ui/card';
-import { Button } from '@presentation/components/ui/button';
 import { AnimatedButton } from '@presentation/components/ui/animated-button';
 import { MotionWrapper } from '@shared/components/MotionWrapper';
 import {
@@ -34,10 +33,26 @@ import { MiniTrendChart } from '@presentation/components/charts/MiniTrendChart';
 import type { Station } from '@domain/entities/Station';
 import { PerformanceMonitor } from '@shared/components/PerformanceMonitor';
 
+interface MockMetricData {
+  timestamp: string;
+  value: number;
+  station_name: string;
+  station_id: number;
+  metric_type: string;
+  water_level: number;
+  flow: number;
+  flow_rate: number;
+  velocity: number;
+  nivel: number;
+  flujo: number;
+  caudal: number;
+  velocidad: number;
+}
+
 // Función para generar datos mock de métricas
-function generateMockMetricData() {
+function generateMockMetricData(): MockMetricData[] {
 	const now = new Date();
-	const data = [];
+	const data: MockMetricData[] = [];
 
 	// Generar datos para las últimas 24 horas (cada 2 horas para tener más puntos)
 	for (let i = 11; i >= 0; i--) {
@@ -310,7 +325,7 @@ export function DashboardPage() {
 										<CardContent className='pt-0 pb-2'>
 											<div className='text-lg font-bold text-gov-green'>
 												{(
-													(mockMetricData[mockMetricData.length - 1] as any)
+													(mockMetricData[mockMetricData.length - 1] as MockMetricData)
 														?.flow || 14
 												).toFixed(1)}{' '}
 												m³/s
@@ -318,7 +333,7 @@ export function DashboardPage() {
 											<div className='h-6 mt-1 mb-1'>
 												<MiniTrendChart
 													data={mockMetricData.map((d) => ({
-														value: (d as any).flow || 14
+														value: (d as MockMetricData).flow || 14
 													}))}
 													color='#16a34a'
 													height={24}
@@ -347,7 +362,7 @@ export function DashboardPage() {
 										<CardContent className='pt-0 pb-2'>
 											<div className='text-lg font-bold text-gov-primary'>
 												{(
-													(mockMetricData[mockMetricData.length - 1] as any)
+													(mockMetricData[mockMetricData.length - 1] as MockMetricData)
 														?.water_level || 2.5
 												).toFixed(1)}
 												m
@@ -355,7 +370,7 @@ export function DashboardPage() {
 											<div className='h-6 mt-1 mb-1'>
 												<MiniTrendChart
 													data={mockMetricData.map((d) => ({
-														value: (d as any).water_level || 2.5
+														value: (d as MockMetricData).water_level || 2.5
 													}))}
 													color='#1e40af'
 													height={24}
@@ -384,7 +399,7 @@ export function DashboardPage() {
 										<CardContent className='pt-0 pb-2'>
 											<div className='text-lg font-bold text-purple-600'>
 												{Math.round(
-													(mockMetricData[mockMetricData.length - 1] as any)
+													(mockMetricData[mockMetricData.length - 1] as MockMetricData)
 														?.flow_rate || 1000
 												)}{' '}
 												L/s
@@ -392,7 +407,7 @@ export function DashboardPage() {
 											<div className='h-6 mt-1 mb-1'>
 												<MiniTrendChart
 													data={mockMetricData.map((d) => ({
-														value: (d as any).flow_rate || 1000
+														value: (d as MockMetricData).flow_rate || 1000
 													}))}
 													color='#7c3aed'
 													height={24}
@@ -421,7 +436,7 @@ export function DashboardPage() {
 										<CardContent className='pt-0 pb-2'>
 											<div className='text-lg font-bold text-gov-secondary'>
 												{(
-													(mockMetricData[mockMetricData.length - 1] as any)
+													(mockMetricData[mockMetricData.length - 1] as MockMetricData)
 														?.velocity || 1.5
 												).toFixed(1)}{' '}
 												m/s
@@ -429,7 +444,7 @@ export function DashboardPage() {
 											<div className='h-6 mt-1 mb-1'>
 												<MiniTrendChart
 													data={mockMetricData.map((d) => ({
-														value: (d as any).velocity || 1.5
+														value: (d as MockMetricData).velocity || 1.5
 													}))}
 													color='#f97316'
 													height={24}

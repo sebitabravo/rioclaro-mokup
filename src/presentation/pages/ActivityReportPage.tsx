@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import type { ActivityStatus, ActivityType } from '@domain/entities/ActivityLog';
 import { Navbar } from '@presentation/components/layout/Navbar';
 import { Card, CardContent, CardHeader, CardTitle } from '@presentation/components/ui/card';
 import { Button } from '@presentation/components/ui/button';
@@ -61,16 +62,21 @@ export function ActivityReportPage() {
   const [selectedStatus, setSelectedStatus] = useState<string>('');
   const [selectedType, setSelectedType] = useState<string>('');
   const [showFilters, setShowFilters] = useState(false);
-  const [stats, setStats] = useState<any>(null);
+  const [stats, setStats] = useState<{
+    total: number;
+    byType: Record<string, number>;
+    byStatus: Record<string, number>;
+    recentActivity: ActivityLog[];
+  } | null>(null);
 
-  const loadLogs = async () => {
+  const loadLogs = useCallback(async () => {
     setLoading(true);
     try {
       const filter: ActivityLogFilter = {};
       
       if (searchTerm) filter.search = searchTerm;
-      if (selectedStatus) filter.status = [selectedStatus as any];
-      if (selectedType) filter.activityTypes = [selectedType as any];
+      if (selectedStatus) filter.status = [selectedStatus as ActivityStatus];
+      if (selectedType) filter.activityTypes = [selectedType as ActivityType];
 
       const [logsData, statsData] = await Promise.all([
         activityLogRepo.findAll(filter),
@@ -84,11 +90,11 @@ export function ActivityReportPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [searchTerm, selectedStatus, selectedType]);
 
   useEffect(() => {
     loadLogs();
-  }, [searchTerm, selectedStatus, selectedType]);
+  }, [loadLogs]);
 
   const ActivityIcon = ({ type }: { type: keyof typeof activityTypeConfig }) => {
     const config = activityTypeConfig[type];
