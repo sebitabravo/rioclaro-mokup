@@ -3,13 +3,10 @@ import {
   Line, 
   AreaChart, 
   Area, 
-  BarChart, 
-  Bar, 
   XAxis, 
   YAxis, 
   CartesianGrid, 
   Tooltip, 
-  ResponsiveContainer,
   Legend
 } from "recharts";
 import { DataNormalizationService, ChartDataSet, DataSourceType } from "@shared/services/DataNormalizationService";
@@ -37,12 +34,13 @@ const METRIC_CONFIGS = {
     fillOpacity: 0.3
   },
   nivel: {
-    chartType: 'bar' as const,
+    chartType: 'line' as const,
     color: '#1e40af', // var(--primary)
     unit: 'm',
     name: 'Nivel del Agua',
-    strokeWidth: 2,
-    fillOpacity: 0.8
+    strokeWidth: 6,
+    fillOpacity: 0.8,
+    dotSize: 8
   },
   caudal: {
     chartType: 'line' as const,
@@ -50,7 +48,8 @@ const METRIC_CONFIGS = {
     unit: 'L/s',
     name: 'Caudal',
     strokeWidth: 3,
-    fillOpacity: 1
+    fillOpacity: 1,
+    dotSize: 4
   },
   velocidad: {
     chartType: 'area' as const,
@@ -67,7 +66,8 @@ const METRIC_CONFIGS = {
     unit: '°C',
     name: 'Temperatura',
     strokeWidth: 2,
-    fillOpacity: 1
+    fillOpacity: 1,
+    dotSize: 4
   }
 } as const;
 
@@ -112,6 +112,24 @@ export function MetricChart({
   const chartConfig = DataNormalizationService.getChartConfig(normalizedDataSet);
   const metricConfig = METRIC_CONFIGS[metricType];
   
+  // Defensive: if no data, render placeholder
+  if (!rawData || rawData.length === 0) {
+    return (
+      <div className={className} style={{ height }} data-testid="metric-chart">
+        <div className="flex items-center justify-center h-full text-gov-gray-a">
+          No hay datos disponibles para la métrica seleccionada
+        </div>
+      </div>
+    );
+  }
+
+  // Ensure data items have string timestamps and numeric values
+  const safeData = normalizedDataSet.data.map(d => ({
+    ...d,
+    timestamp: String(d.timestamp),
+    value: Number.isFinite(Number(d.value)) ? Number(d.value) : 0
+  }));
+  
   // Custom Tooltip
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
@@ -138,7 +156,9 @@ export function MetricChart({
 
   const renderChart = () => {
     const commonProps = {
-      data: normalizedDataSet.data,
+      data: safeData,
+      width: 900,
+      height: height - 20,
       margin: { top: 5, right: 30, left: 20, bottom: 5 }
     };
 
@@ -182,24 +202,6 @@ export function MetricChart({
           </AreaChart>
         );
 
-      case 'bar':
-        return (
-          <BarChart {...commonProps}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-            <XAxis {...commonAxisProps.xAxisProps} />
-            <YAxis {...commonAxisProps.yAxisProps} />
-            <Tooltip content={<CustomTooltip />} />
-            {showLegend && <Legend />}
-            <Bar
-              dataKey={chartConfig.yAxisKey}
-              fill={metricConfig.color}
-              opacity={metricConfig.fillOpacity}
-              name={metricConfig.name}
-              radius={[2, 2, 0, 0]}
-            />
-          </BarChart>
-        );
-
       case 'line':
         return (
           <LineChart {...commonProps}>
@@ -213,8 +215,15 @@ export function MetricChart({
               dataKey={chartConfig.yAxisKey}
               stroke={metricConfig.color}
               strokeWidth={metricConfig.strokeWidth}
-              dot={{ fill: metricConfig.color, strokeWidth: 2, r: 4 }}
-              activeDot={{ r: 6, fill: metricConfig.color }}
+              dot={{ 
+                fill: metricConfig.color, 
+                strokeWidth: 2, 
+                r: 'dotSize' in metricConfig ? metricConfig.dotSize : 4 
+              }}
+              activeDot={{ 
+                r: ('dotSize' in metricConfig ? metricConfig.dotSize : 4) + 2, 
+                fill: metricConfig.color 
+              }}
               name={metricConfig.name}
             />
           </LineChart>
@@ -238,10 +247,10 @@ export function MetricChart({
   }
 
   return (
-    <div className={className}>
-      <ResponsiveContainer width="100%" height={height}>
+    <div className={className} data-testid="metric-chart">
+      <div style={{ height }}>
         {chart}
-      </ResponsiveContainer>
+      </div>
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip } from "recharts";
 import { DataNormalizationService, ChartDataSet, DataSourceType } from "@shared/services/DataNormalizationService";
 
 interface NormalizedChartProps {
@@ -12,10 +12,28 @@ export function NormalizedChart({ rawData, sourceType, height = 300, className =
   const normalizedDataSet: ChartDataSet = DataNormalizationService.normalize(rawData, sourceType);
   const chartConfig = DataNormalizationService.getChartConfig(normalizedDataSet);
   
+  // Defensive: if no data, render placeholder message so the card doesn't look empty
+  if (!normalizedDataSet.data || normalizedDataSet.data.length === 0) {
+    return (
+      <div className={className} style={{ height }} data-testid="normalized-chart">
+        <div className="flex items-center justify-center h-full text-gov-gray-a">
+          No hay datos disponibles para mostrar
+        </div>
+      </div>
+    );
+  }
+
+  // Ensure data items have string timestamps and numeric values
+  const safeData = normalizedDataSet.data.map(d => ({
+    ...d,
+    timestamp: String(d.timestamp),
+    value: Number.isFinite(Number(d.value)) ? Number(d.value) : 0
+  }));
+
   return (
-    <div className={className}>
-      <ResponsiveContainer width="100%" height={height}>
-        <LineChart data={normalizedDataSet.data}>
+    <div className={className} style={{ height }} data-testid="normalized-chart">
+      <div style={{ width: '100%', height: '100%' }}>
+        <LineChart width={900} height={280} data={safeData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="var(--gov-accent)" />
           <XAxis
             dataKey={chartConfig.xAxisKey}
@@ -52,7 +70,7 @@ export function NormalizedChart({ rawData, sourceType, height = 300, className =
             }}
           />
         </LineChart>
-      </ResponsiveContainer>
+      </div>
       
       {/* Metadata info */}
       <div className="mt-2 text-xs text-gov-gray-b flex justify-between">
