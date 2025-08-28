@@ -1,10 +1,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@presentation/components/ui/card";
 import { MetricChart, MetricType } from "./MetricChart";
 import { DataSourceType } from "@shared/services/DataNormalizationService";
+import type { ChartDataArray } from "@shared/types/chart-data";
 import { BarChart3, Activity, Waves, Droplets, Gauge } from "lucide-react";
 
 interface MetricsDashboardProps {
-  measurementData: any[];
+  measurementData: ChartDataArray;
   className?: string;
 }
 

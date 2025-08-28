@@ -100,10 +100,15 @@ export function StationsMap({
   // Auto-centrar en las estaciones cuando se cargan
   useEffect(() => {
     if (stations.length > 0) {
-      const stationsCenter = calculateStationsCenter();
-      setMapCenter(stationsCenter);
+      const latitudes = stations.map(s => s.latitude);
+      const longitudes = stations.map(s => s.longitude);
+      
+      const avgLat = latitudes.reduce((a, b) => a + b, 0) / latitudes.length;
+      const avgLng = longitudes.reduce((a, b) => a + b, 0) / longitudes.length;
+      
+      setMapCenter([avgLat, avgLng]);
     }
-  }, [stations, calculateStationsCenter]);
+  }, [stations]);
 
   // Forzar actualización del tamaño cuando la altura cambie
   useEffect(() => {
