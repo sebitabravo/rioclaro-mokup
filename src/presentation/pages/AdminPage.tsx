@@ -278,65 +278,45 @@ export function AdminPage() {
           {/* Tab Navigation */}
           <div className="flex flex-col sm:flex-row gap-2">
             <Button
-              variant="outline"
+              variant={activeTab === "users" ? "default" : "outline"}
               onClick={() => setActiveTab("users")}
-              className={`flex items-center space-x-2 ${
-                activeTab === "users"
-                  ? "bg-gov-primary text-white border-gov-primary hover:bg-gov-primary/90"
-                  : "bg-white text-gov-black border-gov-accent hover:bg-gov-accent hover:text-gov-black"
-              }`}
+              className="flex items-center space-x-2"
             >
               <Users className="h-4 w-4" />
               <span>Usuarios</span>
             </Button>
             
             <Button
-              variant="outline"
+              variant={activeTab === "stations" ? "default" : "outline"}
               onClick={() => setActiveTab("stations")}
-              className={`flex items-center space-x-2 ${
-                activeTab === "stations"
-                  ? "bg-gov-primary text-white border-gov-primary hover:bg-gov-primary/90"
-                  : "bg-white text-gov-black border-gov-accent hover:bg-gov-accent hover:text-gov-black"
-              }`}
+              className="flex items-center space-x-2"
             >
               <MapPin className="h-4 w-4" />
               <span>Estaciones</span>
             </Button>
             
             <Button
-              variant="outline"
+              variant={activeTab === "assignments" ? "default" : "outline"}
               onClick={() => setActiveTab("assignments")}
-              className={`flex items-center space-x-2 ${
-                activeTab === "assignments"
-                  ? "bg-gov-primary text-white border-gov-primary hover:bg-gov-primary/90"
-                  : "bg-white text-gov-black border-gov-accent hover:bg-gov-accent hover:text-gov-black"
-              }`}
+              className="flex items-center space-x-2"
             >
               <UserCheck className="h-4 w-4" />
               <span>Asignaciones</span>
             </Button>
             
             <Button
-              variant="outline"
+              variant={activeTab === "alerts" ? "default" : "outline"}
               onClick={() => setActiveTab("alerts")}
-              className={`flex items-center space-x-2 ${
-                activeTab === "alerts"
-                  ? "bg-gov-primary text-white border-gov-primary hover:bg-gov-primary/90"
-                  : "bg-white text-gov-black border-gov-accent hover:bg-gov-accent hover:text-gov-black"
-              }`}
+              className="flex items-center space-x-2"
             >
               <AlertTriangle className="h-4 w-4" />
               <span>Alertas</span>
             </Button>
             
             <Button
-              variant="outline"
+              variant={activeTab === "modules" ? "default" : "outline"}
               onClick={() => setActiveTab("modules")}
-              className={`flex items-center space-x-2 ${
-                activeTab === "modules"
-                  ? "bg-gov-primary text-white border-gov-primary hover:bg-gov-primary/90"
-                  : "bg-white text-gov-black border-gov-accent hover:bg-gov-accent hover:text-gov-black"
-              }`}
+              className="flex items-center space-x-2"
             >
               <Settings className="h-4 w-4" />
               <span>Módulos</span>

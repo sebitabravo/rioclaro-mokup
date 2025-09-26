@@ -120,52 +120,36 @@ export function ReportsPage() {
               {/* Tab Navigation */}
               <div className="flex flex-col sm:flex-row gap-2">
                 <Button
-                  variant="outline"
+                  variant={activeTab === "daily-average" ? "default" : "outline"}
                   onClick={() => setActiveTab("daily-average")}
-                  className={`flex items-center space-x-2 transition-colors ${
-                    activeTab === "daily-average"
-                      ? "bg-gov-primary text-white border-gov-primary hover:bg-gov-primary/90"
-                      : "bg-white text-gov-black border-gov-accent hover:bg-gov-accent hover:text-gov-black"
-                  }`}
+                  className="flex items-center space-x-2"
                 >
                   <TrendingUp className="h-4 w-4" />
                   <span>Promedios Diarios</span>
                 </Button>
 
                 <Button
-                  variant="outline"
+                  variant={activeTab === "detailed-analysis" ? "default" : "outline"}
                   onClick={() => setActiveTab("detailed-analysis")}
-                  className={`flex items-center space-x-2 transition-colors ${
-                    activeTab === "detailed-analysis"
-                      ? "bg-gov-primary text-white border-gov-primary hover:bg-gov-primary/90"
-                      : "bg-white text-gov-black border-gov-accent hover:bg-gov-accent hover:text-gov-black"
-                  }`}
+                  className="flex items-center space-x-2"
                 >
                   <Waves className="h-4 w-4" />
                   <span>Análisis Detallado</span>
                 </Button>
                 
                 <Button
-                  variant="outline"
+                  variant={activeTab === "critical-events" ? "default" : "outline"}
                   onClick={() => setActiveTab("critical-events")}
-                  className={`flex items-center space-x-2 transition-colors ${
-                    activeTab === "critical-events"
-                      ? "bg-gov-primary text-white border-gov-primary hover:bg-gov-primary/90"
-                      : "bg-white text-gov-black border-gov-accent hover:bg-gov-accent hover:text-gov-black"
-                  }`}
+                  className="flex items-center space-x-2"
                 >
                   <AlertTriangle className="h-4 w-4" />
                   <span>Eventos Críticos</span>
                 </Button>
                 
                 <Button
-                  variant="outline"
+                  variant={activeTab === "comparative" ? "default" : "outline"}
                   onClick={() => setActiveTab("comparative")}
-                  className={`flex items-center space-x-2 transition-colors ${
-                    activeTab === "comparative"
-                      ? "bg-gov-primary text-white border-gov-primary hover:bg-gov-primary/90"
-                      : "bg-white text-gov-black border-gov-accent hover:bg-gov-accent hover:text-gov-black"
-                  }`}
+                  className="flex items-center space-x-2"
                 >
                   <BarChart3 className="h-4 w-4" />
                   <span>Comparativo</span>
@@ -230,52 +214,36 @@ export function ReportsPage() {
                     <CardContent>
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                         <Button
-                          variant="outline"
+                          variant={selectedMetric === "nivel" ? "default" : "outline"}
                           onClick={() => setSelectedMetric("nivel")}
-                          className={`flex items-center space-x-2 h-auto p-3 transition-colors ${
-                            selectedMetric === "nivel"
-                              ? "bg-gov-primary text-white border-gov-primary hover:bg-gov-primary/90"
-                              : "bg-white text-gov-black border-gov-accent hover:bg-gov-accent hover:text-gov-black"
-                          }`}
+                          className="flex items-center space-x-2 h-auto p-3"
                         >
                           <BarChart3 className="h-4 w-4" />
                           <span>Nivel</span>
                         </Button>
                         
                         <Button
-                          variant="outline"
+                          variant={selectedMetric === "flujo" ? "default" : "outline"}
                           onClick={() => setSelectedMetric("flujo")}
-                          className={`flex items-center space-x-2 h-auto p-3 transition-colors ${
-                            selectedMetric === "flujo"
-                              ? "bg-gov-primary text-white border-gov-primary hover:bg-gov-primary/90"
-                              : "bg-white text-gov-black border-gov-accent hover:bg-gov-accent hover:text-gov-black"
-                          }`}
+                          className="flex items-center space-x-2 h-auto p-3"
                         >
                           <Waves className="h-4 w-4" />
                           <span>Flujo</span>
                         </Button>
                         
                         <Button
-                          variant="outline"
+                          variant={selectedMetric === "caudal" ? "default" : "outline"}
                           onClick={() => setSelectedMetric("caudal")}
-                          className={`flex items-center space-x-2 h-auto p-3 transition-colors ${
-                            selectedMetric === "caudal"
-                              ? "bg-gov-primary text-white border-gov-primary hover:bg-gov-primary/90"
-                              : "bg-white text-gov-black border-gov-accent hover:bg-gov-accent hover:text-gov-black"
-                          }`}
+                          className="flex items-center space-x-2 h-auto p-3"
                         >
                           <Droplets className="h-4 w-4" />
                           <span>Caudal</span>
                         </Button>
                         
                         <Button
-                          variant="outline"
+                          variant={selectedMetric === "velocidad" ? "default" : "outline"}
                           onClick={() => setSelectedMetric("velocidad")}
-                          className={`flex items-center space-x-2 h-auto p-3 transition-colors ${
-                            selectedMetric === "velocidad"
-                              ? "bg-gov-primary text-white border-gov-primary hover:bg-gov-primary/90"
-                              : "bg-white text-gov-black border-gov-accent hover:bg-gov-accent hover:text-gov-black"
-                          }`}
+                          className="flex items-center space-x-2 h-auto p-3"
                         >
                           <Gauge className="h-4 w-4" />
                           <span>Velocidad</span>
