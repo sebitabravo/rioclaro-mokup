@@ -2,14 +2,28 @@
 
 ## Visión General
 
-El sistema utiliza **Clean Architecture** con inversión de dependencias, optimizado para React 19 y TypeScript. Implementa lazy loading, animaciones fluidas y exportación avanzada de reportes.
+El sistema combina **Clean Architecture** con **Feature-based Architecture**, optimizado para React 19 y TypeScript. Implementa lazy loading, animaciones fluidas, testing integral y exportación avanzada de reportes.
+
+## Arquitectura Híbrida Actualizada
+
+### 🎯 Núcleo Clean Architecture
+
+- **Domain Layer**: Entidades y reglas de negocio centralizadas
+- **Application Layer**: Casos de uso y lógica de aplicación
+- **Infrastructure Layer**: Adaptadores, APIs y dependencias externas
+
+### 🏢 Feature-based Organization
+
+- **Modularidad**: Cada feature es autónoma con sus stores, componentes y tests
+- **Escalabilidad**: Fácil agregar nuevas funcionalidades sin afectar el resto
+- **Testing**: Tests unitarios integrados por feature + E2E con Playwright
 
 ## Estructura Actualizada del Proyecto
 
 ```typescript
 rioclaro-mokup/
 ├── src/
-│   ├── domain/                 # 🎯 Capa de Dominio
+│   ├── domain/                 # 🎯 Capa de Dominio (Centralizada)
 │   │   ├── entities/          # Entidades de negocio
 │   │   │   ├── User.ts        # Usuario del sistema
 │   │   │   ├── Station.ts     # Estación de monitoreo
@@ -19,14 +33,14 @@ rioclaro-mokup/
 │   │   │   └── ActivityLog.ts # Logs de actividad
 │   │   └── repositories/      # Contratos de repositorios
 │   │
-│   ├── application/           # 📋 Capa de Aplicación
+│   ├── application/           # 📋 Capa de Aplicación (Centralizada)
 │   │   └── use-cases/         # Casos de uso principales
 │   │       ├── GenerateReports.ts
 │   │       ├── GetMeasurements.ts
 │   │       ├── GetStations.ts
 │   │       └── ManageUsers.ts
 │   │
-│   ├── infrastructure/        # 🔧 Capa de Infraestructura
+│   ├── infrastructure/        # 🔧 Capa de Infraestructura (Centralizada)
 │   │   ├── adapters/          # Adaptadores y clientes
 │   │   │   ├── ApiClient.ts
 │   │   │   ├── ApiStationRepository.ts
@@ -34,20 +48,43 @@ rioclaro-mokup/
 │   │   └── di/                # Inyección de dependencias
 │   │       └── Container.ts
 │   │
-│   ├── presentation/          # 🎨 Capa de Presentación
-│   │   ├── components/        # Componentes React organizados
-│   │   │   ├── ui/            # Componentes base + utilidades
+│   ├── features/              # 🏢 Features Modulares (NUEVO)
+│   │   ├── dashboard/         # Feature Dashboard
+│   │   │   ├── components/    # Componentes específicos
+│   │   │   │   ├── __tests__/ # Tests unitarios
+│   │   │   │   ├── MetricCard.tsx
+│   │   │   │   └── MetricsDashboard.tsx
+│   │   │   ├── hooks/         # Hooks personalizados
+│   │   │   │   └── __tests__/ # Tests de hooks
+│   │   │   └── stores/        # Estado específico de dashboard
+│   │   │       └── MeasurementStore.ts
+│   │   ├── reports/           # Feature Reportes
+│   │   │   ├── components/
+│   │   │   │   ├── ReportExportButton.tsx
+│   │   │   │   └── NormalizedChart.tsx
+│   │   │   └── stores/
+│   │   │       └── ReportStore.ts
+│   │   ├── admin/             # Feature Administración
+│   │   │   └── stores/
+│   │   │       ├── UserStore.ts
+│   │   │       └── StationStore.ts
+│   │   ├── activity/          # Feature Actividad
+│   │   │   └── components/
+│   │   │       └── ActivityExportButton.tsx
+│   │   └── home/              # Feature Página Principal
+│   │
+│   ├── presentation/          # 🎨 Componentes Compartidos
+│   │   ├── components/        # Componentes reutilizables
+│   │   │   ├── ui/            # Design System base
 │   │   │   ├── layout/        # Navbar y estructura general
-│   │   │   ├── charts/        # Dashboard y gráficos interactivos
+│   │   │   ├── charts/        # Gráficos compartidos
 │   │   │   └── maps/          # StationsMap con Leaflet
-│   │   ├── pages/             # Páginas con lazy loading
-│   │   │   ├── HomePage.tsx
-│   │   │   ├── DashboardPage.tsx
-│   │   │   ├── ReportsPage.tsx
-│   │   │   ├── ActivityReportPage.tsx
-│   │   │   └── AdminPage.tsx
-│   │   ├── stores/            # Estado global Zustand
-│   │   │   ├── StationStore.ts
+│   │   └── pages/             # Páginas con lazy loading
+│   │       ├── HomePage.tsx
+│   │       ├── DashboardPage.tsx
+│   │       ├── ReportsPage.tsx
+│   │       ├── ActivityReportPage.tsx
+│   │       └── AdminPage.tsx
 │   │   │   ├── MeasurementStore.ts
 │   │   │   ├── ReportStore.ts
 │   │   │   └── UserStore.ts
@@ -195,7 +232,7 @@ export interface ActivityLog {
 
 ## 📋 Capa de Aplicación (`src/application/`)
 
-### Responsabilidades
+### Responsabilidades de la Aplicación
 
 - Contiene los **casos de uso** del sistema
 - Orquesta las **entidades de dominio**
@@ -213,7 +250,7 @@ export interface ActivityLog {
 
 ## 🔧 Capa de Infraestructura (`src/infrastructure/`)
 
-### Responsabilidades
+### Responsabilidades de la Infraestructura
 
 - Implementa los **repositorios** definidos en dominio
 - Maneja **comunicación externa** (APIs, servicios)
@@ -262,7 +299,7 @@ Implementaciones de prueba para desarrollo:
 
 ## 🎨 Capa de Presentación (`src/presentation/`)
 
-### Responsabilidades
+### Responsabilidades de la Presentación
 
 - **Interfaz de usuario** con React 19
 - **Estado global** con Zustand
@@ -554,4 +591,116 @@ export default defineConfig({
 }
 ```
 
-Esta arquitectura garantiza mantenibilidad, escalabilidad y rendimiento óptimo para el sistema de monitoreo del Río Claro.
+## 🏢 Arquitectura de Features (`src/features/`)
+
+### Organización Modular
+
+Cada feature encapsula su funcionalidad completa con:
+
+- **Componentes específicos** del dominio
+- **Stores de estado** localizados
+- **Hooks personalizados** para lógica compartida
+- **Tests unitarios** integrados por feature
+
+### Features Principales
+
+#### `dashboard/`
+
+Feature principal del sistema de monitoreo:
+
+```typescript
+dashboard/
+├── components/
+│   ├── __tests__/
+│   │   └── MetricCard.test.tsx     # Tests unitarios con Vitest
+│   ├── MetricCard.tsx              # Tarjeta de métricas individual
+│   ├── MetricsDashboard.tsx        # Dashboard principal
+│   ├── DashboardHeader.tsx         # Header con filtros
+│   ├── MetricsGrid.tsx             # Grid de métricas
+│   ├── MiniTrendChart.tsx          # Gráfico de tendencia mini
+│   └── StationsMap.tsx             # Mapa de estaciones
+├── hooks/
+│   ├── __tests__/                  # Tests de hooks
+│   └── useDashboardData.ts         # Hook de datos del dashboard
+└── stores/
+    └── MeasurementStore.ts         # Estado específico de mediciones
+```
+
+#### `reports/`
+
+Feature de generación y exportación de reportes:
+
+```typescript
+reports/
+├── components/
+│   ├── ReportExportButton.tsx      # Botón de exportación avanzado
+│   ├── NormalizedChart.tsx         # Gráficos normalizados
+│   └── MetricChart.tsx             # Gráficos de métricas
+└── stores/
+    └── ReportStore.ts              # Estado de reportes
+```
+
+#### `admin/`
+
+Feature de administración del sistema:
+
+```typescript
+admin/
+└── stores/
+    ├── UserStore.ts                # Gestión de usuarios
+    └── StationStore.ts             # Gestión de estaciones
+```
+
+#### `activity/`
+
+Feature de logs y actividad del sistema:
+
+```typescript
+activity/
+└── components/
+    └── ActivityExportButton.tsx    # Exportación de logs
+```
+
+### Ventajas de esta Arquitectura
+
+1. **Mantenimiento**: Cada feature es independiente y fácil de modificar
+2. **Testing**: Tests integrados por feature facilitan TDD
+3. **Escalabilidad**: Nuevas features se agregan sin conflictos
+4. **Colaboración**: Múltiples desarrolladores pueden trabajar en paralelo
+5. **Reutilización**: Componentes compartidos en `presentation/`
+
+## 🧪 Estrategia de Testing
+
+### Testing Unitario con Vitest
+
+- **Framework**: Vitest con jsdom para testing de React
+- **Testing Library**: React Testing Library para interacciones
+- **Cobertura**: Integrada con c8/v8 para métricas
+- **Setup**: Configuración global en `vitest.config.ts`
+
+### Testing E2E con Playwright
+
+- **Cobertura completa**: Flujos de usuario end-to-end
+- **Cross-browser**: Chrome, Firefox, Safari
+- **Performance**: Métricas de rendimiento automatizadas
+- **Reports**: Reportes visuales con capturas
+
+### Arquitectura de Tests
+
+```typescript
+src/
+├── features/
+│   └── dashboard/
+│       ├── components/
+│       │   └── __tests__/          # Tests unitarios por componente
+│       └── hooks/
+│           └── __tests__/          # Tests de hooks personalizados
+├── test/
+│   └── setup.ts                   # Configuración global de tests
+└── tests/                         # Tests E2E con Playwright
+    ├── dashboard-performance.spec.ts
+    ├── reports-chart.spec.ts
+    └── general-app.spec.ts
+```
+
+Esta arquitectura híbrida garantiza mantenibilidad, escalabilidad y calidad óptima para el sistema de monitoreo del Río Claro.

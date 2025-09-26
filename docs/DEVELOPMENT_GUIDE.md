@@ -50,6 +50,8 @@ eslint . --fix       # Fix automático de problemas
 pnpm test            # Tests E2E con Playwright
 pnpm test:ui         # Interfaz UI de Playwright
 pnpm test:headed     # Tests con navegador visible
+pnpm test:unit       # Tests unitarios con Vitest
+pnpm test:coverage   # Cobertura de tests unitarios
 ```
 
 ## ⚙️ Configuración del Entorno
@@ -121,11 +123,21 @@ src/
 │   ├── adapters/        # Repositorios Mock y API
 │   └── di/             # Inyección de dependencias
 │
-├── presentation/        # 🎨 Interfaz de usuario
-│   ├── components/      # Componentes React
+├── features/           # � Features modulares (NUEVO)
+│   ├── dashboard/      # Feature Dashboard
+│   │   ├── components/ # Componentes específicos
+│   │   │   └── __tests__/  # Tests unitarios
+│   │   ├── hooks/      # Hooks personalizados
+│   │   │   └── __tests__/  # Tests de hooks
+│   │   └── stores/     # Estado específico
+│   ├── reports/        # Feature Reportes
+│   ├── admin/          # Feature Administración
+│   └── activity/       # Feature Actividad
+│
+├── presentation/        # 🎨 Componentes compartidos
+│   ├── components/      # Componentes reutilizables
 │   ├── pages/          # Páginas con lazy loading
-│   ├── stores/         # Estado global Zustand
-│   └── hooks/          # Custom hooks
+│   └── hooks/          # Custom hooks globales
 │
 ├── shared/             # 🔄 Utilidades compartidas
 │   ├── services/       # Servicios transversales
@@ -133,6 +145,9 @@ src/
 │   ├── hooks/          # Hooks globales
 │   ├── types/          # Tipos TypeScript
 │   └── utils/          # Funciones de utilidad
+│
+├── test/               # 🧪 Configuración de testing
+│   └── setup.ts        # Setup global de Vitest
 │
 └── examples/           # 📖 Ejemplos de uso
 ```
@@ -150,6 +165,7 @@ El proyecto usa path mapping para importaciones absolutas:
       "@domain/*": ["./src/domain/*"],
       "@application/*": ["./src/application/*"],
       "@infrastructure/*": ["./src/infrastructure/*"],
+      "@features/*": ["./src/features/*"],
       "@presentation/*": ["./src/presentation/*"],
       "@shared/*": ["./src/shared/*"]
     }
@@ -162,11 +178,13 @@ Ejemplos de uso:
 ```typescript
 // ✅ Correcto - Import absoluto
 import { Station } from '@domain/entities/Station'
-import { useStationStore } from '@presentation/stores/StationStore'
+import { useMeasurementStore } from '@features/dashboard/stores/MeasurementStore'
+import { MetricCard } from '@features/dashboard/components/MetricCard'
 import { DataNormalizationService } from '@shared/services/DataNormalizationService'
 
 // ❌ Evitar - Import relativo largo
 import { Station } from '../../../domain/entities/Station'
+import { MetricCard } from '../../features/dashboard/components/MetricCard'
 ```
 
 ## 🎨 Desarrollo de Componentes
@@ -347,12 +365,12 @@ export const useStationStore = create<StationState>((set, get) => ({
 
 ```typescript
 const StationList: React.FC = () => {
-  const { 
-    stations, 
-    loading, 
-    error, 
-    fetchStations, 
-    selectStation 
+  const {
+    stations,
+    loading,
+    error,
+    fetchStations,
+    selectStation
   } = useStationStore()
 
   useEffect(() => {
@@ -411,7 +429,7 @@ export class ExportService {
   static async exportToPDF(data: any[], options: ExportOptions): Promise<void> {
     const { jsPDF } = await import('jspdf')
     const doc = new jsPDF()
-    
+
     // Lógica de exportación
     doc.save(`${options.filename}.pdf`)
   }
@@ -420,7 +438,7 @@ export class ExportService {
     const XLSX = await import('xlsx')
     const worksheet = XLSX.utils.json_to_sheet(data)
     const workbook = XLSX.utils.book_new()
-    
+
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Datos')
     XLSX.writeFile(workbook, `${options.filename}.xlsx`)
   }
@@ -434,15 +452,15 @@ export class ExportService {
 ```typescript
 // src/shared/types/animation-types.ts
 export const pageVariants = {
-  initial: { 
+  initial: {
     opacity: 0,
     y: 20
   },
-  in: { 
+  in: {
     opacity: 1,
     y: 0
   },
-  out: { 
+  out: {
     opacity: 0,
     y: -20
   }
@@ -450,12 +468,12 @@ export const pageVariants = {
 
 export const cardVariants = {
   hidden: { opacity: 0, scale: 0.95 },
-  visible: { 
-    opacity: 1, 
+  visible: {
+    opacity: 1,
     scale: 1,
     transition: { duration: 0.2 }
   },
-  hover: { 
+  hover: {
     scale: 1.02,
     transition: { duration: 0.1 }
   }
@@ -469,8 +487,8 @@ export const cardVariants = {
 import { motion } from 'framer-motion'
 import { pageVariants } from '@shared/types/animation-types'
 
-export const AnimatedPage: React.FC<{ children: React.ReactNode }> = ({ 
-  children 
+export const AnimatedPage: React.FC<{ children: React.ReactNode }> = ({
+  children
 }) => (
   <motion.div
     initial="initial"
@@ -498,9 +516,9 @@ interface StationsMapProps {
   onStationClick?: (station: Station) => void
 }
 
-export const StationsMap: React.FC<StationsMapProps> = ({ 
-  stations, 
-  onStationClick 
+export const StationsMap: React.FC<StationsMapProps> = ({
+  stations,
+  onStationClick
 }) => {
   const defaultCenter = [-38.7359, -72.5904] // La Araucanía, Chile
 
@@ -542,14 +560,14 @@ export const StationsMap: React.FC<StationsMapProps> = ({
 
 ```typescript
 // src/presentation/components/charts/WaterLevelChart.tsx
-import { 
-  LineChart, 
-  Line, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  ResponsiveContainer 
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer
 } from 'recharts'
 
 interface WaterLevelChartProps {
@@ -557,31 +575,31 @@ interface WaterLevelChartProps {
   height?: number
 }
 
-export const WaterLevelChart: React.FC<WaterLevelChartProps> = ({ 
-  data, 
-  height = 300 
+export const WaterLevelChart: React.FC<WaterLevelChartProps> = ({
+  data,
+  height = 300
 }) => {
   return (
     <ResponsiveContainer width="100%" height={height}>
       <LineChart data={data}>
         <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
-        <XAxis 
-          dataKey="timestamp" 
+        <XAxis
+          dataKey="timestamp"
           tick={{ fontSize: 12 }}
           tickFormatter={(value) => new Date(value).toLocaleDateString()}
         />
-        <YAxis 
+        <YAxis
           tick={{ fontSize: 12 }}
           label={{ value: 'Nivel (m)', angle: -90, position: 'insideLeft' }}
         />
-        <Tooltip 
+        <Tooltip
           formatter={(value, name) => [`${value}m`, 'Nivel de agua']}
           labelFormatter={(value) => new Date(value).toLocaleString()}
         />
-        <Line 
-          type="monotone" 
-          dataKey="value" 
-          stroke="hsl(var(--primary))" 
+        <Line
+          type="monotone"
+          dataKey="value"
+          stroke="hsl(var(--primary))"
           strokeWidth={2}
           dot={{ fill: 'hsl(var(--primary))', strokeWidth: 2, r: 4 }}
         />
@@ -591,9 +609,143 @@ export const WaterLevelChart: React.FC<WaterLevelChartProps> = ({
 }
 ```
 
-## 🧪 Testing con Playwright
+## 🧪 Testing Integral
 
-### Configuración de Tests
+### Testing Unitario con Vitest
+
+#### Configuración de Vitest
+
+```typescript
+// vitest.config.ts
+import { defineConfig } from 'vitest/config';
+import react from '@vitejs/plugin-react';
+
+export default defineConfig({
+  plugins: [react()],
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    setupFiles: ['./src/test/setup.ts'],
+  },
+  resolve: {
+    alias: {
+      "@": "/src",
+      "@domain": "/src/domain",
+      "@application": "/src/application",
+      "@infrastructure": "/src/infrastructure",
+      "@presentation": "/src/presentation",
+      "@shared": "/src/shared",
+      "@features": "/src/features",
+    },
+  },
+});
+```
+
+#### Setup Global de Tests
+
+```typescript
+// src/test/setup.ts
+import { expect, afterEach } from 'vitest'
+import { cleanup } from '@testing-library/react'
+import * as matchers from '@testing-library/jest-dom/matchers'
+
+// Extend Vitest's expect with Testing Library matchers
+expect.extend(matchers)
+
+// Cleanup after each test
+afterEach(() => {
+  cleanup()
+})
+```
+
+#### Ejemplo de Test Unitario
+
+```typescript
+// src/features/dashboard/components/__tests__/MetricCard.test.tsx
+import { describe, it, expect } from 'vitest'
+import { render, screen } from '@testing-library/react'
+import { MetricCard } from '../MetricCard'
+
+describe('MetricCard', () => {
+  it('renders metric value correctly', () => {
+    render(
+      <MetricCard
+        title="Nivel de Agua"
+        value="2.5"
+        unit="m"
+        trend="up"
+      />
+    )
+
+    expect(screen.getByText('Nivel de Agua')).toBeInTheDocument()
+    expect(screen.getByText('2.5')).toBeInTheDocument()
+    expect(screen.getByText('m')).toBeInTheDocument()
+  })
+
+  it('shows loading state', () => {
+    render(
+      <MetricCard
+        title="Nivel de Agua"
+        value="2.5"
+        unit="m"
+        loading={true}
+      />
+    )
+
+    expect(screen.getByRole('progressbar')).toBeInTheDocument()
+  })
+})
+```
+
+#### Testing de Hooks Personalizados
+
+```typescript
+// src/features/dashboard/hooks/__tests__/useDashboardData.test.ts
+import { describe, it, expect, vi } from 'vitest'
+import { renderHook, waitFor } from '@testing-library/react'
+import { useDashboardData } from '../useDashboardData'
+
+// Mock del store
+vi.mock('@features/dashboard/stores/MeasurementStore', () => ({
+  useMeasurementStore: vi.fn(() => ({
+    measurements: [],
+    loading: false,
+    fetchMeasurements: vi.fn()
+  }))
+}))
+
+describe('useDashboardData', () => {
+  it('fetches data on mount', async () => {
+    const { result } = renderHook(() => useDashboardData())
+
+    await waitFor(() => {
+      expect(result.current.loading).toBe(false)
+    })
+
+    expect(result.current.metrics).toBeDefined()
+  })
+})
+```
+
+#### Scripts de Testing Unitario
+
+```bash
+# Ejecutar tests unitarios
+pnpm test:unit
+
+# Tests en modo watch
+pnpm test:unit --watch
+
+# Cobertura de código
+pnpm test:coverage
+
+# Tests específicos
+pnpm test:unit MetricCard
+```
+
+### Testing E2E con Playwright
+
+#### Configuración de Tests
 
 ```typescript
 // playwright.config.ts
@@ -641,16 +793,16 @@ import { test, expect } from '@playwright/test'
 test.describe('Dashboard Page', () => {
   test('should load dashboard with metrics', async ({ page }) => {
     await page.goto('/dashboard')
-    
+
     // Verificar que el dashboard carga
     await expect(page.locator('h1')).toContainText('Dashboard')
-    
+
     // Verificar presencia de métricas
     await expect(page.locator('[data-testid="metrics-grid"]')).toBeVisible()
-    
+
     // Verificar gráficos
     await expect(page.locator('[data-testid="water-level-chart"]')).toBeVisible()
-    
+
     // Verificar navegación
     await page.click('text=Reportes')
     await expect(page).toHaveURL('/reports')
@@ -658,11 +810,11 @@ test.describe('Dashboard Page', () => {
 
   test('should export data to PDF', async ({ page }) => {
     await page.goto('/dashboard')
-    
+
     const downloadPromise = page.waitForEvent('download')
     await page.click('[data-testid="export-pdf-button"]')
     const download = await downloadPromise
-    
+
     expect(download.suggestedFilename()).toMatch(/.*\.pdf$/)
   })
 })

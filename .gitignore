@@ -26,5 +26,18 @@ dist-ssr
 .env
 
 # AI assistants
-.playwright-mcp
 .serena
+.claude
+CLAUDE.md
+
+# Testing
+test-results
+playwright-report
+.playwright-mcp
+coverage
+
+# TypeScript build info
+*.tsbuildinfo
+
+# Vite
+.vite

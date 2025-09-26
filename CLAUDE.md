@@ -11,16 +11,29 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `pnpm lint` - Run ESLint on TypeScript/TSX files with max 0 warnings
 
 ### Testing Commands
-- `pnpm test` - Run Playwright end-to-end tests
-- `pnpm test:ui` - Run Playwright tests with UI mode
-- `pnpm test:headed` - Run Playwright tests in headed mode (visible browser)
+#### Unit Tests (Vitest)
+- `pnpm test` - Run Vitest unit tests in watch mode
+- `pnpm test:run` - Run Vitest unit tests once
+- `pnpm test:unit` - Run only unit tests (recommended for development)
+- `pnpm test:coverage` - Run unit tests with coverage report
+
+#### E2E Tests (Playwright)
+- `pnpm test:e2e` - Run Playwright end-to-end tests
+- `pnpm test:e2e:ui` - Run Playwright tests with UI mode
+- `pnpm test:e2e:headed` - Run Playwright tests in headed mode (visible browser)
+
+#### Complete Testing
+- `pnpm test:full` - Run ALL tests (unit + e2e) sequentially
+- `pnpm test:full:parallel` - Run ALL tests (unit + e2e) in parallel (faster)
 
 ### Key Development Tasks
 - **Run development server**: `pnpm dev`
 - **Type checking**: TypeScript compilation is included in build process
 - **Linting**: `pnpm lint` (enforces React hooks rules and React refresh)
 - **Production build**: `pnpm build` (includes TypeScript compilation)
-- **E2E Testing**: `pnpm test` (Playwright tests configured for http://localhost:5173)
+- **Quick Testing**: `pnpm test:unit` (Vitest tests for components and services)
+- **Complete Testing**: `pnpm test:full` (All tests - unit + e2e)
+- **E2E Testing**: `pnpm test:e2e` (Playwright tests configured for http://localhost:5173)
 
 ## Architecture Overview
 
@@ -31,9 +44,10 @@ This is a **Clean Architecture** React application for river water level monitor
 ```
 src/
 ├── domain/           # Business entities and repository interfaces
-├── application/      # Use cases and business logic 
+├── application/      # Use cases and business logic
 ├── infrastructure/   # External adapters and DI container
 ├── presentation/     # React components, pages, and Zustand stores
+├── features/         # Feature-based modules (dashboard, reports, admin, activity)
 └── shared/          # Cross-cutting utilities and services
 ```
 
@@ -48,7 +62,8 @@ src/
 **Use Case Pattern**: Business logic is encapsulated in use cases located in `src/application/use-cases/`, organized by feature (station, measurement, alert, report, user).
 
 ### State Management
-- **Zustand stores** in `src/presentation/stores/` manage UI state
+- **Zustand stores** in `src/features/[feature]/stores/` manage feature-specific UI state
+- Global shared state in `src/shared/contexts/` (ThemeContext for dark/light mode)
 - Stores call use cases through the DI Container
 - Stores handle loading states and error management
 
@@ -73,10 +88,10 @@ Switch between Mock and real API implementations by modifying `src/infrastructur
 - **Class Variance Authority** for component variants
 
 ### Development Tools
-- **ESLint** with TypeScript, React hooks, and React refresh rules
+- **ESLint 9.15** with TypeScript, React hooks, and React refresh rules (max 0 warnings enforced)
 - **PostCSS** with Autoprefixer
 - **Tailwind CSS** with animations and custom government color variables
-- **Playwright** for end-to-end testing
+- **Playwright 1.55** for cross-browser E2E testing (Chrome, Firefox, Safari)
 
 ### Export & Reporting
 - **jsPDF** and **jsPDF-autotable** for PDF generation
@@ -85,10 +100,11 @@ Switch between Mock and real API implementations by modifying `src/infrastructur
 ## File Organization Patterns
 
 ### Component Structure
-- `src/presentation/components/ui/` - Base reusable components (Radix UI + shadcn/ui)
-- `src/presentation/components/layout/` - Layout components (Navbar)
-- `src/presentation/components/charts/` - Chart components including NormalizedChart
-- `src/presentation/components/maps/` - Map components (Leaflet integration)
+- `src/shared/components/ui/` - Base reusable components (Radix UI + shadcn/ui)
+- `src/shared/components/layout/` - Layout components (Navbar)
+- `src/features/[feature]/components/` - Feature-specific components organized by domain
+- `src/features/dashboard/components/` - Dashboard-specific components (MetricsDashboard, StationsMap)
+- `src/features/reports/components/` - Report components (NormalizedChart, MetricChart)
 - `src/presentation/pages/` - Main application pages
 
 ### Domain-Driven Structure
@@ -109,7 +125,7 @@ Switch between Mock and real API implementations by modifying `src/infrastructur
 3. Implement use cases in `src/application/use-cases/`
 4. Create mock repository in `src/infrastructure/adapters/`
 5. Register in DI Container
-6. Create Zustand store in `src/presentation/stores/`
+6. Create Zustand store in `src/features/[feature]/stores/`
 7. Implement UI components and pages
 
 ### Data Source Integration
@@ -134,7 +150,7 @@ Change repository implementations in DI Container from Mock to API versions. No 
 
 - TypeScript strict mode enabled
 - ESLint enforces React hooks rules and component refresh patterns
-- Path aliases: Use `@domain`, `@application`, `@infrastructure`, `@presentation`, `@shared` for imports
+- Path aliases: Use `@domain`, `@application`, `@infrastructure`, `@presentation`, `@shared`, `@features` for imports
 - Tailwind CSS for styling with custom government color variables (gov-primary, gov-secondary, etc.)
 - Clean Architecture principles with clear layer separation
 - Repository pattern with dependency injection

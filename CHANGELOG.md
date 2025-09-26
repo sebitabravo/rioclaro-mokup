@@ -21,6 +21,64 @@ y este proyecto adhiere al [Versionado Semántico](https://semver.org/lang/es/).
 
 - Pendiente: Mejoras de accesibilidad en componentes de gráficos
 
+## [1.1.0] - 2025-01-26
+
+### 🏗️ Migración a Arquitectura Híbrida
+
+#### Añadido
+
+**🧪 Testing Unitario**
+
+- Integración completa de Vitest 3.2.4 con jsdom
+- Testing Library para testing de componentes React
+- Setup global de tests con configuración automatizada
+- Tests unitarios integrados por feature (`__tests__/` folders)
+- Cobertura de código con c8/v8 integrada
+
+**🏢 Feature-based Architecture**
+
+- Migración a arquitectura híbrida: Clean Architecture + Feature-based
+- Nueva estructura modular en `src/features/`:
+  - `dashboard/`: Feature principal con métricas y gráficos
+  - `reports/`: Feature de reportes y exportación
+  - `admin/`: Feature de administración del sistema
+  - `activity/`: Feature de logs de actividad
+  - `home/`: Feature de página principal
+- Stores de estado específicos por feature
+- Hooks personalizados por feature con sus respectivos tests
+- Componentes específicos por feature con testing integrado
+
+**📝 Documentación Actualizada**
+
+- Actualización completa de `ARCHITECTURE.md` con nueva estructura híbrida
+- `DEVELOPMENT_GUIDE.md` actualizado con guías de testing unitario
+- Documentación de la estrategia de testing dual (Vitest + Playwright)
+- Guías de desarrollo para arquitectura modular
+
+#### Cambiado
+
+**🔧 Configuración del Proyecto**
+
+- Path aliases actualizados para incluir `@features/*` mapping
+- Configuración de Vitest con aliases y setup automatizado
+- `.gitignore` optimizado para coverage de Vitest y archivos de test
+- Scripts de npm actualizados con comandos de testing unitario
+
+**🏗️ Organización del Código**
+
+- Reorganización de stores por feature específica
+- Migración de componentes complejos a features modulares
+- Separación clara entre componentes compartidos y específicos de feature
+- Testing integrado por componente y hook
+
+#### Ventajas de la Nueva Arquitectura
+
+1. **Mantenimiento**: Cada feature es independiente y fácil de modificar
+2. **Testing**: Tests unitarios integrados facilitan TDD y CI/CD
+3. **Escalabilidad**: Nuevas features se agregan sin conflictos
+4. **Colaboración**: Múltiples desarrolladores pueden trabajar en paralelo
+5. **Calidad**: Cobertura de testing both unitario (Vitest) y E2E (Playwright)
+
 ## [1.0.0] - 2025-01-26
 
 ### 🎉 Lanzamiento Inicial - Sistema Completo
