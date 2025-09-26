@@ -5,22 +5,22 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Development Commands
 
 ### Core Development Scripts
-- `npm run dev` - Start development server (http://localhost:5173)
-- `npm run build` - Build for production (runs TypeScript check + Vite build)
-- `npm run preview` - Preview production build
-- `npm run lint` - Run ESLint on TypeScript/TSX files with max 0 warnings
+- `pnpm dev` - Start development server (http://localhost:5173)
+- `pnpm build` - Build for production (runs TypeScript check + Vite build)
+- `pnpm preview` - Preview production build
+- `pnpm lint` - Run ESLint on TypeScript/TSX files with max 0 warnings
 
 ### Testing Commands
-- `npm run test` - Run Playwright end-to-end tests
-- `npm run test:ui` - Run Playwright tests with UI mode
-- `npm run test:headed` - Run Playwright tests in headed mode (visible browser)
+- `pnpm test` - Run Playwright end-to-end tests
+- `pnpm test:ui` - Run Playwright tests with UI mode
+- `pnpm test:headed` - Run Playwright tests in headed mode (visible browser)
 
 ### Key Development Tasks
-- **Run development server**: `npm run dev`
+- **Run development server**: `pnpm dev`
 - **Type checking**: TypeScript compilation is included in build process
-- **Linting**: `npm run lint` (enforces React hooks rules and React refresh)
-- **Production build**: `npm run build` (includes TypeScript compilation)
-- **E2E Testing**: `npm run test` (Playwright tests configured for http://localhost:5173)
+- **Linting**: `pnpm lint` (enforces React hooks rules and React refresh)
+- **Production build**: `pnpm build` (includes TypeScript compilation)
+- **E2E Testing**: `pnpm test` (Playwright tests configured for http://localhost:5173)
 
 ## Architecture Overview
 
