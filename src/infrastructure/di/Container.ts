@@ -7,6 +7,10 @@ import { ReportRepository } from '@domain/repositories/ReportRepository';
 
 // Use Cases
 import { GetStationsUseCase, GetStationByIdUseCase } from '@application/use-cases/GetStations';
+import { CreateStationUseCase } from '@application/use-cases/CreateStationUseCase';
+import { UpdateStationUseCase } from '@application/use-cases/UpdateStationUseCase';
+import { DeleteStationUseCase } from '@application/use-cases/DeleteStationUseCase';
+import { GetStationsPaginatedUseCase } from '@application/use-cases/GetStationsPaginatedUseCase';
 import { GetLatestMeasurementsUseCase, GetHistoricalMeasurementsUseCase } from '@application/use-cases/GetMeasurements';
 import { GetUsersUseCase, CreateUserUseCase, UpdateUserUseCase, DeleteUserUseCase } from '@application/use-cases/ManageUsers';
 import { GenerateDailyAverageReportUseCase, GenerateCriticalEventsReportUseCase, ExportReportUseCase } from '@application/use-cases/GenerateReports';
@@ -32,6 +36,10 @@ export class DIContainer {
   // Use Cases
   private _getStationsUseCase!: GetStationsUseCase;
   private _getStationByIdUseCase!: GetStationByIdUseCase;
+  private _createStationUseCase!: CreateStationUseCase;
+  private _updateStationUseCase!: UpdateStationUseCase;
+  private _deleteStationUseCase!: DeleteStationUseCase;
+  private _getStationsPaginatedUseCase!: GetStationsPaginatedUseCase;
   private _getLatestMeasurementsUseCase!: GetLatestMeasurementsUseCase;
   private _getHistoricalMeasurementsUseCase!: GetHistoricalMeasurementsUseCase;
   private _getUsersUseCase!: GetUsersUseCase;
@@ -67,6 +75,10 @@ export class DIContainer {
   private initializeUseCases(): void {
     this._getStationsUseCase = new GetStationsUseCase(this._stationRepository);
     this._getStationByIdUseCase = new GetStationByIdUseCase(this._stationRepository);
+    this._createStationUseCase = new CreateStationUseCase(this._stationRepository);
+    this._updateStationUseCase = new UpdateStationUseCase(this._stationRepository);
+    this._deleteStationUseCase = new DeleteStationUseCase(this._stationRepository);
+    this._getStationsPaginatedUseCase = new GetStationsPaginatedUseCase(this._stationRepository);
     this._getLatestMeasurementsUseCase = new GetLatestMeasurementsUseCase(this._measurementRepository);
     this._getHistoricalMeasurementsUseCase = new GetHistoricalMeasurementsUseCase(this._measurementRepository);
     this._getUsersUseCase = new GetUsersUseCase(this._userRepository);
@@ -81,6 +93,10 @@ export class DIContainer {
   // Getters para Use Cases
   get getStationsUseCase(): GetStationsUseCase { return this._getStationsUseCase; }
   get getStationByIdUseCase(): GetStationByIdUseCase { return this._getStationByIdUseCase; }
+  get createStationUseCase(): CreateStationUseCase { return this._createStationUseCase; }
+  get updateStationUseCase(): UpdateStationUseCase { return this._updateStationUseCase; }
+  get deleteStationUseCase(): DeleteStationUseCase { return this._deleteStationUseCase; }
+  get getStationsPaginatedUseCase(): GetStationsPaginatedUseCase { return this._getStationsPaginatedUseCase; }
   get getLatestMeasurementsUseCase(): GetLatestMeasurementsUseCase { return this._getLatestMeasurementsUseCase; }
   get getHistoricalMeasurementsUseCase(): GetHistoricalMeasurementsUseCase { return this._getHistoricalMeasurementsUseCase; }
   get getUsersUseCase(): GetUsersUseCase { return this._getUsersUseCase; }

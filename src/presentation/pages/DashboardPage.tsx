@@ -30,7 +30,6 @@ import { useMeasurementStore } from '@presentation/stores/MeasurementStore';
 import { formatDateTime, formatWaterLevel } from '@shared/utils/formatters';
 import { StationsMap } from '@presentation/components/maps/StationsMap';
 import { MiniTrendChart } from '@presentation/components/charts/MiniTrendChart';
-import type { Station } from '@domain/entities/Station';
 
 interface MockMetricData {
   timestamp: string;
@@ -475,8 +474,8 @@ export function DashboardPage() {
 									<div className='w-full h-[550px]'>
 										<StationsMap
 											stations={stations}
-											onStationClick={(station: Station) => {
-												console.log('Estación seleccionada:', station);
+											onStationClick={() => {
+												// Aquí podrías agregar lógica para mostrar detalles de la estación
 											}}
 											height='550px'
 										/>

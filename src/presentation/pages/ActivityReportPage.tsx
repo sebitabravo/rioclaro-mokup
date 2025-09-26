@@ -85,8 +85,8 @@ export function ActivityReportPage() {
       
       setLogs(logsData);
       setStats(statsData);
-    } catch (error) {
-      console.error('Error loading activity logs:', error);
+    } catch {
+      // Error en carga de logs - se podría mostrar una notificación al usuario
     } finally {
       setLoading(false);
     }

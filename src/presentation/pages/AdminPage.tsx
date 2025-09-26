@@ -182,8 +182,8 @@ export function AdminPage() {
       setShowUserForm(false);
       setEditingUser(null);
       await fetchUsers();
-    } catch (error) {
-      console.error('Error al guardar usuario:', error);
+    } catch {
+      // Error ya manejado por el store
     }
   };
 
@@ -211,8 +211,8 @@ export function AdminPage() {
       setShowStationForm(false);
       setEditingStation(null);
       await fetchStations();
-    } catch (error) {
-      console.error('Error al guardar estación:', error);
+    } catch {
+      // Error ya manejado por el store
     }
   };
 
@@ -222,8 +222,8 @@ export function AdminPage() {
         await deleteUser(userToDelete.id);
         setUserToDelete(null);
         await fetchUsers();
-      } catch (error) {
-        console.error('Error al eliminar usuario:', error);
+      } catch {
+        // Error ya manejado por el store
       }
     }
   };
@@ -234,8 +234,8 @@ export function AdminPage() {
         await deleteStation(stationToDelete.id);
         setStationToDelete(null);
         await fetchStations();
-      } catch (error) {
-        console.error('Error al eliminar estación:', error);
+      } catch {
+        // Error ya manejado por el store
       }
     }
   };

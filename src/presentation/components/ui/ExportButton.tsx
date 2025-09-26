@@ -46,9 +46,8 @@ export const ExportButton: React.FC<ExportButtonProps> = ({
       // Simular delay para UX
       await new Promise(resolve => setTimeout(resolve, 500));
       
-    } catch (error) {
-      console.error('Error al exportar:', error);
-      // Aquí podrías mostrar un toast o notificación de error
+    } catch {
+      // Error en exportación - se podría mostrar un toast o notificación de error
     } finally {
       setIsExporting(null);
     }

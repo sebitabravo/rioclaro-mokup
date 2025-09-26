@@ -53,8 +53,9 @@ export class ApiClient {
       }
 
       return { data };
-    } catch (error: unknown) {
-      console.error('API Error:', error);
+    } catch {
+      // En producción, aquí podrías enviar el error a un servicio de logging
+      // errorReportingService.captureException(error);
       return { error: "Error de conexión con el servidor" };
     }
   }

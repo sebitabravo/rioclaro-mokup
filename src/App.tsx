@@ -2,6 +2,7 @@ import { Routes, Route, useLocation } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Suspense, lazy } from 'react'
 import { PageLoading } from '@presentation/components/ui/page-loading'
+import { ErrorBoundary } from '@shared/components/ErrorBoundary'
 
 // Lazy loading de las páginas para mejorar rendimiento
 const HomePage = lazy(() => import('@presentation/pages/HomePage').then(m => ({ default: m.HomePage })))
@@ -46,16 +47,18 @@ export function App() {
   const location = useLocation()
 
   return (
-    <AnimatePresence mode="wait" initial={false}>
-      <Suspense fallback={<PageLoading />}>
-        <Routes location={location} key={location.pathname}>
-          <Route path="/" element={<AnimatedRoute><HomePage /></AnimatedRoute>} />
-          <Route path="/dashboard" element={<AnimatedRoute><DashboardPage /></AnimatedRoute>} />
-          <Route path="/reports" element={<AnimatedRoute><ReportsPage /></AnimatedRoute>} />
-          <Route path="/activity" element={<AnimatedRoute><ActivityReportPage /></AnimatedRoute>} />
-          <Route path="/admin" element={<AnimatedRoute><AdminPage /></AnimatedRoute>} />
-        </Routes>
-      </Suspense>
-    </AnimatePresence>
+    <ErrorBoundary>
+      <AnimatePresence mode="wait" initial={false}>
+        <Suspense fallback={<PageLoading />}>
+          <Routes location={location} key={location.pathname}>
+            <Route path="/" element={<AnimatedRoute><HomePage /></AnimatedRoute>} />
+            <Route path="/dashboard" element={<AnimatedRoute><DashboardPage /></AnimatedRoute>} />
+            <Route path="/reports" element={<AnimatedRoute><ReportsPage /></AnimatedRoute>} />
+            <Route path="/activity" element={<AnimatedRoute><ActivityReportPage /></AnimatedRoute>} />
+            <Route path="/admin" element={<AnimatedRoute><AdminPage /></AnimatedRoute>} />
+          </Routes>
+        </Suspense>
+      </AnimatePresence>
+    </ErrorBoundary>
   )
 }
