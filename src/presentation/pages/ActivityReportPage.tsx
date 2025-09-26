@@ -1,10 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { ActivityStatus, ActivityType } from '@domain/entities/ActivityLog';
-import { Navbar } from '@presentation/components/layout/Navbar';
-import { Card, CardContent, CardHeader, CardTitle } from '@presentation/components/ui/card';
-import { Button } from '@presentation/components/ui/button';
-import { Input } from '@presentation/components/ui/input';
-import { ExportButton } from '@presentation/components/ui/ExportButton';
+import { Navbar } from '@shared/components/layout/Navbar';
+import { Card, CardContent, CardHeader, CardTitle } from '@shared/components/ui/card';
+import { Button } from '@shared/components/ui/button';
+import { Input } from '@shared/components/ui/input';
+import { ActivityExportButton } from '@features/activity/components/ActivityExportButton';
 import {
   Activity,
   Search,
@@ -155,7 +155,7 @@ export function ActivityReportPage() {
               Filtros
             </Button>
             
-            <ExportButton
+            <ActivityExportButton
               data={logs}
               disabled={loading || logs.length === 0}
               size="sm"

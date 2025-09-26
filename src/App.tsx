@@ -1,7 +1,7 @@
 import { Routes, Route, useLocation } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Suspense, lazy } from 'react'
-import { PageLoading } from '@presentation/components/ui/page-loading'
+import { PageLoading } from '@shared/components/ui/page-loading'
 import { ErrorBoundary } from '@shared/components/ErrorBoundary'
 
 // Lazy loading de las páginas para mejorar rendimiento

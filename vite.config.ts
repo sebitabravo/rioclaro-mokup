@@ -12,6 +12,7 @@ export default defineConfig({
       "@infrastructure": "/src/infrastructure",
       "@presentation": "/src/presentation",
       "@shared": "/src/shared",
+      "@features": "/src/features",
     },
   },
   server: {

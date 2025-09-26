@@ -1,18 +1,18 @@
 import { useEffect, useState } from 'react';
-import { Navbar } from '@presentation/components/layout/Navbar';
+import { Navbar } from '@shared/components/layout/Navbar';
 import {
 	Card,
 	CardContent,
 	CardHeader,
 	CardTitle
-} from '@presentation/components/ui/card';
-import { AnimatedButton } from '@presentation/components/ui/animated-button';
+} from '@shared/components/ui/card';
+import { AnimatedButton } from '@shared/components/ui/animated-button';
 import { MotionWrapper } from '@shared/components/MotionWrapper';
 import {
 	WaterRipples,
 	GradientOrbs
-} from '@presentation/components/ui/background-effects';
-import { PageLoader } from '@presentation/components/ui/page-loader';
+} from '@shared/components/ui/background-effects';
+import { PageLoader } from '@shared/components/ui/page-loader';
 import {
 	RefreshCw,
 	Activity,
@@ -25,11 +25,11 @@ import {
 	TrendingUp,
 	TrendingDown
 } from 'lucide-react';
-import { useStationStore } from '@presentation/stores/StationStore';
-import { useMeasurementStore } from '@presentation/stores/MeasurementStore';
+import { useStationStore } from '@features/admin/stores/StationStore';
+import { useMeasurementStore } from '@features/dashboard/stores/MeasurementStore';
 import { formatDateTime, formatWaterLevel } from '@shared/utils/formatters';
-import { StationsMap } from '@presentation/components/maps/StationsMap';
-import { MiniTrendChart } from '@presentation/components/charts/MiniTrendChart';
+import { StationsMap } from '@features/dashboard/components/StationsMap';
+import { MiniTrendChart } from '@features/dashboard/components/MiniTrendChart';
 
 interface MockMetricData {
   timestamp: string;

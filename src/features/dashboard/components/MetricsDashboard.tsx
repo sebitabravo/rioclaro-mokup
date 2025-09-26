@@ -1,5 +1,5 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@presentation/components/ui/card";
-import { MetricChart, MetricType } from "./MetricChart";
+import { Card, CardContent, CardHeader, CardTitle } from "@shared/components/ui/card";
+import { MetricChart, MetricType } from "@features/reports/components/MetricChart";
 import { DataSourceType } from "@shared/services/DataNormalizationService";
 import type { ChartDataArray } from "@shared/types/chart-data";
 import { BarChart3, Activity, Waves, Droplets, Gauge } from "lucide-react";

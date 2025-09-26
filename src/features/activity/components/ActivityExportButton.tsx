@@ -1,17 +1,17 @@
 import React, { useState } from 'react';
 import { Download, FileSpreadsheet, FileText, FileBarChart } from 'lucide-react';
-import { Button } from '@presentation/components/ui/button';
+import { Button } from '@shared/components/ui/button';
 import { 
   DropdownMenu, 
   DropdownMenuContent, 
   DropdownMenuItem, 
   DropdownMenuTrigger,
   DropdownMenuSeparator 
-} from '@presentation/components/ui/dropdown-menu';
+} from '@shared/components/ui/dropdown-menu';
 import { ExportService, ExportFormat } from '@shared/services/ExportService';
 import { ActivityLog } from '@domain/entities/ActivityLog';
 
-interface ExportButtonProps {
+interface ActivityExportButtonProps {
   data: ActivityLog[];
   disabled?: boolean;
   className?: string;
@@ -22,7 +22,7 @@ interface ExportButtonProps {
   };
 }
 
-export const ExportButton: React.FC<ExportButtonProps> = ({
+export const ActivityExportButton: React.FC<ActivityExportButtonProps> = ({
   data,
   disabled = false,
   className = '',
@@ -149,4 +149,4 @@ export const ExportButton: React.FC<ExportButtonProps> = ({
   );
 };
 
-export default ExportButton;
+export default ActivityExportButton;

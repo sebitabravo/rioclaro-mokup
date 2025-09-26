@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
-import { Navbar } from "@presentation/components/layout/Navbar";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@presentation/components/ui/card";
-import { Button } from "@presentation/components/ui/button";
-import { Input } from "@presentation/components/ui/input";
+import { Navbar } from "@shared/components/layout/Navbar";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@shared/components/ui/card";
+import { Button } from "@shared/components/ui/button";
+import { Input } from "@shared/components/ui/input";
 import { Users, MapPin, UserCheck, Plus, Edit, Trash2, AlertTriangle, X, Settings, CheckCircle, AlertCircle } from "lucide-react";
-import { useUserStore } from "@presentation/stores/UserStore";
-import { useStationStore } from "@presentation/stores/StationStore";
+import { useUserStore } from "@features/admin/stores/UserStore";
+import { useStationStore } from "@features/admin/stores/StationStore";
 import type { User } from "@domain/entities/User";
 import type { Station } from "@domain/entities/Station";
 

@@ -1,5 +1,5 @@
-import { Button } from "@presentation/components/ui/button";
-import { ThemeToggle } from "@presentation/components/ui/theme-toggle";
+import { Button } from "@shared/components/ui/button";
+import { ThemeToggle } from "@shared/components/ui/theme-toggle";
 import { Activity, Users, Home, Clock, TrendingUp } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@shared/utils/cn";

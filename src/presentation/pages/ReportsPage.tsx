@@ -1,12 +1,12 @@
 import { useState } from "react";
-import { Navbar } from "@presentation/components/layout/Navbar";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@presentation/components/ui/card";
-import { Button } from "@presentation/components/ui/button";
-import { Input } from "@presentation/components/ui/input";
-import { ExportButton } from "@presentation/components/ui/ExportButton";
+import { Navbar } from "@shared/components/layout/Navbar";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@shared/components/ui/card";
+import { Button } from "@shared/components/ui/button";
+import { Input } from "@shared/components/ui/input";
+import { ReportExportButton } from "@features/reports/components/ReportExportButton";
 import { TrendingUp, AlertTriangle, BarChart3, Calendar, Waves, Droplets, Gauge } from "lucide-react";
-import { NormalizedChart } from "@presentation/components/charts/NormalizedChart";
-import { MetricChart, MetricType } from "@presentation/components/charts/MetricChart";
+import { NormalizedChart } from "@features/reports/components/NormalizedChart";
+import { MetricChart, MetricType } from "@features/reports/components/MetricChart";
 import { DataSourceType } from "@shared/services/DataNormalizationService";
 import { ReportActivityService } from "@shared/services/ReportActivityService";
 
@@ -167,11 +167,12 @@ export function ReportsPage() {
                           Promedio diario del nivel del agua por estación
                         </CardDescription>
                       </div>
-                      <ExportButton
+                      <ReportExportButton
                         data={ReportActivityService.generateReportActivities('Promedios Diarios')}
                         disabled={false}
                         size="default"
                         className="bg-transparent border-gov-green text-gov-green hover:bg-gov-green hover:text-white"
+                        reportType="promedios_diarios"
                       />
                     </div>
                   </CardHeader>
@@ -264,11 +265,12 @@ export function ReportsPage() {
                             Gráfico especializado con datos cada 6 horas
                           </CardDescription>
                         </div>
-                        <ExportButton
+                        <ReportExportButton
                           data={ReportActivityService.generateStationMetricsActivities()}
                           disabled={false}
                           size="default"
                           className="bg-transparent border-gov-primary text-gov-primary hover:bg-gov-primary hover:text-white"
+                          reportType="analisis_detallado"
                         />
                       </div>
                     </CardHeader>
@@ -332,11 +334,12 @@ export function ReportsPage() {
                           Registros donde el nivel superó el umbral crítico
                         </CardDescription>
                       </div>
-                      <ExportButton
+                      <ReportExportButton
                         data={ReportActivityService.generateTrendAnalysisActivities()}
                         disabled={false}
                         size="default"
                         className="bg-transparent border-gov-orange text-gov-orange hover:bg-gov-orange hover:text-white"
+                        reportType="eventos_criticos"
                       />
                     </div>
                   </CardHeader>

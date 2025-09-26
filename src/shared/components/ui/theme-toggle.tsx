@@ -1,12 +1,12 @@
 import { Moon, Sun, Monitor } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Button } from '@presentation/components/ui/button'
+import { Button } from '@shared/components/ui/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@presentation/components/ui/dropdown-menu'
+} from '@shared/components/ui/dropdown-menu'
 import { useTheme } from '@shared/contexts/theme-hook'
 import { cn } from '@shared/utils/cn'
 

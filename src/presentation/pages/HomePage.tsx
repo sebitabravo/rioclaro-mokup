@@ -1,8 +1,8 @@
-import { Button } from "@presentation/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@presentation/components/ui/card";
+import { Button } from "@shared/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@shared/components/ui/card";
 import { Activity, BarChart3, AlertTriangle, Users, MapPin, TrendingUp, Shield } from "lucide-react";
 import { Link } from "react-router-dom";
-import { Navbar } from "@presentation/components/layout/Navbar";
+import { Navbar } from "@shared/components/layout/Navbar";
 import { MotionWrapper } from "@shared/components/MotionWrapper";
 import { motion } from "framer-motion";
 
