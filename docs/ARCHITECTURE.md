@@ -1,70 +1,106 @@
-# 🏗️ Arquitectura del Sistema
+# 🏗️ Arquitectura del Sistema - Monitoreo Río Claro
 
-## Estructura General del Proyecto
+## Visión General
 
-```
-sistema-monitoreo-rio-claro-vite/
+El sistema utiliza **Clean Architecture** con inversión de dependencias, optimizado para React 19 y TypeScript. Implementa lazy loading, animaciones fluidas y exportación avanzada de reportes.
+
+## Estructura Actualizada del Proyecto
+
+```typescript
+rioclaro-mokup/
 ├── src/
 │   ├── domain/                 # 🎯 Capa de Dominio
 │   │   ├── entities/          # Entidades de negocio
+│   │   │   ├── User.ts        # Usuario del sistema
+│   │   │   ├── Station.ts     # Estación de monitoreo
+│   │   │   ├── Measurement.ts # Mediciones con filtros
+│   │   │   ├── Alert.ts       # Sistema de alertas
+│   │   │   ├── Report.ts      # Reportes generados
+│   │   │   └── ActivityLog.ts # Logs de actividad
 │   │   └── repositories/      # Contratos de repositorios
 │   │
 │   ├── application/           # 📋 Capa de Aplicación
-│   │   └── use-cases/         # Casos de uso por módulo
-│   │       ├── station/
-│   │       ├── measurement/
-│   │       ├── alert/
-│   │       ├── report/
-│   │       └── user/
+│   │   └── use-cases/         # Casos de uso principales
+│   │       ├── GenerateReports.ts
+│   │       ├── GetMeasurements.ts
+│   │       ├── GetStations.ts
+│   │       └── ManageUsers.ts
 │   │
 │   ├── infrastructure/        # 🔧 Capa de Infraestructura
-│   │   ├── adapters/          # Adaptadores externos
+│   │   ├── adapters/          # Adaptadores y clientes
 │   │   │   ├── ApiClient.ts
-│   │   │   └── Mock*Repository.ts
+│   │   │   ├── ApiStationRepository.ts
+│   │   │   └── Mock*Repository.ts (múltiples)
 │   │   └── di/                # Inyección de dependencias
 │   │       └── Container.ts
 │   │
 │   ├── presentation/          # 🎨 Capa de Presentación
-│   │   ├── components/        # Componentes React
-│   │   │   ├── ui/            # Componentes base
-│   │   │   ├── layout/        # Layout components
-│   │   │   └── charts/        # Componentes de gráficos
-│   │   ├── pages/             # Páginas principales
-│   │   └── stores/            # Estado global (Zustand)
+│   │   ├── components/        # Componentes React organizados
+│   │   │   ├── ui/            # Componentes base + utilidades
+│   │   │   ├── layout/        # Navbar y estructura general
+│   │   │   ├── charts/        # Dashboard y gráficos interactivos
+│   │   │   └── maps/          # StationsMap con Leaflet
+│   │   ├── pages/             # Páginas con lazy loading
+│   │   │   ├── HomePage.tsx
+│   │   │   ├── DashboardPage.tsx
+│   │   │   ├── ReportsPage.tsx
+│   │   │   ├── ActivityReportPage.tsx
+│   │   │   └── AdminPage.tsx
+│   │   ├── stores/            # Estado global Zustand
+│   │   │   ├── StationStore.ts
+│   │   │   ├── MeasurementStore.ts
+│   │   │   ├── ReportStore.ts
+│   │   │   └── UserStore.ts
+│   │   └── hooks/             # Custom hooks de presentación
 │   │
-│   ├── shared/                # 🔄 Utilidades Compartidas
+│   ├── shared/                # 🔄 Código Compartido
+│   │   ├── components/        # MotionWrapper y reutilizables
+│   │   ├── contexts/          # ThemeContext (dark/light mode)
+│   │   ├── hooks/             # useBrowserDetect y hooks globales
 │   │   ├── services/          # Servicios transversales
-│   │   └── utils/             # Utilidades comunes
+│   │   │   ├── DataNormalizationService.ts
+│   │   │   ├── ExportService.ts (PDF/Excel)
+│   │   │   └── ReportActivityService.ts
+│   │   ├── types/             # Tipos TypeScript compartidos
+│   │   │   ├── animation-types.ts
+│   │   │   ├── chart-data.ts
+│   │   │   ├── data-types.ts
+│   │   │   └── motion-types.ts
+│   │   └── utils/             # Funciones de utilidad
 │   │
-│   └── examples/              # 📖 Ejemplos y documentación
+│   ├── examples/              # 📖 Ejemplos de uso
+│   └── styles/                # 🎨 Estilos globales
+│       └── cross-browser-animations.css
 │
-├── docs/                      # 📚 Documentación
-├── public/                    # Archivos estáticos
-└── dist/                      # Build de producción
+├── tests/                     # 🧪 Testing E2E con Playwright
+├── docs/                      # 📚 Documentación completa
+└── scripts/                   # 🔧 Scripts de utilidad
 ```
 
 ## 🎯 Capa de Dominio (`src/domain/`)
 
 ### Responsabilidades
-- Contiene la **lógica de negocio pura**
-- Define las **entidades** principales del sistema
-- Establece **contratos** (interfaces) para los repositorios
+
+- Contiene la **lógica de negocio pura** sin dependencias externas
+- Define las **entidades** principales del sistema con tipado estricto
+- Establece **contratos** para repositorios y servicios
 - **No depende** de ninguna otra capa
 
 ### Entidades Principales
 
 #### `Station.ts`
+
 ```typescript
 export interface Station {
   id: number;
   name: string;
-  code: string;
   location: string;
+  code: string;
+  status: 'active' | 'maintenance' | 'inactive';
   latitude: number;
   longitude: number;
   current_level: number;
   threshold: number;
-  status: 'active' | 'inactive' | 'maintenance';
   last_measurement: string;
   created_at: string;
   updated_at: string;
@@ -72,557 +108,450 @@ export interface Station {
 ```
 
 #### `Measurement.ts`
+
 ```typescript
 export interface Measurement {
   id: number;
   station_id: number;
+  station_name?: string;
+  variable_type: string;
   value: number;
+  unit: string;
   timestamp: string;
-  created_at: string;
+  is_critical: boolean;
+  quality?: 'good' | 'fair' | 'poor';
 }
 
 export interface MeasurementFilters {
-  station_id?: number;
-  start_date?: string;
-  end_date?: string;
-  limit?: number;
+  stationId?: number;
+  startDate?: string;
+  endDate?: string;
+  variableType?: string;
+  isCritical?: boolean;
 }
 ```
 
 #### `Alert.ts`
+
 ```typescript
 export interface Alert {
   id: number;
   station_id: number;
-  type: 'critical' | 'warning' | 'info';
+  type: 'water_level' | 'sensor_failure' | 'communication';
+  severity: 'low' | 'medium' | 'high' | 'critical';
   message: string;
-  level: number;
-  threshold: number;
-  status: 'active' | 'resolved' | 'acknowledged';
+  is_active: boolean;
   created_at: string;
   resolved_at?: string;
 }
 ```
 
 #### `Report.ts`
+
 ```typescript
-export interface DailyAverageData {
-  date: string;
-  station_id: number;
-  station_name: string;
-  average_level: number;
-  max_level: number;
-  min_level: number;
-  measurement_count: number;
-}
-
-export interface CriticalEvent {
+export interface Report {
   id: number;
-  station_id: number;
-  station_name: string;
-  water_level: number;
-  threshold: number;
-  timestamp: string;
-  duration_minutes: number;
+  title: string;
+  type: 'daily' | 'weekly' | 'monthly' | 'custom';
+  station_ids: number[];
+  date_range: {
+    start: string;
+    end: string;
+  };
+  generated_at: string;
+  generated_by: number;
+  file_path?: string;
 }
-
-export type ExportFormat = 'csv' | 'pdf' | 'excel';
 ```
 
-### Repositorios (Contratos)
+#### `User.ts`
 
 ```typescript
-// Ejemplo: StationRepository.ts
-export interface StationRepository {
-  getAll(): Promise<Station[]>;
-  getById(id: number): Promise<Station>;
-  create(station: Omit<Station, 'id' | 'created_at' | 'updated_at'>): Promise<Station>;
-  update(id: number, station: Partial<Station>): Promise<Station>;
-  delete(id: number): Promise<void>;
+export interface User {
+  id: number;
+  name: string;
+  email: string;
+  role: 'admin' | 'operator' | 'viewer';
+  created_at: string;
+  last_login?: string;
+  is_active: boolean;
+}
+```
+
+#### `ActivityLog.ts`
+
+```typescript
+export interface ActivityLog {
+  id: number;
+  user_id: number;
+  action: string;
+  resource_type: string;
+  resource_id?: number;
+  details: string;
+  timestamp: string;
+  ip_address?: string;
 }
 ```
 
 ## 📋 Capa de Aplicación (`src/application/`)
 
 ### Responsabilidades
+
 - Contiene los **casos de uso** del sistema
-- Orquesta las **interacciones** entre entidades
-- Implementa la **lógica de aplicación**
-- Depende solo de la **capa de dominio**
+- Orquesta las **entidades de dominio**
+- Define la **lógica de aplicación**
+- **Independiente** de frameworks y UI
 
-### Estructura de Use Cases
-
-```
-use-cases/
-├── station/
-│   ├── GetStationsUseCase.ts           # Obtener todas las estaciones
-│   ├── GetStationByIdUseCase.ts        # Obtener estación por ID
-│   ├── CreateStationUseCase.ts         # Crear nueva estación
-│   ├── UpdateStationUseCase.ts         # Actualizar estación
-│   └── DeleteStationUseCase.ts         # Eliminar estación
-├── measurement/
-│   ├── GetLatestMeasurementsUseCase.ts # Mediciones más recientes
-│   ├── GetHistoricalMeasurementsUseCase.ts # Mediciones históricas
-│   └── CreateMeasurementUseCase.ts     # Crear nueva medición
-├── alert/
-│   ├── GetActiveAlertsUseCase.ts       # Alertas activas
-│   ├── CreateAlertUseCase.ts           # Crear alerta
-│   └── ResolveAlertUseCase.ts          # Resolver alerta
-├── report/
-│   ├── GenerateDailyAverageReportUseCase.ts # Reporte de promedios
-│   ├── GenerateCriticalEventsReportUseCase.ts # Reporte de eventos críticos
-│   └── ExportReportUseCase.ts          # Exportar reportes
-└── user/
-    ├── LoginUseCase.ts                 # Autenticación
-    ├── GetUserProfileUseCase.ts        # Perfil de usuario
-    └── UpdateUserProfileUseCase.ts     # Actualizar perfil
-```
-
-### Ejemplo de Use Case
+### Casos de Uso Principales
 
 ```typescript
-// GetStationsUseCase.ts
-export class GetStationsUseCase {
-  constructor(private stationRepository: StationRepository) {}
-
-  async execute(): Promise<Station[]> {
-    try {
-      const stations = await this.stationRepository.getAll();
-      return stations.sort((a, b) => a.name.localeCompare(b.name));
-    } catch (error) {
-      throw new Error(`Error al obtener estaciones: ${error.message}`);
-    }
-  }
-}
+// GenerateReports.ts - Generación de reportes
+// GetMeasurements.ts - Obtención y filtrado de mediciones
+// GetStations.ts - Gestión de estaciones
+// ManageUsers.ts - Administración de usuarios
 ```
 
 ## 🔧 Capa de Infraestructura (`src/infrastructure/`)
 
 ### Responsabilidades
-- Implementa los **repositorios** definidos en dominio
-- Maneja **comunicación externa** (APIs, bases de datos)
-- Proporciona **adaptadores** para servicios externos
-- Gestiona **inyección de dependencias**
 
-### Adaptadores
+- Implementa los **repositorios** definidos en dominio
+- Maneja **comunicación externa** (APIs, servicios)
+- Proporciona **inyección de dependencias**
+- **Depende** del dominio pero **no** de presentación
 
 #### `ApiClient.ts`
+
+Cliente HTTP centralizado para comunicación con backend:
+
 ```typescript
 export class ApiClient {
   private baseURL: string;
-  private token: string | null = null;
+  private timeout: number;
 
-  constructor(baseURL: string) {
-    this.baseURL = baseURL;
-  }
-
-  async get<T>(endpoint: string): Promise<ApiResponse<T>> {
-    return this.request<T>(endpoint, { method: "GET" });
-  }
-
-  async post<T>(endpoint: string, body?: any): Promise<ApiResponse<T>> {
-    return this.request<T>(endpoint, {
-      method: "POST",
-      body: body ? JSON.stringify(body) : undefined,
-    });
-  }
-
-  // ... más métodos HTTP
+  async get<T>(endpoint: string): Promise<T>;
+  async post<T>(endpoint: string, data: any): Promise<T>;
+  async put<T>(endpoint: string, data: any): Promise<T>;
+  async delete<T>(endpoint: string): Promise<T>;
 }
 ```
-
-#### Mock Repositories (Para desarrollo)
-
-```typescript
-// MockStationRepository.ts
-export class MockStationRepository implements StationRepository {
-  private stations: Station[] = [
-    {
-      id: 1,
-      name: "Río Claro Norte",
-      code: "RCN-001",
-      location: "Sector Norte, km 15",
-      latitude: -36.7485,
-      longitude: -72.1219,
-      current_level: 2.3,
-      threshold: 3.0,
-      status: "active",
-      last_measurement: "2025-01-13T10:30:00Z",
-      created_at: "2025-01-10T00:00:00Z",
-      updated_at: "2025-01-13T10:30:00Z"
-    },
-    // ... más datos mock
-  ];
-
-  async getAll(): Promise<Station[]> {
-    return Promise.resolve([...this.stations]);
-  }
-
-  async getById(id: number): Promise<Station> {
-    const station = this.stations.find(s => s.id === id);
-    if (!station) {
-      throw new Error(`Estación con ID ${id} no encontrada`);
-    }
-    return Promise.resolve(station);
-  }
-
-  // ... más métodos
-}
-```
-
-### Inyección de Dependencias
 
 #### `Container.ts`
+
+Contenedor de inyección de dependencias:
+
 ```typescript
-export class DIContainer {
-  private static instance: DIContainer;
+export class Container {
+  private dependencies = new Map();
 
-  // Repositories
-  private _stationRepository!: StationRepository;
-  private _measurementRepository!: MeasurementRepository;
-  private _alertRepository!: AlertRepository;
-  private _reportRepository!: ReportRepository;
-
-  // Use Cases
-  public getStationsUseCase!: GetStationsUseCase;
-  public getStationByIdUseCase!: GetStationByIdUseCase;
-  public getLatestMeasurementsUseCase!: GetLatestMeasurementsUseCase;
-  // ... más use cases
-
-  static getInstance(): DIContainer {
-    if (!DIContainer.instance) {
-      DIContainer.instance = new DIContainer();
-      DIContainer.instance.initialize();
-    }
-    return DIContainer.instance;
-  }
-
-  private initialize(): void {
-    this.initializeRepositories();
-    this.initializeUseCases();
-  }
-
-  private initializeRepositories(): void {
-    // En desarrollo: usar mocks
-    this._stationRepository = new MockStationRepository();
-    this._measurementRepository = new MockMeasurementRepository();
-    this._alertRepository = new MockAlertRepository();
-    this._reportRepository = new MockReportRepository();
-
-    // En producción: usar implementaciones reales
-    // const apiClient = new ApiClient(API_BASE_URL);
-    // this._stationRepository = new ApiStationRepository(apiClient);
-    // this._measurementRepository = new ApiMeasurementRepository(apiClient);
-    // ...
-  }
-
-  private initializeUseCases(): void {
-    this.getStationsUseCase = new GetStationsUseCase(this._stationRepository);
-    this.getStationByIdUseCase = new GetStationByIdUseCase(this._stationRepository);
-    this.getLatestMeasurementsUseCase = new GetLatestMeasurementsUseCase(this._measurementRepository);
-    // ... más use cases
-  }
+  register<T>(token: string, implementation: T): void;
+  resolve<T>(token: string): T;
 }
 ```
+
+#### Repositorios Mock
+
+Implementaciones de prueba para desarrollo:
+
+- `MockStationRepository.ts`
+- `MockMeasurementRepository.ts`
+- `MockAlertRepository.ts`
+- `MockReportRepository.ts`
+- `MockUserRepository.ts`
+- `MockActivityLogRepository.ts`
 
 ## 🎨 Capa de Presentación (`src/presentation/`)
 
 ### Responsabilidades
-- Maneja la **interfaz de usuario**
-- Gestiona el **estado de la aplicación**
-- Presenta datos al usuario
-- Captura **interacciones del usuario**
 
-### Estructura de Componentes
-
-```
-components/
-├── ui/                         # Componentes base reutilizables
-│   ├── button.tsx
-│   ├── card.tsx
-│   ├── input.tsx
-│   ├── select.tsx
-│   └── dialog.tsx
-├── layout/                     # Componentes de layout
-│   ├── Navbar.tsx
-│   ├── Footer.tsx
-│   └── Layout.tsx
-├── charts/                     # Componentes de gráficos
-│   ├── NormalizedChart.tsx     # ⭐ Gráfico normalizado
-│   ├── LineChart.tsx
-│   └── BarChart.tsx
-└── features/                   # Componentes específicos de funcionalidades
-    ├── station/
-    ├── measurement/
-    ├── alert/
-    └── report/
-```
-
-### Estado Global con Zustand
-
-```typescript
-// StationStore.ts
-interface StationState {
-  stations: Station[];
-  loading: boolean;
-  error: string | null;
-  selectedStation: Station | null;
-  
-  // Actions
-  fetchStations: () => Promise<void>;
-  fetchStationById: (id: number) => Promise<void>;
-  setSelectedStation: (station: Station | null) => void;
-  clearError: () => void;
-}
-
-export const useStationStore = create<StationState>((set) => ({
-  stations: [],
-  loading: false,
-  error: null,
-  selectedStation: null,
-
-  fetchStations: async () => {
-    set({ loading: true, error: null });
-    try {
-      const container = DIContainer.getInstance();
-      const stations = await container.getStationsUseCase.execute();
-      set({ stations, loading: false });
-    } catch (error) {
-      set({ 
-        error: error instanceof Error ? error.message : 'Error al cargar estaciones',
-        loading: false 
-      });
-    }
-  },
-
-  // ... más acciones
-}));
-```
+- **Interfaz de usuario** con React 19
+- **Estado global** con Zustand
+- **Enrutamiento** con React Router
+- **Animaciones** con Framer Motion
 
 ### Páginas Principales
 
-```
-pages/
-├── HomePage.tsx                # Página de inicio
-├── DashboardPage.tsx           # Dashboard principal con métricas
-├── StationsPage.tsx            # Lista de estaciones
-├── AlertsPage.tsx              # Gestión de alertas
-├── ReportsPage.tsx             # Reportes y analytics
-├── MapPage.tsx                 # Mapa de estaciones
-└── AdminPage.tsx               # Administración
-```
+#### `HomePage.tsx`
 
-## 🔄 Capa Compartida (`src/shared/`)
+Página de inicio con información del sistema y navegación animada.
 
-### Responsabilidades
-- Servicios **transversales** al sistema
-- Utilidades **comunes** para todas las capas
-- **Helpers** y funciones de apoyo
+#### `DashboardPage.tsx`
 
-### DataNormalizationService ⭐
+Dashboard principal con métricas en tiempo real:
+
+- Gráficos interactivos con Recharts
+- Indicadores de rendimiento (KPIs)
+- Datos de estaciones en tiempo real
+- Alertas activas
+
+#### `ReportsPage.tsx`
+
+Generación y exportación de reportes:
+
+- Filtros avanzados por fecha y estación
+- Exportación a PDF y Excel
+- Visualización de datos históricos
+
+#### `ActivityReportPage.tsx`
+
+Logs de actividad del sistema:
+
+- Historial de acciones de usuarios
+- Filtros por tipo de actividad
+- Exportación de logs
+
+#### `AdminPage.tsx`
+
+Panel de administración:
+
+- Gestión de usuarios
+- Configuración de estaciones
+- Configuración de alertas
+
+### Stores (Estado Global)
+
+#### `StationStore.ts`
 
 ```typescript
-export class DataNormalizationService {
-  static normalize(rawData: any[], sourceType: DataSourceType): ChartDataSet {
-    switch (sourceType) {
-      case DataSourceType.MEASUREMENT:
-        return this.normalizeMeasurements(rawData);
-      
-      case DataSourceType.STATION:
-        return this.normalizeStations(rawData);
-      
-      case DataSourceType.API_V1:
-        return this.normalizeApiV1(rawData);
-      
-      // ... más casos
-      
-      default:
-        throw new Error(`Tipo de fuente no soportado: ${sourceType}`);
-    }
-  }
+interface StationState {
+  stations: Station[];
+  selectedStation: Station | null;
+  loading: boolean;
+  error: string | null;
 
-  private static normalizeMeasurements(data: any[]): ChartDataSet {
-    const normalizedData = data.map(item => ({
-      timestamp: item.timestamp || item.created_at,
-      value: parseFloat(item.value || item.water_level || 0),
-      label: item.station_name || 'Sin estación',
-      station: item.station_id?.toString()
-    }));
-
-    return {
-      data: normalizedData,
-      metadata: {
-        type: 'measurement',
-        source: 'measurements',
-        unit: 'm'
-      }
-    };
-  }
+  // Actions
+  fetchStations: () => Promise<void>;
+  selectStation: (station: Station) => void;
+  createStation: (data: CreateStationData) => Promise<void>;
+  updateStation: (id: number, data: UpdateStationData) => Promise<void>;
 }
 ```
 
-### Utilidades
+#### `MeasurementStore.ts`
 
 ```typescript
-// formatters.ts
-export const formatDateTime = (dateString: string): string => {
-  return new Date(dateString).toLocaleString('es-CL', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit'
-  });
-};
+interface MeasurementState {
+  measurements: Measurement[];
+  filters: MeasurementFilters;
+  loading: boolean;
+  error: string | null;
 
-export const formatWaterLevel = (level: number): string => {
-  return `${level.toFixed(2)}m`;
-};
+  // Actions
+  fetchMeasurements: () => Promise<void>;
+  setFilters: (filters: Partial<MeasurementFilters>) => void;
+  refreshData: () => Promise<void>;
+}
 ```
 
-## 🚀 Flujo de Datos
+### Componentes por Categoría
 
-### Flujo Típico de una Operación
+#### `components/ui/`
 
-1. **Usuario interactúa** con un componente React
-2. **Componente** llama a una acción del store (Zustand)
-3. **Store** obtiene el caso de uso del DI Container
-4. **Caso de uso** ejecuta la lógica de negocio
-5. **Caso de uso** llama al repositorio correspondiente
-6. **Repositorio** (Mock/API) obtiene/modifica los datos
-7. **Resultado** se propaga de vuelta al componente
-8. **Componente** actualiza la UI
+Componentes base del sistema de diseño:
+
+- `Button`, `Input`, `Card` - Componentes básicos
+- `ThemeToggle` - Cambio de tema claro/oscuro
+- `PageLoading` - Indicador de carga
+- `ExportButton` - Botón de exportación
+- `WaterMascot` - Mascota animada del sistema
+
+#### `components/layout/`
+
+Componentes de estructura:
+
+- `Navbar` - Navegación principal con tema adaptativo
+
+#### `components/charts/`
+
+Componentes de visualización:
+
+- `MetricsDashboard` - Dashboard de métricas principales
+- `NormalizedChart` - Gráficos con datos normalizados
+- `MetricChart` - Gráficos individuales de métricas
+- `MiniTrendChart` - Gráficos pequeños de tendencias
+
+#### `components/maps/`
+
+Componentes de mapas:
+
+- `StationsMap` - Mapa interactivo con ubicaciones de estaciones
+
+## 🔄 Capa Compartida (`src/shared/`)
+
+### Servicios Transversales
+
+#### `DataNormalizationService.ts`
+
+Servicio para normalización automática de datos:
+
+```typescript
+export class DataNormalizationService {
+  normalizeChartData(data: any[], sourceType: DataSourceType): ChartDataSet;
+  transformMeasurements(measurements: Measurement[]): ChartDataPoint[];
+}
+```
+
+#### `ExportService.ts`
+
+Servicio de exportación a múltiples formatos:
+
+```typescript
+export class ExportService {
+  exportToPDF(data: any[], options: ExportOptions): Promise<void>;
+  exportToExcel(data: any[], options: ExportOptions): Promise<void>;
+  exportToCSV(data: any[], options: ExportOptions): Promise<void>;
+}
+```
+
+#### `ReportActivityService.ts`
+
+Servicio de logs de actividad:
+
+```typescript
+export class ReportActivityService {
+  logActivity(action: string, details: any): Promise<void>;
+  getActivityHistory(filters: any): Promise<ActivityLog[]>;
+}
+```
+
+### Contextos y Hooks
+
+#### `ThemeContext.tsx`
+
+Contexto para manejo de temas:
+
+```typescript
+interface ThemeContextType {
+  theme: 'light' | 'dark';
+  toggleTheme: () => void;
+  setTheme: (theme: 'light' | 'dark') => void;
+}
+```
+
+#### `useBrowserDetect.ts`
+
+Hook para detección de navegador y capacidades.
+
+### Tipos TypeScript
+
+#### `animation-types.ts`
+
+Tipos para animaciones con Framer Motion.
+
+#### `chart-data.ts`
+
+Tipos para datos de gráficos y visualizaciones.
+
+#### `data-types.ts`
+
+Tipos compartidos para datos del dominio.
+
+#### `motion-types.ts`
+
+Tipos para componentes con animaciones.
+
+## 🔄 Flujo de Datos
+
+### Arquitectura Unidireccional
 
 ```mermaid
 graph TD
-    A[Componente React] --> B[Zustand Store]
-    B --> C[DI Container]
-    C --> D[Use Case]
-    D --> E[Repository]
-    E --> F[Mock/API]
+    A[UI Components] --> B[Zustand Stores]
+    B --> C[Use Cases]
+    C --> D[Domain Entities]
+    C --> E[Repositories]
+    E --> F[External APIs/Services]
     F --> E
-    E --> D
-    D --> C
+    E --> C
     C --> B
     B --> A
 ```
 
-### Ejemplo Práctico: Cargar Estaciones
+### Flujo de Operaciones
+
+1. **Componente UI** dispara una acción
+2. **Store Zustand** maneja el estado
+3. **Caso de Uso** ejecuta lógica de negocio
+4. **Repositorio** accede a datos externos
+5. **Entidades de Dominio** validan y procesan datos
+6. **Resultado** se propaga de vuelta al UI
+
+## 🎯 Principios Arquitectónicos
+
+### Clean Architecture
+
+- **Inversión de dependencias**: Las capas internas no dependen de las externas
+- **Separación de responsabilidades**: Cada capa tiene un propósito específico
+- **Testabilidad**: Fácil testing mediante inyección de dependencias
+- **Escalabilidad**: Estructura modular que facilita el crecimiento
+
+### Optimizaciones de Rendimiento
+
+- **Lazy Loading**: Páginas cargadas bajo demanda
+- **Code Splitting**: División automática de bundles
+- **Memoización**: React.memo y useMemo estratégicos
+- **Animaciones Optimizadas**: Framer Motion con GPU acceleration
+
+### Patrones de Diseño
+
+- **Repository Pattern**: Abstracción de acceso a datos
+- **Dependency Injection**: Inversión de control
+- **Observer Pattern**: Estado reactivo con Zustand
+- **Facade Pattern**: Servicios que encapsulan complejidad
+- **Strategy Pattern**: DataNormalizationService para diferentes fuentes
+
+## 🧪 Testing y Calidad
+
+### Playwright E2E Testing
 
 ```typescript
-// 1. Componente React
-function StationsPage() {
-  const { stations, loading, fetchStations } = useStationStore();
+// tests/ - Testing end-to-end
+├── animation-performance.spec.ts
+├── cross-browser-performance.spec.ts
+├── dashboard-performance.spec.ts
+├── data-normalization.spec.ts
+├── general-app.spec.ts
+└── reports-chart.spec.ts
+```
 
-  useEffect(() => {
-    fetchStations(); // 2. Llamada al store
-  }, [fetchStations]);
+### Configuraciones de Calidad
 
-  // ... render
-}
+- **ESLint**: Linting con reglas TypeScript y React
+- **TypeScript Strict**: Tipado estricto en toda la aplicación
+- **Path Mapping**: Imports absolutos para mejor organización
 
-// 2. Zustand Store
-export const useStationStore = create<StationState>((set) => ({
-  fetchStations: async () => {
-    set({ loading: true });
-    try {
-      const container = DIContainer.getInstance(); // 3. DI Container
-      const stations = await container.getStationsUseCase.execute(); // 4. Use Case
-      set({ stations, loading: false });
-    } catch (error) {
-      set({ error: error.message, loading: false });
+## 🚀 Deployment y Build
+
+### Configuración Vite
+
+```typescript
+// vite.config.ts
+export default defineConfig({
+  plugins: [react()],
+  resolve: {
+    alias: {
+      '@domain': path.resolve(__dirname, './src/domain'),
+      '@application': path.resolve(__dirname, './src/application'),
+      '@infrastructure': path.resolve(__dirname, './src/infrastructure'),
+      '@presentation': path.resolve(__dirname, './src/presentation'),
+      '@shared': path.resolve(__dirname, './src/shared'),
     }
-  },
-}));
-
-// 4. Use Case
-export class GetStationsUseCase {
-  constructor(private stationRepository: StationRepository) {}
-
-  async execute(): Promise<Station[]> {
-    return await this.stationRepository.getAll(); // 5. Repository
   }
-}
-
-// 5. Repository (Mock)
-export class MockStationRepository implements StationRepository {
-  async getAll(): Promise<Station[]> {
-    return Promise.resolve(this.mockStations); // 6. Datos mock
-  }
-}
+})
 ```
 
-## 🔄 Migración a Producción
+### Scripts de Build
 
-### Cambiar de Mock a API Real
-
-Para migrar a producción, solo necesitas cambiar la configuración del DI Container:
-
-```typescript
-// En Container.ts
-private initializeRepositories(): void {
-  if (process.env.NODE_ENV === 'production') {
-    // Producción: usar APIs reales
-    const apiClient = new ApiClient(API_BASE_URL);
-    this._stationRepository = new ApiStationRepository(apiClient);
-    this._measurementRepository = new ApiMeasurementRepository(apiClient);
-  } else {
-    // Desarrollo: usar mocks
-    this._stationRepository = new MockStationRepository();
-    this._measurementRepository = new MockMeasurementRepository();
+```json
+{
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "test": "playwright test",
+    "test:ui": "playwright test --ui"
   }
 }
 ```
 
-**Los componentes y use cases NO necesitan cambios** 🎉
-
-## 🧪 Testing
-
-### Arquitectura Testeable
-
-```typescript
-// Test de Use Case
-describe('GetStationsUseCase', () => {
-  it('should return sorted stations', async () => {
-    // Arrange
-    const mockRepo = new MockStationRepository();
-    const useCase = new GetStationsUseCase(mockRepo);
-
-    // Act
-    const result = await useCase.execute();
-
-    // Assert
-    expect(result).toHaveLength(3);
-    expect(result[0].name).toBe('Río Claro Centro');
-  });
-});
-
-// Test de componente
-describe('StationsPage', () => {
-  it('should render stations list', () => {
-    render(<StationsPage />);
-    expect(screen.getByText('Estaciones de Monitoreo')).toBeInTheDocument();
-  });
-});
-```
-
-## 📈 Beneficios de esta Arquitectura
-
-### ✅ Ventajas
-
-1. **Mantenibilidad**: Código organizado y fácil de entender
-2. **Testabilidad**: Cada capa se puede testear independientemente
-3. **Escalabilidad**: Fácil agregar nuevas funcionalidades
-4. **Flexibilidad**: Cambiar implementaciones sin afectar otras capas
-5. **Reutilización**: Componentes y servicios reutilizables
-6. **Separación de responsabilidades**: Cada capa tiene un propósito claro
-
-### 🎯 Casos de Uso Específicos
-
-- **Cambio de API**: Solo modificas los repositorios
-- **Nueva funcionalidad**: Sigues el patrón establecido
-- **Cambio de UI**: Solo afecta la capa de presentación
-- **Testing**: Fácil mockear dependencias
-- **Migración**: De desarrollo a producción sin cambios masivos
-
-Esta arquitectura garantiza que el sistema sea **mantenible**, **escalable** y **testeable** a largo plazo.
+Esta arquitectura garantiza mantenibilidad, escalabilidad y rendimiento óptimo para el sistema de monitoreo del Río Claro.

@@ -27,3 +27,4 @@ dist-ssr
 
 # AI assistants
 .playwright-mcp
+.serena
