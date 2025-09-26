@@ -14,7 +14,7 @@ import { DataNormalizationService, ChartDataSet, DataSourceType } from "@shared/
 export type MetricType = 'flujo' | 'nivel' | 'caudal' | 'velocidad' | 'temperatura';
 
 interface MetricChartProps {
-  rawData: any[];
+  rawData: Record<string, unknown>[];
   sourceType: DataSourceType;
   metricType: MetricType;
   height?: number;
@@ -131,12 +131,18 @@ export function MetricChart({
   }));
   
   // Custom Tooltip
-  const CustomTooltip = ({ active, payload, label }: any) => {
+  interface TooltipProps {
+    active?: boolean;
+    payload?: Array<{ value: number; [key: string]: unknown }>;
+    label?: string;
+  }
+
+  const CustomTooltip = ({ active, payload, label }: TooltipProps) => {
     if (active && payload && payload.length) {
       return (
         <div className="bg-gov-white border border-gov-accent rounded-lg p-3 shadow-lg">
           <p className="text-sm font-medium text-gov-black mb-1">
-            {chartConfig.formatTimestamp(label)}
+            {chartConfig.formatTimestamp(label || '')}
           </p>
           <div className="flex items-center space-x-2">
             <div 
@@ -172,7 +178,7 @@ export function MetricChart({
       yAxisProps: {
         stroke: "#94a3b8", // var(--gray-b)
         fontSize: 12,
-        tickFormatter: (value: any) => `${chartConfig.formatValue(value)} ${metricConfig.unit}`
+        tickFormatter: (value: number) => `${chartConfig.formatValue(value)} ${metricConfig.unit}`
       }
     };
 

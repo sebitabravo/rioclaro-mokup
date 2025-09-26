@@ -179,4 +179,4 @@ export function WaterMascot({
   )
 }
 
-export { useSystemMood } from './water-mascot-hooks';
+// useSystemMood hook is available from './water-mascot-hooks' if needed separately

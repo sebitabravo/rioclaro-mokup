@@ -13,7 +13,7 @@ import {
 } from '@shared/services/DataNormalizationService';
 
 interface NormalizedChartProps {
-	rawData: any[];
+	rawData: Record<string, unknown>[];
 	sourceType: DataSourceType;
 	height?: number;
 	className?: string;
@@ -86,7 +86,7 @@ export function NormalizedChart({
 						labelFormatter={(value) =>
 							`Hora: ${chartConfig.formatTimestamp(value as string)}`
 						}
-						formatter={(value: any) => [
+						formatter={(value: number) => [
 							chartConfig.formatValue(value),
 							normalizedDataSet.metadata.type.charAt(0).toUpperCase() +
 								normalizedDataSet.metadata.type.slice(1)

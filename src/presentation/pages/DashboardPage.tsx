@@ -31,7 +31,6 @@ import { formatDateTime, formatWaterLevel } from '@shared/utils/formatters';
 import { StationsMap } from '@presentation/components/maps/StationsMap';
 import { MiniTrendChart } from '@presentation/components/charts/MiniTrendChart';
 import type { Station } from '@domain/entities/Station';
-import { PerformanceMonitor } from '@shared/components/PerformanceMonitor';
 
 interface MockMetricData {
   timestamp: string;
@@ -488,7 +487,6 @@ export function DashboardPage() {
 					</div>
 				</main>
 			</div>
-			<PerformanceMonitor />
 		</>
 	);
 }

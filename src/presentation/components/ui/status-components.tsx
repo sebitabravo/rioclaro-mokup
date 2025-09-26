@@ -103,10 +103,5 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
   </div>
 );
 
-export { useDataColors, useAlertSeverityConfig } from './status-hooks';
-
-export default {
-  LoadingState,
-  StatusMessage,
-  EmptyState
-};
+// Hooks are exported from './status-hooks' if needed separately
+// For better React refresh, avoid default exports with mixed types

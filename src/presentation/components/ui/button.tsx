@@ -25,4 +25,4 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 Button.displayName = "Button"
 
 export { Button }
-export { buttonVariants } from "./button-variants"
+// buttonVariants is already exported from "./button-variants" if needed separately
