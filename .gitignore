@@ -12,6 +12,7 @@ node_modules/
 dist
 dist-ssr
 *.local
+env
 
 # Editor directories and files
 .vscode/*
@@ -41,3 +42,17 @@ coverage
 
 # Vite
 .vite
+
+# Backend Django
+backend/__pycache__/
+backend/*/__pycache__/
+backend/*/*/__pycache__/
+backend/db.sqlite3
+backend/env/
+backend/.env
+
+# Arduino
+arduino/hardware/config/secrets.h
+
+# Docker
+docker/volumes/
