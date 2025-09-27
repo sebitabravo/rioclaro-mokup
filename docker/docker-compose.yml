@@ -1,0 +1,86 @@
+version: "3.8"
+
+services:
+  # Base de datos MySQL
+  mysql:
+    build:
+      context: .
+      dockerfile: docker/mysql.Dockerfile
+    environment:
+      MYSQL_DATABASE: ${DB_NAME:-rioclaro_db}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-rootpassword}
+      MYSQL_USER: ${DB_USER:-rioclaro_user}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-rioclaro_pass}
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "3306:3306"
+    networks:
+      - rioclaro_network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+
+  # Backend Django API
+  backend:
+    build:
+      context: .
+      dockerfile: docker/backend.Dockerfile
+    environment:
+      DATA_SOURCE: ${DATA_SOURCE:-SIMULATOR}
+      DB_HOST: mysql
+      DB_NAME: ${DB_NAME:-rioclaro_db}
+      DB_USER: ${DB_USER:-rioclaro_user}
+      DB_PASSWORD: ${DB_PASSWORD:-rioclaro_pass}
+      DEBUG: ${DEBUG:-True}
+    depends_on:
+      mysql:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+    networks:
+      - rioclaro_network
+    volumes:
+      - ./backend:/app
+    command: python manage.py runserver 0.0.0.0:8000
+
+  # Frontend React (tu app actual)
+  frontend:
+    build:
+      context: .
+      dockerfile: docker/frontend.Dockerfile
+    environment:
+      VITE_API_URL: http://localhost:8000
+    depends_on:
+      - backend
+    ports:
+      - "3000:3000"
+    networks:
+      - rioclaro_network
+    volumes:
+      - ./src:/app/src
+      - ./public:/app/public
+
+  # Simulador Arduino (opcional)
+  arduino-simulator:
+    build:
+      context: .
+      dockerfile: arduino/simulator/Dockerfile
+    environment:
+      BACKEND_URL: http://backend:8000
+      SIMULATION_INTERVAL: ${SIMULATION_INTERVAL:-30}
+    depends_on:
+      - backend
+    networks:
+      - rioclaro_network
+    profiles:
+      - simulator
+
+volumes:
+  mysql_data:
+
+networks:
+  rioclaro_network:
+    driver: bridge
