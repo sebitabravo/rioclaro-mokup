@@ -7,8 +7,12 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# Dependencies
 node_modules
 node_modules/
+package-lock.json
+
+# Build outputs
 dist
 dist-ssr
 *.local
@@ -47,12 +51,49 @@ coverage
 backend/__pycache__/
 backend/*/__pycache__/
 backend/*/*/__pycache__/
+backend/**/__pycache__/
 backend/db.sqlite3
+backend/*.sqlite3
 backend/env/
 backend/.env
+backend/staticfiles/
+backend/media/
+backend/*.pyc
+backend/**/migrations/__pycache__/
 
 # Arduino
 arduino/hardware/config/secrets.h
 
 # Docker
 docker/volumes/
+docker-compose.override.yml
+.docker/
+
+# OS generated files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.tmp
+*.swp
+*.swo
+*~
+
+# IDE and editor files
+.vscode/settings.json
+.vscode/launch.json
+.vscode/tasks.json
+*.sublime-*
+*.code-workspace
+
+# Environment files
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Temporary files
+*.temp
+*.bak
+.cache/
+.temp/
