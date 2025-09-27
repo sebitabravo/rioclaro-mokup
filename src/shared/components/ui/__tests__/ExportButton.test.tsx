@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ExportButton } from '../export-button';
 
@@ -188,7 +188,9 @@ describe('ExportButton', () => {
 
     expect(screen.getByRole('button', { name: /exportando/i })).toBeDisabled();
 
-    resolveExport!();
+    await act(async () => {
+      resolveExport!();
+    });
 
     await waitFor(() => {
       expect(screen.getByText('Exportar')).toBeInTheDocument();
@@ -264,7 +266,9 @@ describe('ExportButton', () => {
 
     expect(ExportService.exportActivityData).toHaveBeenCalledTimes(1);
 
-    resolveExport!();
+    await act(async () => {
+      resolveExport!();
+    });
   });
 
   it('should render correct icons for each format', async () => {

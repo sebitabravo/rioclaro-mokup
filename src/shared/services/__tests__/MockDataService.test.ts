@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { MockDataService, type MetricDataPoint, type StationStats } from '../MockDataService';
+import { MockDataService, type StationStats } from '../MockDataService';
 
 describe('MockDataService', () => {
   describe('generateMetricData', () => {

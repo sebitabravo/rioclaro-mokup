@@ -16,7 +16,7 @@ test.describe('General App Tests', () => {
     // Test navigation to dashboard - use specific button text
     await page.locator('a[href="/dashboard"]').filter({ hasText: 'Ver Dashboard' }).click();
     await expect(page).toHaveURL('/dashboard');
-    await expect(page.locator('text=Dashboard')).toBeVisible();
+    await expect(page.locator('[data-testid="dashboard-content"]')).toBeVisible();
 
     // Test navigation back to home
     await page.locator('a[href="/"]').first().click();
@@ -39,6 +39,9 @@ test.describe('General App Tests', () => {
 
   test('should be responsive on different screen sizes', async ({ page }) => {
     await page.goto('/dashboard');
+
+    // Wait for dashboard content to load
+    await page.waitForSelector('[data-testid="dashboard-content"]', { timeout: 10000 });
 
     // Test desktop
     await page.setViewportSize({ width: 1920, height: 1080 });
