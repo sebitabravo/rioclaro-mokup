@@ -52,8 +52,10 @@ export function ExportButton<T = unknown>({
           dateRange
         }
       );
-    } catch {
-      // Error handling - could show toast notification in production
+    } catch (error) {
+      // Error handling - log error and could show toast notification in production
+      // eslint-disable-next-line no-console
+      console.error('Error exporting data:', error);
     } finally {
       setIsExporting(false);
     }

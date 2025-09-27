@@ -72,15 +72,15 @@ const METRIC_CONFIGS = {
   }
 } as const;
 
-export function MetricChart({ 
-  rawData, 
-  sourceType, 
+export function MetricChart({
+  rawData,
+  sourceType,
   metricType,
-  height = 300, 
+  height = 300,
   className = "",
   showLegend = false
 }: MetricChartProps) {
-  // Transformar los datos según el tipo de métrica
+  // Transform data according to metric type
   const transformedData = rawData.map(item => {
     let value;
     switch (metricType) {
@@ -102,7 +102,7 @@ export function MetricChart({
       default:
         value = item.value || 0;
     }
-    
+
     return {
       ...item,
       value: value
@@ -112,13 +112,24 @@ export function MetricChart({
   const normalizedDataSet: ChartDataSet = DataNormalizationService.normalize(transformedData, sourceType);
   const chartConfig = DataNormalizationService.getChartConfig(normalizedDataSet);
   const metricConfig = METRIC_CONFIGS[metricType];
-  
-  // Defensive: if no data, render placeholder
+
+  // If no data, render placeholder
   if (!rawData || rawData.length === 0) {
     return (
-      <div className={className} style={{ height }} data-testid="metric-chart">
-        <div className="flex items-center justify-center h-full text-gov-gray-a">
-          No hay datos disponibles para la métrica seleccionada
+      <div
+        className={`flex items-center justify-center bg-gov-white rounded-lg border border-gov-accent shadow-sm ${className}`}
+        style={{ height }}
+        data-testid="metric-chart"
+      >
+        <div className="flex flex-col items-center space-y-3">
+          <div className="w-12 h-12 rounded-full bg-gov-accent flex items-center justify-center">
+            <svg className="w-6 h-6 text-gov-gray-a" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+          </div>
+          <p className="text-sm text-gov-gray-a text-center max-w-xs">
+            No hay datos disponibles para la métrica seleccionada
+          </p>
         </div>
       </div>
     );
@@ -130,7 +141,7 @@ export function MetricChart({
     timestamp: String(d.timestamp),
     value: Number.isFinite(Number(d.value)) ? Number(d.value) : 0
   }));
-  
+
   // Custom Tooltip
   interface TooltipProps {
     active?: boolean;
@@ -146,8 +157,8 @@ export function MetricChart({
             {chartConfig.formatTimestamp(label || '')}
           </p>
           <div className="flex items-center space-x-2">
-            <div 
-              className="w-3 h-3 rounded-full" 
+            <div
+              className="w-3 h-3 rounded-full"
               style={{ backgroundColor: metricConfig.color }}
             />
             <span className="text-sm text-gov-gray-a">{metricConfig.name}:</span>
@@ -220,14 +231,14 @@ export function MetricChart({
               dataKey={chartConfig.yAxisKey}
               stroke={metricConfig.color}
               strokeWidth={metricConfig.strokeWidth}
-              dot={{ 
-                fill: metricConfig.color, 
-                strokeWidth: 2, 
-                r: 'dotSize' in metricConfig ? metricConfig.dotSize : 4 
+              dot={{
+                fill: metricConfig.color,
+                strokeWidth: 2,
+                r: 'dotSize' in metricConfig ? metricConfig.dotSize : 4
               }}
-              activeDot={{ 
-                r: ('dotSize' in metricConfig ? metricConfig.dotSize : 4) + 2, 
-                fill: metricConfig.color 
+              activeDot={{
+                r: ('dotSize' in metricConfig ? metricConfig.dotSize : 4) + 2,
+                fill: metricConfig.color
               }}
               name={metricConfig.name}
             />
@@ -240,20 +251,27 @@ export function MetricChart({
   };
 
   const chart = renderChart();
-  
+
   if (!chart) {
     return (
-      <div className={className}>
-        <div className="flex items-center justify-center h-full text-gov-gray-a">
-          Tipo de gráfico no soportado
+      <div className={`flex items-center justify-center bg-gov-white rounded-lg border border-gov-accent shadow-sm ${className}`}>
+        <div className="flex flex-col items-center space-y-3">
+          <div className="w-12 h-12 rounded-full bg-gov-accent flex items-center justify-center">
+            <svg className="w-6 h-6 text-gov-gray-a" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.734 0L3.732 16.5C2.962 18.333 3.924 20 5.464 20z" />
+            </svg>
+          </div>
+          <p className="text-sm text-gov-gray-a text-center max-w-xs">
+            Tipo de gráfico no soportado
+          </p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className={className} data-testid="metric-chart">
-      <div style={{ width: '100%', height }}>
+    <div className={`bg-gov-white rounded-lg border border-gov-accent shadow-sm ${className}`} data-testid="metric-chart">
+      <div className="w-full p-4" style={{ height }}>
         <ResponsiveContainer width="100%" height="100%">
           {chart}
         </ResponsiveContainer>

@@ -2,10 +2,11 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ExportButton } from '../export-button';
+import type { FileGenerationResult } from '@shared/types/export-types';
 
 vi.mock('@shared/services/ExportService', () => ({
   ExportService: {
-    exportActivityData: vi.fn().mockResolvedValue(undefined)
+    exportActivityData: vi.fn().mockResolvedValue({ success: true, filename: 'test.csv' })
   }
 }));
 
@@ -164,8 +165,8 @@ describe('ExportButton', () => {
     const user = userEvent.setup();
 
     let resolveExport: () => void;
-    const exportPromise = new Promise<void>((resolve) => {
-      resolveExport = resolve;
+    const exportPromise = new Promise<FileGenerationResult>((resolve) => {
+      resolveExport = () => resolve({ success: true, filename: 'test.csv' });
     });
 
     vi.mocked(ExportService.exportActivityData).mockReturnValueOnce(exportPromise);
@@ -234,8 +235,8 @@ describe('ExportButton', () => {
     const user = userEvent.setup();
 
     let resolveExport: () => void;
-    const exportPromise = new Promise<void>((resolve) => {
-      resolveExport = resolve;
+    const exportPromise = new Promise<FileGenerationResult>((resolve) => {
+      resolveExport = () => resolve({ success: true, filename: 'test.csv' });
     });
 
     vi.mocked(ExportService.exportActivityData).mockReturnValueOnce(exportPromise);

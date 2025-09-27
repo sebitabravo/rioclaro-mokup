@@ -163,10 +163,21 @@ export const isStringOrNumber = (value: unknown): value is string | number =>
 
 export const parseToNumber = (value: unknown): number => {
   if (isNumber(value)) return value;
+
+  // Handle null and undefined as 0
+  if (value === null || value === undefined) return 0;
+
   if (isString(value)) {
     const parsed = parseFloat(value);
-    return isNaN(parsed) ? 0 : parsed;
+    // Return NaN for strings that can't be parsed to numbers
+    return isNaN(parsed) ? NaN : parsed;
   }
+
+  // Return NaN for complex data types (objects, arrays) that can't be parsed
+  if (typeof value === 'object' || Array.isArray(value)) {
+    return NaN;
+  }
+
   return 0;
 };
 

@@ -100,18 +100,21 @@
 		@apply bg-background text-foreground transition-colors duration-300;
 	}
 
-	/* Smooth transitions for theme changes */
-	*,
-	*::before,
-	*::after {
+	/* Smooth transitions for theme changes - Exclude SVG elements to prevent Recharts conflicts */
+	*:not(svg):not(svg *),
+	*:not(svg):not(svg *)::before,
+	*:not(svg):not(svg *)::after {
 		transition: background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
 			border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
 			color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-			fill 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-			stroke 0.3s cubic-bezier(0.4, 0, 0.2, 1),
 			opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1),
 			box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1),
 			transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+	}
+
+	/* Allow SVG fill and stroke to transition normally for chart animations */
+	svg, svg * {
+		transition: fill 0.2s ease, stroke 0.2s ease;
 	}
 }
 
@@ -131,4 +134,32 @@
 /* Asegurar que los modales estén por encima */
 [data-radix-popper-content-wrapper] {
 	z-index: 10000 !important;
+}
+
+/* Recharts CSS optimizations for proper SVG rendering */
+.recharts-responsive-container {
+	width: 100% !important;
+	height: 100% !important;
+}
+
+.recharts-wrapper {
+	width: 100% !important;
+	height: 100% !important;
+}
+
+.recharts-surface {
+	overflow: visible !important;
+}
+
+/* Ensure Recharts text elements are visible */
+.recharts-text {
+	fill: currentColor;
+}
+
+.recharts-cartesian-axis-tick-value {
+	fill: var(--gov-gray-a);
+}
+
+.recharts-tooltip-wrapper {
+	z-index: 1000;
 }

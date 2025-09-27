@@ -48,7 +48,7 @@ export default defineConfig({
           'maps': ['leaflet', 'react-leaflet'],
 
           // Export functionality chunk (lazy loaded)
-          'export': ['jspdf', 'jspdf-autotable', 'xlsx', 'html2canvas'],
+          'export': ['jspdf', 'jspdf-autotable', 'xlsx'],
 
           // Motion animations chunk
           'motion': ['framer-motion'],

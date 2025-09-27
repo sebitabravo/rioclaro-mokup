@@ -130,9 +130,7 @@ export class DataNormalizationService {
       throw new InvalidDataFormatError(sourceType, 'Array', typeof rawData);
     }
 
-    if (rawData.length === 0) {
-      throw new InvalidDataFormatError(sourceType, 'Array no vacío', 'Array vacío');
-    }
+    // Allow empty arrays - return empty dataset instead of throwing error
   }
 
 
