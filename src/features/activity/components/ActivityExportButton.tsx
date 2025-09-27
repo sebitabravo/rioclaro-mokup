@@ -8,7 +8,8 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator 
 } from '@shared/components/ui/dropdown-menu';
-import { ExportService, ExportFormat } from '@shared/services/ExportService';
+import { ExportService } from '@shared/services/ExportService';
+import type { ExportFormat } from '@shared/types/export-types';
 import { ActivityLog } from '@domain/entities/ActivityLog';
 
 interface ActivityExportButtonProps {

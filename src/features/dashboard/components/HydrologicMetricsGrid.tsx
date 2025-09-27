@@ -1,27 +1,23 @@
-import { Card, CardHeader, CardTitle } from "@shared/components/ui/card";
-import { MetricCard } from "@features/dashboard/components/MetricCard";
-import type { MeasurementDataArray } from "@shared/types/data-sources";
-import { BarChart3, Activity, Waves, Droplets, Gauge } from "lucide-react";
-import { useMemo } from "react";
+import { Waves, BarChart3, Droplets, Gauge } from 'lucide-react';
+import { MetricCard } from './MetricCard';
+import { useMemo } from 'react';
+import type { MeasurementDataArray } from '@shared/types/data-sources';
 
-interface MetricsDashboardProps {
+interface HydrologicMetricsGridProps {
   measurementData: MeasurementDataArray;
-  className?: string;
 }
 
 const METRIC_DEFINITIONS = [
   {
     id: 'flujo',
     name: 'Flujo de Agua',
-    description: 'Volumen de agua que pasa por un punto',
     icon: Waves,
     unit: 'm³/s',
     variant: 'success' as const
   },
   {
     id: 'nivel',
-    name: 'Nivel del Agua',
-    description: 'Altura del agua medida desde el punto de referencia',
+    name: 'Nivel Actual',
     icon: BarChart3,
     unit: 'm',
     variant: 'normal' as const
@@ -29,7 +25,6 @@ const METRIC_DEFINITIONS = [
   {
     id: 'caudal',
     name: 'Caudal',
-    description: 'Cantidad de agua que fluye por unidad de tiempo',
     icon: Droplets,
     unit: 'L/s',
     variant: 'warning' as const
@@ -37,23 +32,22 @@ const METRIC_DEFINITIONS = [
   {
     id: 'velocidad',
     name: 'Velocidad del Flujo',
-    description: 'Velocidad promedio del agua',
     icon: Gauge,
     unit: 'm/s',
     variant: 'critical' as const
   }
 ];
 
-export function MetricsDashboard({ measurementData, className = "" }: MetricsDashboardProps) {
+export function HydrologicMetricsGrid({ measurementData }: HydrologicMetricsGridProps) {
   // Calcular promedios en tiempo real de los datos
   const metrics = useMemo(() => {
     if (!measurementData || measurementData.length === 0) {
       // Valores por defecto si no hay datos
       return {
-        flujo: { value: '1.8', subtitle: 'Normal - Estable' },
-        nivel: { value: '2.3', subtitle: 'Nivel Seguro' },
-        caudal: { value: '156.4', subtitle: 'Flujo Moderado' },
-        velocidad: { value: '0.85', subtitle: 'Velocidad Normal' }
+        flujo: { value: '2.0', subtitle: 'Normal - Estable' },
+        nivel: { value: '2.5', subtitle: 'Nivel Seguro' },
+        caudal: { value: '169.5', subtitle: 'Flujo Moderado' },
+        velocidad: { value: '0.93', subtitle: 'Velocidad Normal' }
       };
     }
 
@@ -69,7 +63,7 @@ export function MetricsDashboard({ measurementData, className = "" }: MetricsDas
 
     // Simular otros valores basados en el nivel (en producción vendrían de sensores reales)
     const level = parseFloat(averageLevel);
-    const flujo = (level * 0.78).toFixed(1);
+    const flujo = (level * 0.8).toFixed(1);
     const caudal = (level * 67.8).toFixed(1);
     const velocidad = (level * 0.37).toFixed(2);
 
@@ -86,7 +80,7 @@ export function MetricsDashboard({ measurementData, className = "" }: MetricsDas
       },
       nivel: {
         value: averageLevel,
-        subtitle: `Nivel ${getLevelStatus(level)}`
+        subtitle: `Estado ${getLevelStatus(level)}`
       },
       caudal: {
         value: caudal,
@@ -100,34 +94,21 @@ export function MetricsDashboard({ measurementData, className = "" }: MetricsDas
   }, [measurementData]);
 
   return (
-    <div className={`space-y-6 ${className}`}>
-      {/* Header del Dashboard */}
-      <Card className="bg-gov-white border-gov-accent">
-        <CardHeader className="pb-3 pt-4">
-          <CardTitle className="flex items-center space-x-2 text-gov-black text-base">
-            <Activity className="h-4 w-4 text-gov-primary" />
-            <span>Métricas Hidrológicas en Tiempo Real</span>
-          </CardTitle>
-        </CardHeader>
-      </Card>
+    <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6' data-testid="hydrologic-metrics-grid">
+      {METRIC_DEFINITIONS.map((metric) => {
+        const metricData = metrics[metric.id as keyof typeof metrics];
 
-      {/* Grid responsivo con métricas de números simples */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {METRIC_DEFINITIONS.map((metric) => {
-          const metricData = metrics[metric.id as keyof typeof metrics];
-
-          return (
-            <MetricCard
-              key={metric.id}
-              title={metric.name}
-              value={`${metricData.value} ${metric.unit}`}
-              subtitle={metricData.subtitle}
-              icon={metric.icon}
-              variant={metric.variant}
-            />
-          );
-        })}
-      </div>
+        return (
+          <MetricCard
+            key={metric.id}
+            title={metric.name}
+            value={`${metricData.value} ${metric.unit}`}
+            subtitle={metricData.subtitle}
+            icon={metric.icon}
+            variant={metric.variant}
+          />
+        );
+      })}
     </div>
   );
 }

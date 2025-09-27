@@ -49,36 +49,36 @@ export function MetricCard({
 
   return (
     <Card
-      className={`bg-gov-white ${colors.border} h-full`}
+      className={`bg-gov-white ${colors.border} h-full hover:shadow-md transition-all duration-200`}
       data-testid="dashboard-metric-card"
       role="region"
       aria-labelledby={`metric-${title.toLowerCase().replace(/\s+/g, '-')}`}
       aria-describedby={`metric-${title.toLowerCase().replace(/\s+/g, '-')}-desc`}
     >
-      <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-1 pt-2'>
+      <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-3 pt-4 px-4'>
         <CardTitle
           id={`metric-${title.toLowerCase().replace(/\s+/g, '-')}`}
-          className='text-xs font-medium text-gov-gray-a'
+          className='text-sm font-medium text-gov-gray-a'
         >
           {title}
         </CardTitle>
         <Icon
-          className={`h-3 w-3 ${colors.iconColor}`}
+          className={`h-5 w-5 ${colors.iconColor}`}
           aria-hidden="true"
           role="img"
           aria-label={`Ícono de ${title}`}
         />
       </CardHeader>
-      <CardContent className='pt-0 pb-2'>
+      <CardContent className='pt-0 pb-4 px-4'>
         <div
-          className={`text-lg font-bold ${colors.valueColor} transition-all duration-300 ease-in-out`}
+          className={`text-2xl font-bold ${colors.valueColor} transition-all duration-300 ease-in-out mb-1`}
           aria-label={`Valor actual: ${value}`}
         >
           {value}
         </div>
         <p
           id={`metric-${title.toLowerCase().replace(/\s+/g, '-')}-desc`}
-          className={`text-xs ${variant === 'critical' ? 'text-gov-secondary font-medium' : 'text-gov-gray-b'}`}
+          className={`text-sm ${variant === 'critical' ? 'text-gov-secondary font-medium' : 'text-gov-gray-b'}`}
           aria-label={`Estado: ${subtitle}`}
         >
           {subtitle}
