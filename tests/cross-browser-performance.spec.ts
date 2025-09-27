@@ -43,7 +43,7 @@ test.describe('Cross-Browser Performance Tests', () => {
     try {
       // Primary: Look for our optimized test marker
       await page.waitForSelector('[data-testid="station-marker"]', { timeout: 3000 });
-    } catch (error) {
+    } catch {
       // Fallback: wait for any leaflet markers
       await page.waitForSelector('.leaflet-marker-icon', { timeout: 3000 });
     }

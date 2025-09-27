@@ -20,13 +20,13 @@ export function useDeviceOptimization(): DeviceCapabilities {
   useEffect(() => {
     const detectCapabilities = () => {
       // Memory detection (Chrome/Edge)
-      const memory = (navigator as any).deviceMemory || 4;
+      const memory = (navigator as Navigator & { deviceMemory?: number }).deviceMemory || 4;
 
       // CPU cores detection
       const cores = navigator.hardwareConcurrency || 4;
 
       // Connection detection
-      const connection = (navigator as any).connection;
+      const connection = (navigator as Navigator & { connection?: { effectiveType?: string; addEventListener?: (event: string, callback: () => void) => void; removeEventListener?: (event: string, callback: () => void) => void } }).connection;
       const connectionType = connection?.effectiveType || 'unknown';
       const isSlowConnection = ['slow-2g', '2g', '3g'].includes(connectionType);
 
@@ -52,10 +52,10 @@ export function useDeviceOptimization(): DeviceCapabilities {
     detectCapabilities();
 
     // Listen for connection changes
-    const connection = (navigator as any).connection;
-    if (connection) {
+    const connection = (navigator as Navigator & { connection?: { addEventListener?: (event: string, callback: () => void) => void; removeEventListener?: (event: string, callback: () => void) => void } }).connection;
+    if (connection?.addEventListener && connection?.removeEventListener) {
       connection.addEventListener('change', detectCapabilities);
-      return () => connection.removeEventListener('change', detectCapabilities);
+      return () => connection.removeEventListener!('change', detectCapabilities);
     }
   }, []);
 

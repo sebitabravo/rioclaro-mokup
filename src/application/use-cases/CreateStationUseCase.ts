@@ -54,12 +54,7 @@ export class CreateStationUseCase {
       location: stationData.location.trim(),
     };
 
-    try {
-      return await this.stationRepository.create(stationToCreate);
-    } catch (error) {
-      // Si hay un error en el repositorio, lo re-lanzamos con contexto
-      throw error; // El repositorio debe manejar sus propios errores tipados
-    }
+    return await this.stationRepository.create(stationToCreate);
   }
 
   private validateStationData(stationData: CreateStationData): void {

@@ -2,11 +2,7 @@ import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
 import {
   AppError,
-  ValidationError,
-  NetworkError,
   ApiError,
-  UnauthorizedError,
-  EntityNotFoundError,
   isAppError,
   isValidationError,
   isNetworkError,
@@ -96,7 +92,7 @@ export class ErrorBoundary extends Component<Props, State> {
     if (isNetworkError(appError)) {
       return <AlertTriangle className="h-12 w-12 text-orange-500" />;
     }
-    if (isApiError(appError) && appError.statusCode === 401) {
+    if (isApiError(appError) && (appError as ApiError).statusCode === 401) {
       return <AlertTriangle className="h-12 w-12 text-blue-500" />;
     }
     if (isValidationError(appError)) {
@@ -113,10 +109,11 @@ export class ErrorBoundary extends Component<Props, State> {
       return 'Problema de conexión';
     }
     if (isApiError(appError)) {
-      if (appError.statusCode === 401) return 'Sesión expirada';
-      if (appError.statusCode === 403) return 'Sin permisos';
-      if (appError.statusCode === 404) return 'No encontrado';
-      if (appError.statusCode >= 500) return 'Error del servidor';
+      const apiError = appError as ApiError;
+      if (apiError.statusCode === 401) return 'Sesión expirada';
+      if (apiError.statusCode === 403) return 'Sin permisos';
+      if (apiError.statusCode === 404) return 'No encontrado';
+      if (apiError.statusCode >= 500) return 'Error del servidor';
     }
     if (isValidationError(appError)) {
       return 'Datos incorrectos';
@@ -144,11 +141,11 @@ export class ErrorBoundary extends Component<Props, State> {
 
     // Para errores de red o errores temporales, mostrar botón de reintentar
     if (isNetworkError(appError)) return true;
-    if (isApiError(appError) && appError.statusCode >= 500) return true;
+    if (isApiError(appError) && (appError as ApiError).statusCode >= 500) return true;
 
     // Para errores de validación o autorización, no mostrar reintentar
     if (isValidationError(appError)) return false;
-    if (isApiError(appError) && appError.statusCode === 401) return false;
+    if (isApiError(appError) && (appError as ApiError).statusCode === 401) return false;
 
     return true;
   }

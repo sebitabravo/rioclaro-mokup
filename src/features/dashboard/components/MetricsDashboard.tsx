@@ -1,4 +1,4 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@shared/components/ui/card";
+import { Card, CardHeader, CardTitle } from "@shared/components/ui/card";
 import { MetricCard } from "@features/dashboard/components/MetricCard";
 import type { MeasurementDataArray } from "@shared/types/data-sources";
 import { BarChart3, Activity, Waves, Droplets, Gauge } from "lucide-react";
@@ -61,8 +61,10 @@ export function MetricsDashboard({ measurementData, className = "" }: MetricsDas
     const totalPoints = measurementData.length;
 
     // Promedio de nivel de agua (dato principal)
-    const averageLevel = (measurementData.reduce((sum: number, point: any) => {
-      return sum + (point.waterLevel || point.value || 0);
+    const averageLevel = (measurementData.reduce((sum: number, point) => {
+      const waterLevel = typeof point.water_level === 'number' ? point.water_level : 
+                        typeof point.value === 'number' ? point.value : 0;
+      return sum + waterLevel;
     }, 0) / totalPoints).toFixed(1);
 
     // Simular otros valores basados en el nivel (en producción vendrían de sensores reales)

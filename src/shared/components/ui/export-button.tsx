@@ -8,7 +8,9 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator
 } from '@shared/components/ui/dropdown-menu';
-import { ExportService, type ExportFormat } from '@shared/services/ExportService';
+import { ExportService } from '@shared/services/ExportService';
+import type { ExportFormat } from '@shared/types/export-types';
+import type { ActivityLog } from '@domain/entities/ActivityLog';
 
 interface ExportButtonProps<T = unknown> {
   data: T[];
@@ -42,7 +44,7 @@ export function ExportButton<T = unknown>({
       const exportFilename = filename || `${exportType}_${new Date().toISOString().split('T')[0]}`;
 
       await ExportService.exportActivityData(
-        data as any, // Type assertion needed for generic compatibility
+        data as ActivityLog[], // Type assertion for ActivityLog array
         {
           format,
           filename: exportFilename,
@@ -50,8 +52,8 @@ export function ExportButton<T = unknown>({
           dateRange
         }
       );
-    } catch (error) {
-      console.error('Error exporting data:', error);
+    } catch {
+      // Error handling - could show toast notification in production
     } finally {
       setIsExporting(false);
     }

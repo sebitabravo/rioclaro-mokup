@@ -7,21 +7,11 @@ export class ApiStationRepository implements StationRepository {
   constructor(private apiClient: ApiClient) {}
 
   async findAll(): Promise<Station[]> {
-    try {
-      return await this.apiClient.get<Station[]>('/monitoring/stations/');
-    } catch (error) {
-      // Los errores ya vienen tipados del ApiClient
-      throw error;
-    }
+    return await this.apiClient.get<Station[]>('/monitoring/stations/');
   }
 
   async findById(id: number): Promise<Station | null> {
-    try {
-      return await this.apiClient.get<Station>(`/monitoring/stations/${id}/`);
-    } catch (error) {
-      // Los errores ya vienen tipados del ApiClient
-      throw error;
-    }
+    return await this.apiClient.get<Station>(`/monitoring/stations/${id}/`);
   }
 
   async findPaginated(params: PaginationParams, filters?: StationFilters): Promise<PaginatedResult<Station>> {
@@ -58,39 +48,19 @@ export class ApiStationRepository implements StationRepository {
       });
     }
 
-    try {
-      return await this.apiClient.get<PaginatedResult<Station>>(`/monitoring/stations/paginated/?${queryParams}`);
-    } catch (error) {
-      // Los errores ya vienen tipados del ApiClient
-      throw error;
-    }
+    return await this.apiClient.get<PaginatedResult<Station>>(`/monitoring/stations/paginated/?${queryParams}`);
   }
 
   async create(stationData: Omit<Station, 'id' | 'created_at' | 'updated_at'>): Promise<Station> {
-    try {
-      return await this.apiClient.post<Station>('/monitoring/stations/', stationData);
-    } catch (error) {
-      // Los errores ya vienen tipados del ApiClient
-      throw error;
-    }
+    return await this.apiClient.post<Station>('/monitoring/stations/', stationData);
   }
 
   async update(id: number, stationData: Partial<Station>): Promise<Station | null> {
-    try {
-      return await this.apiClient.patch<Station>(`/monitoring/stations/${id}/`, stationData);
-    } catch (error) {
-      // Los errores ya vienen tipados del ApiClient
-      throw error;
-    }
+    return await this.apiClient.patch<Station>(`/monitoring/stations/${id}/`, stationData);
   }
 
   async delete(id: number): Promise<boolean> {
-    try {
-      await this.apiClient.delete(`/monitoring/stations/${id}/`);
-      return true;
-    } catch (error) {
-      // Los errores ya vienen tipados del ApiClient
-      throw error;
-    }
+    await this.apiClient.delete(`/monitoring/stations/${id}/`);
+    return true;
   }
 }

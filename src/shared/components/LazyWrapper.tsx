@@ -1,76 +1,62 @@
-import { lazy, Suspense, ComponentType } from 'react';
+import { lazy, Suspense } from 'react';
 import { PageLoader } from './ui/page-loader';
-import { useGovernmentDeviceOptimization } from '../hooks/useDeviceOptimization';
 
+// Government-optimized lazy loading utilities with custom fallbacks
+export const LazyMap = lazy(() => 
+  import('../../features/dashboard/components/StationsMap').then(module => ({
+    default: module.StationsMap
+  }))
+);
+
+export const LazyCharts = lazy(() => 
+  import('../../features/dashboard/components/MetricsDashboard').then(module => ({
+    default: module.MetricsDashboard
+  }))
+);
+
+export const LazyReports = lazy(() => 
+  import('../../presentation/pages/ReportsPage').then(module => ({
+    default: module.ReportsPage
+  }))
+);
+
+export const LazyAdmin = lazy(() => 
+  import('../../presentation/pages/AdminPage').then(module => ({
+    default: module.AdminPage
+  }))
+);
+
+export const LazyActivity = lazy(() => 
+  import('../../presentation/pages/ActivityReportPage').then(module => ({
+    default: module.ActivityReportPage
+  }))
+);
+
+// Wrapper component for consistent loading states
 interface LazyWrapperProps {
-  fallback?: React.ReactNode;
+  children: React.ReactNode;
   loadingTitle?: string;
   loadingSubtitle?: string;
+  fallback?: React.ReactNode;
 }
 
-// Higher-order component for lazy loading with government optimization
-export function withLazyLoading<T extends object>(
-  componentImporter: () => Promise<{ default: ComponentType<T> }>,
-  options?: LazyWrapperProps
-) {
-  const LazyComponent = lazy(componentImporter);
+export function LazyWrapper({ 
+  children, 
+  loadingTitle = 'Cargando componente...', 
+  loadingSubtitle = 'Optimizando para su dispositivo...',
+  fallback 
+}: LazyWrapperProps) {
+  const defaultFallback = (
+    <PageLoader
+      isLoading={true}
+      title={loadingTitle}
+      subtitle={loadingSubtitle}
+    />
+  );
 
-  return function LazyLoadedComponent(props: T) {
-    const { shouldLazyLoad } = useGovernmentDeviceOptimization();
-
-    const fallback = options?.fallback || (
-      <PageLoader
-        isLoading={true}
-        title={options?.loadingTitle || 'Cargando componente...'}
-        subtitle={options?.loadingSubtitle || 'Optimizando para su dispositivo...'}
-      />
-    );
-
-    return (
-      <Suspense fallback={fallback}>
-        <LazyComponent {...props} />
-      </Suspense>
-    );
-  };
+  return (
+    <Suspense fallback={fallback || defaultFallback}>
+      {children}
+    </Suspense>
+  );
 }
-
-// Government-optimized lazy loading utilities
-export const LazyMap = withLazyLoading(
-  () => import('../../features/dashboard/components/StationsMap'),
-  {
-    loadingTitle: 'Cargando mapa...',
-    loadingSubtitle: 'Preparando visualización geográfica...'
-  }
-);
-
-export const LazyCharts = withLazyLoading(
-  () => import('../../features/dashboard/components/MetricsDashboard'),
-  {
-    loadingTitle: 'Cargando gráficos...',
-    loadingSubtitle: 'Procesando datos estadísticos...'
-  }
-);
-
-export const LazyReports = withLazyLoading(
-  () => import('../../presentation/pages/ReportsPage'),
-  {
-    loadingTitle: 'Cargando análisis...',
-    loadingSubtitle: 'Preparando herramientas de reportes...'
-  }
-);
-
-export const LazyAdmin = withLazyLoading(
-  () => import('../../presentation/pages/AdminPage'),
-  {
-    loadingTitle: 'Cargando administración...',
-    loadingSubtitle: 'Verificando permisos de acceso...'
-  }
-);
-
-export const LazyActivity = withLazyLoading(
-  () => import('../../presentation/pages/ActivityReportPage'),
-  {
-    loadingTitle: 'Cargando actividad...',
-    loadingSubtitle: 'Compilando registros del sistema...'
-  }
-);

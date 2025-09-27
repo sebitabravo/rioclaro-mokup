@@ -72,7 +72,7 @@ export function DashboardPage() {
                 criticalCount={stats.criticalStations}
                 onViewDetails={() => {
                   // TODO: Navigate to detailed alerts view
-                  console.log('Navigate to alerts details');
+                  // Implementation pending
                 }}
                 className="mb-6"
               />
@@ -105,7 +105,13 @@ export function DashboardPage() {
                   <h2 id="dashboard-heading" className="sr-only">
                     Gráficos y tendencias de mediciones
                   </h2>
-                  <MetricsDashboard measurementData={mockMetricData as any} />
+                  <MetricsDashboard measurementData={mockMetricData.map(point => ({
+                    timestamp: point.timestamp,
+                    value: point.value,
+                    water_level: point.waterLevel,
+                    station_id: point.stationId,
+                    station: point.stationName
+                  }))} />
                 </section>
               </div>
             </MotionWrapper>

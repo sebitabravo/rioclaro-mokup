@@ -2,7 +2,6 @@ import {
   ApiError,
   NetworkError,
   InfrastructureError,
-  normalizeError,
   AppError
 } from '@shared/types/errors';
 
@@ -79,7 +78,7 @@ export class ApiClient {
     }
 
     let responseData: unknown;
-    let responseHeaders: Record<string, string> = {};
+    const responseHeaders: Record<string, string> = {};
 
     // Extraer headers de respuesta
     response.headers.forEach((value, key) => {

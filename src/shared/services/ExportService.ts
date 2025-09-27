@@ -2,23 +2,17 @@ import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { ActivityLog } from '@domain/entities/ActivityLog';
-import { formatDateTime } from '@shared/utils/formatters';
-
 import type {
   ExportFormat,
   ExportOptions,
   ExcelExportRow,
   CSVExportRow,
-  PDFTableRow,
   SummaryDataItem,
-  ActivityStatistics,
   PDFPageInfo,
   FileGenerationResult
 } from '@shared/types/export-types';
 
 import {
-  ACTIVITY_TYPE_LABELS,
-  STATUS_LABELS,
   PDF_COLORS,
   EXCEL_COLUMN_WIDTHS,
   PDF_COLUMN_WIDTHS,
@@ -348,7 +342,7 @@ export class ExportService {
         didDrawPage: (data) => {
           const pageInfo: PDFPageInfo = {
             pageNumber: data.pageNumber,
-            pageCount: data.pageCount || undefined,
+            pageCount: (data as { pageCount?: number }).pageCount || undefined,
             currentY: data.cursor?.y || undefined
           };
           this.addPDFFooter(doc, pageWidth, pageHeight, pageInfo);

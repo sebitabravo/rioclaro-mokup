@@ -76,6 +76,7 @@
     "zustand": "^5.0.1"
   },
   "devDependencies": {
+    "@eslint/js": "^9.36.0",
     "@playwright/test": "^1.55.0",
     "@testing-library/jest-dom": "^6.8.0",
     "@testing-library/react": "^16.3.0",
@@ -92,10 +93,12 @@
     "eslint": "^9.15.0",
     "eslint-plugin-react-hooks": "^5.0.0",
     "eslint-plugin-react-refresh": "^0.4.14",
+    "globals": "^16.4.0",
     "jsdom": "^27.0.0",
     "postcss": "^8.5.0",
     "tailwindcss": "^3.4.15",
     "typescript": "^5.9.2",
+    "typescript-eslint": "^8.44.1",
     "vite": "^6.0.1",
     "vitest": "^3.2.4"
   }
