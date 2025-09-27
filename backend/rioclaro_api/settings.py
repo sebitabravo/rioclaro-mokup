@@ -39,9 +39,11 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'corsheaders',
+    'django_filters',  # Agregado para filtros avanzados
     'users',
     'stations',
     'sensors',
+    'measurements',  # Nueva app para el Módulo 2
 ]
 
 MIDDLEWARE = [

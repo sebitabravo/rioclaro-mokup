@@ -34,4 +34,7 @@ urlpatterns = [
     path('api/', include(router.urls)),
     path('api-auth/', include('rest_framework.urls')),
     path('api/auth/token/', obtain_auth_token, name='api_token_auth'),
+
+    # Módulo 2: Gestión de Variables y Datos
+    path('api/measurements/', include('measurements.urls')),
 ]
