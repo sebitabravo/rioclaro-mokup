@@ -225,5 +225,16 @@ frontend_urlpatterns = [
     ),
 ]
 
+# ========================================
+# MÓDULO 4: SISTEMA MODULAR Y ESCALABILIDAD
+# ========================================
+
+# URLs del sistema modular (RF4.1 y RF4.3)
+module4_urlpatterns = [
+    # Sistema modular completo
+    path('module4/', include('measurements.urls_dynamic')),
+]
+
 # Combinar todas las URLs
 urlpatterns += frontend_urlpatterns
+urlpatterns += module4_urlpatterns

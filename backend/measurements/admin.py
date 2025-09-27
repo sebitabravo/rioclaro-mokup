@@ -321,3 +321,9 @@ class MeasurementConfigurationAdmin(admin.ModelAdmin):
 admin.site.site_header = "Sistema de Monitoreo Río Claro - Administración"
 admin.site.site_title = "Río Claro Admin"
 admin.site.index_title = "Panel de Administración"
+
+# ========================================
+# MÓDULO 4: IMPORTAR ADMIN MODULAR
+# ========================================
+# Importar el admin del sistema modular
+from . import admin_dynamic
