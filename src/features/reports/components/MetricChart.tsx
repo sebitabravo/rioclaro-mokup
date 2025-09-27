@@ -1,13 +1,14 @@
-import { 
-  LineChart, 
-  Line, 
-  AreaChart, 
-  Area, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  Legend
+import {
+  LineChart,
+  Line,
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer
 } from "recharts";
 import { DataNormalizationService, ChartDataSet, DataSourceType } from "@shared/services/DataNormalizationService";
 
@@ -163,9 +164,7 @@ export function MetricChart({
   const renderChart = () => {
     const commonProps = {
       data: safeData,
-      width: 900,
-      height: height - 20,
-      margin: { top: 5, right: 30, left: 20, bottom: 5 }
+      margin: { top: 20, right: 30, left: 20, bottom: 20 }
     };
 
     const commonAxisProps = {
@@ -254,8 +253,10 @@ export function MetricChart({
 
   return (
     <div className={className} data-testid="metric-chart">
-      <div style={{ height }}>
-        {chart}
+      <div style={{ width: '100%', height }}>
+        <ResponsiveContainer width="100%" height="100%">
+          {chart}
+        </ResponsiveContainer>
       </div>
     </div>
   );

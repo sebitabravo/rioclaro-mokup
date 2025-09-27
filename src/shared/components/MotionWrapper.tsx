@@ -10,6 +10,7 @@ interface MotionWrapperProps {
   delay?: number
   duration?: number
   infinite?: boolean
+  'data-testid'?: string
 }
 
 const variants: Record<string, Variants> = {
@@ -146,13 +147,14 @@ const variants: Record<string, Variants> = {
   }
 }
 
-export function MotionWrapper({ 
-  children, 
-  variant = 'fadeIn', 
+export function MotionWrapper({
+  children,
+  variant = 'fadeIn',
   className,
   delay = 0,
   duration,
-  infinite
+  infinite,
+  'data-testid': testId
 }: MotionWrapperProps) {
   const browserInfo = useBrowserDetect()
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false)
@@ -167,10 +169,21 @@ export function MotionWrapper({
     return () => mediaQuery.removeEventListener('change', handleChange)
   }, [])
 
-  // Si el usuario prefiere menos movimiento, usar animación simple
-  if (prefersReducedMotion) {
+  // Detectar entorno de testing más específico
+  const isTestEnvironment = typeof window !== 'undefined' &&
+    (process.env.NODE_ENV === 'test' ||
+     window.navigator.webdriver ||
+     window.location.search.includes('playwright'))
+
+  // Si el usuario prefiere menos movimiento o estamos en testing, usar versión simple
+  if (prefersReducedMotion || isTestEnvironment) {
     return (
-      <div className={className} style={{ transitionDelay: `${delay}ms` }}>
+      <div
+        className={className}
+        style={{ transitionDelay: `${delay}ms` }}
+        data-testid={testId}
+        data-motion-stable="true"
+      >
         {children}
       </div>
     )
@@ -246,6 +259,15 @@ export function MotionWrapper({
       animate="visible"
       variants={customVariants as SafeVariants}
       style={getTransformStyle()}
+      data-testid={testId}
+      data-motion-stable="false"
+      onAnimationComplete={() => {
+        // Mark as stable after animation completes for testing
+        const element = document.querySelector(`[data-testid="${testId}"]`)
+        if (element) {
+          element.setAttribute('data-motion-stable', 'true')
+        }
+      }}
     >
       {children}
     </motion.div>

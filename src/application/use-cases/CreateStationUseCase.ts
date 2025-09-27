@@ -1,5 +1,12 @@
 import { Station } from '@domain/entities/Station';
 import { StationRepository } from '@domain/repositories/StationRepository';
+import {
+  EntityAlreadyExistsError,
+  InvalidCoordinatesError,
+  InvalidThresholdError,
+  ValidationError,
+  ValidationFieldError
+} from '@shared/types/errors';
 
 export interface CreateStationData {
   name: string;
@@ -17,32 +24,29 @@ export class CreateStationUseCase {
   constructor(private stationRepository: StationRepository) {}
 
   async execute(stationData: CreateStationData): Promise<Station> {
-    // Validaciones de negocio
+    // Validaciones de entrada con errores tipados
     this.validateStationData(stationData);
 
     // Verificar que el código de la estación sea único
     const existingStations = await this.stationRepository.findAll();
-    const codeExists = existingStations.some(station => station.code === stationData.code);
+    const codeExists = existingStations.some(station => station.code === stationData.code.trim().toUpperCase());
 
     if (codeExists) {
-      throw new Error(`Ya existe una estación con el código: ${stationData.code}`);
+      throw new EntityAlreadyExistsError(
+        'Estación',
+        'código',
+        stationData.code,
+        { attemptedCode: stationData.code }
+      );
     }
 
-    // Verificar coordenadas válidas
-    if (stationData.latitude < -90 || stationData.latitude > 90) {
-      throw new Error('La latitud debe estar entre -90 y 90 grados');
-    }
+    // Validar coordenadas con errores específicos
+    this.validateCoordinates(stationData.latitude, stationData.longitude);
 
-    if (stationData.longitude < -180 || stationData.longitude > 180) {
-      throw new Error('La longitud debe estar entre -180 y 180 grados');
-    }
+    // Validar umbral con error específico
+    this.validateThreshold(stationData.threshold);
 
-    // Verificar que el threshold sea positivo
-    if (stationData.threshold <= 0) {
-      throw new Error('El umbral debe ser un valor positivo');
-    }
-
-    // Crear la estación
+    // Crear la estación con datos normalizados
     const stationToCreate = {
       ...stationData,
       name: stationData.name.trim(),
@@ -50,33 +54,102 @@ export class CreateStationUseCase {
       location: stationData.location.trim(),
     };
 
-    return await this.stationRepository.create(stationToCreate);
+    try {
+      return await this.stationRepository.create(stationToCreate);
+    } catch (error) {
+      // Si hay un error en el repositorio, lo re-lanzamos con contexto
+      throw error; // El repositorio debe manejar sus propios errores tipados
+    }
   }
 
   private validateStationData(stationData: CreateStationData): void {
+    const errors: ValidationFieldError[] = [];
+
+    // Validar nombre
     if (!stationData.name?.trim()) {
-      throw new Error('El nombre de la estación es requerido');
+      errors.push({
+        field: 'name',
+        value: stationData.name,
+        message: 'El nombre de la estación es requerido',
+        code: 'REQUIRED'
+      });
+    } else if (stationData.name.trim().length < 3) {
+      errors.push({
+        field: 'name',
+        value: stationData.name,
+        message: 'El nombre de la estación debe tener al menos 3 caracteres',
+        code: 'MIN_LENGTH'
+      });
     }
 
+    // Validar código
     if (!stationData.code?.trim()) {
-      throw new Error('El código de la estación es requerido');
+      errors.push({
+        field: 'code',
+        value: stationData.code,
+        message: 'El código de la estación es requerido',
+        code: 'REQUIRED'
+      });
+    } else if (stationData.code.trim().length < 2) {
+      errors.push({
+        field: 'code',
+        value: stationData.code,
+        message: 'El código de la estación debe tener al menos 2 caracteres',
+        code: 'MIN_LENGTH'
+      });
     }
 
+    // Validar ubicación
     if (!stationData.location?.trim()) {
-      throw new Error('La ubicación de la estación es requerida');
+      errors.push({
+        field: 'location',
+        value: stationData.location,
+        message: 'La ubicación de la estación es requerida',
+        code: 'REQUIRED'
+      });
     }
 
-    if (stationData.name.length < 3) {
-      throw new Error('El nombre de la estación debe tener al menos 3 caracteres');
-    }
-
-    if (stationData.code.length < 2) {
-      throw new Error('El código de la estación debe tener al menos 2 caracteres');
-    }
-
-    const validStatuses = ['active', 'inactive', 'maintenance'];
+    // Validar estado
+    const validStatuses = ['active', 'inactive', 'maintenance'] as const;
     if (!validStatuses.includes(stationData.status)) {
-      throw new Error('El estado de la estación debe ser: active, inactive o maintenance');
+      errors.push({
+        field: 'status',
+        value: stationData.status,
+        message: 'El estado de la estación debe ser: active, inactive o maintenance',
+        code: 'INVALID_VALUE'
+      });
+    }
+
+    // Si hay errores, lanzar ValidationError
+    if (errors.length > 0) {
+      throw new ValidationError(errors, {
+        useCase: 'CreateStation',
+        operation: 'validateStationData'
+      });
+    }
+  }
+
+  /**
+   * Valida las coordenadas geográficas
+   */
+  private validateCoordinates(latitude: number, longitude: number): void {
+    if (latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) {
+      throw new InvalidCoordinatesError(latitude, longitude, {
+        validLatitudeRange: { min: -90, max: 90 },
+        validLongitudeRange: { min: -180, max: 180 }
+      });
+    }
+  }
+
+  /**
+   * Valida el umbral de la estación
+   */
+  private validateThreshold(threshold: number): void {
+    if (threshold <= 0) {
+      throw new InvalidThresholdError(threshold, {
+        minimum: 0,
+        message: 'El umbral debe ser mayor que cero'
+      });
     }
   }
 }

@@ -47,7 +47,7 @@ export function useDashboardData() {
     try {
       await Promise.all([fetchStations(), fetchLatestMeasurements()]);
     } finally {
-      setTimeout(() => setRefreshing(false), 1000);
+      setTimeout(() => setRefreshing(false), 200);
     }
   };
 
@@ -56,7 +56,7 @@ export function useDashboardData() {
       setMounted(true);
       setCurrentTime(new Date());
 
-      const loadingPromise = new Promise((resolve) => setTimeout(resolve, 200));
+      const loadingPromise = new Promise((resolve) => setTimeout(resolve, 50));
 
       try {
         await Promise.all([

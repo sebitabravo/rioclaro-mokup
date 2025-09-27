@@ -1,3 +1,22 @@
+import type {
+  MeasurementDataArray,
+  StationDataArray,
+  AlertDataArray,
+  ReportDataArray,
+  ApiV1DataArray,
+  ApiV2DataArray,
+  CsvDataArray,
+  JsonDataArray
+} from '../types/data-sources';
+
+import {
+  parseToNumber,
+  parseToString,
+  parseToTimestamp,
+  DataNormalizationError,
+  InvalidDataFormatError
+} from '../types/data-sources';
+
 export interface ChartDataPoint {
   timestamp: string;
   value: number;
@@ -8,7 +27,7 @@ export interface ChartDataPoint {
 export interface ChartDataSet {
   data: ChartDataPoint[];
   metadata: {
-    type: string;
+    type: DataSourceType;
     source: string;
     unit: string;
     range?: { min: number; max: number };
@@ -26,78 +45,112 @@ export enum DataSourceType {
   JSON = 'json'
 }
 
-import type { ChartDataArray } from '../types/chart-data';
+// Type-safe mapping for input data based on source type
+type DataSourceInputMap = {
+  [DataSourceType.MEASUREMENT]: MeasurementDataArray;
+  [DataSourceType.STATION]: StationDataArray;
+  [DataSourceType.ALERT]: AlertDataArray;
+  [DataSourceType.REPORT]: ReportDataArray;
+  [DataSourceType.API_V1]: ApiV1DataArray;
+  [DataSourceType.API_V2]: ApiV2DataArray;
+  [DataSourceType.CSV]: CsvDataArray;
+  [DataSourceType.JSON]: JsonDataArray;
+};
 
 export class DataNormalizationService {
-  static normalize(rawData: ChartDataArray, sourceType: DataSourceType): ChartDataSet {
-    // Validar que rawData sea un array válido
-    if (!rawData || !Array.isArray(rawData)) {
-      return {
-        data: [],
-        metadata: {
-          type: sourceType,
-          source: 'empty',
-          unit: 'm',
-          range: { min: 0, max: 0 }
-        }
-      };
-    }
+  /**
+   * Normaliza datos de diferentes fuentes con type safety completo
+   */
+  static normalize<T extends DataSourceType>(
+    rawData: DataSourceInputMap[T],
+    sourceType: T
+  ): ChartDataSet {
+    try {
+      // Validación de entrada
+      this.validateInput(rawData, sourceType);
 
-    switch (sourceType) {
-      case DataSourceType.MEASUREMENT:
-        return this.normalizeMeasurements(rawData);
-      
-      case DataSourceType.STATION:
-        return this.normalizeStations(rawData);
-      
-      case DataSourceType.ALERT:
-        return this.normalizeAlerts(rawData);
-      
-      case DataSourceType.REPORT:
-        return this.normalizeReports(rawData);
-      
-      case DataSourceType.API_V1:
-        return this.normalizeApiV1(rawData);
-      
-      case DataSourceType.API_V2:
-        return this.normalizeApiV2(rawData);
-      
-      case DataSourceType.CSV:
-        return this.normalizeCsv(rawData);
-      
-      case DataSourceType.JSON:
-        return this.normalizeJson(rawData);
-      
-      default:
-        throw new Error(`Tipo de fuente de datos no soportado: ${sourceType}`);
+      switch (sourceType) {
+        case DataSourceType.MEASUREMENT:
+          return this.normalizeMeasurements(rawData as MeasurementDataArray);
+
+        case DataSourceType.STATION:
+          return this.normalizeStations(rawData as StationDataArray);
+
+        case DataSourceType.ALERT:
+          return this.normalizeAlerts(rawData as AlertDataArray);
+
+        case DataSourceType.REPORT:
+          return this.normalizeReports(rawData as ReportDataArray);
+
+        case DataSourceType.API_V1:
+          return this.normalizeApiV1(rawData as ApiV1DataArray);
+
+        case DataSourceType.API_V2:
+          return this.normalizeApiV2(rawData as ApiV2DataArray);
+
+        case DataSourceType.CSV:
+          return this.normalizeCsv(rawData as CsvDataArray);
+
+        case DataSourceType.JSON:
+          return this.normalizeJson(rawData as JsonDataArray);
+
+        default:
+          // Esta línea nunca debería ejecutarse debido al type checking
+          throw new DataNormalizationError(
+            `Tipo de fuente de datos no soportado: ${sourceType}`,
+            sourceType as string,
+            rawData
+          );
+      }
+    } catch (error) {
+      if (error instanceof DataNormalizationError) {
+        throw error;
+      }
+
+      throw new DataNormalizationError(
+        `Error inesperado durante la normalización: ${error instanceof Error ? error.message : 'Error desconocido'}`,
+        sourceType as string,
+        rawData
+      );
     }
   }
 
-  private static normalizeMeasurements(data: ChartDataArray): ChartDataSet {
-    // Validación adicional por si acaso
-    if (!data || !Array.isArray(data) || data.length === 0) {
-      return {
-        data: [],
-        metadata: {
-          type: 'measurement',
-          source: 'measurements',
-          unit: 'm',
-          range: { min: 0, max: 0 }
-        }
-      };
+  /**
+   * Valida la entrada de datos antes del procesamiento
+   */
+  private static validateInput<T extends DataSourceType>(
+    rawData: DataSourceInputMap[T],
+    sourceType: T
+  ): void {
+    if (!rawData) {
+      throw new InvalidDataFormatError(sourceType, 'Array de datos', rawData);
     }
 
-    const normalizedData = data.map((item: Record<string, unknown>) => ({
-      timestamp: String(item.timestamp || item.created_at || item.date || new Date().toISOString()),
-      value: parseFloat(String(item.value || item.water_level || item.level || '0')),
-      label: String(item.station_name || item.station || 'Sin estación'),
-      station: String(item.station_id || item.id || '')
+    if (!Array.isArray(rawData)) {
+      throw new InvalidDataFormatError(sourceType, 'Array', typeof rawData);
+    }
+
+    if (rawData.length === 0) {
+      throw new InvalidDataFormatError(sourceType, 'Array no vacío', 'Array vacío');
+    }
+  }
+
+
+  /**
+   * Normaliza datos de mediciones con type safety
+   */
+  private static normalizeMeasurements(data: MeasurementDataArray): ChartDataSet {
+    const normalizedData: ChartDataPoint[] = data.map((item) => ({
+      timestamp: parseToTimestamp(item.timestamp || item.created_at || item.date),
+      value: parseToNumber(item.value || item.water_level || item.level),
+      label: parseToString(item.station_name || item.station || 'Sin estación'),
+      station: parseToString(item.station_id || item.id)
     }));
 
     return {
       data: normalizedData,
       metadata: {
-        type: 'measurement',
+        type: DataSourceType.MEASUREMENT,
         source: 'measurements',
         unit: 'm',
         range: this.calculateRange(normalizedData.map(d => d.value))
@@ -105,18 +158,21 @@ export class DataNormalizationService {
     };
   }
 
-  private static normalizeStations(data: ChartDataArray): ChartDataSet {
-    const normalizedData = data.map((item: Record<string, unknown>) => ({
-      timestamp: String(item.last_measurement || item.updated_at || new Date().toISOString()),
-      value: parseFloat(String(item.current_level || item.level || item.value || '0')),
-      label: String(item.name || item.station_name || 'Sin nombre'),
-      station: String(item.id || item.station_id || '')
+  /**
+   * Normaliza datos de estaciones con type safety
+   */
+  private static normalizeStations(data: StationDataArray): ChartDataSet {
+    const normalizedData: ChartDataPoint[] = data.map((item) => ({
+      timestamp: parseToTimestamp(item.last_measurement || item.updated_at),
+      value: parseToNumber(item.current_level || item.level || item.value),
+      label: parseToString(item.name || item.station_name || 'Sin nombre'),
+      station: parseToString(item.id || item.station_id)
     }));
 
     return {
       data: normalizedData,
       metadata: {
-        type: 'station',
+        type: DataSourceType.STATION,
         source: 'stations',
         unit: 'm',
         range: this.calculateRange(normalizedData.map(d => d.value))
@@ -124,18 +180,21 @@ export class DataNormalizationService {
     };
   }
 
-  private static normalizeAlerts(data: ChartDataArray): ChartDataSet {
-    const normalizedData = data.map((item: Record<string, unknown>) => ({
-      timestamp: String(item.created_at || item.timestamp || item.date || new Date().toISOString()),
-      value: parseFloat(String(item.level || item.value || item.threshold || '0')),
-      label: String(item.message || item.description || 'Alerta'),
-      station: String(item.station_id || item.id || '')
+  /**
+   * Normaliza datos de alertas con type safety
+   */
+  private static normalizeAlerts(data: AlertDataArray): ChartDataSet {
+    const normalizedData: ChartDataPoint[] = data.map((item) => ({
+      timestamp: parseToTimestamp(item.created_at || item.timestamp || item.date),
+      value: parseToNumber(item.level || item.value || item.threshold),
+      label: parseToString(item.message || item.description || 'Alerta'),
+      station: parseToString(item.station_id || item.id)
     }));
 
     return {
       data: normalizedData,
       metadata: {
-        type: 'alert',
+        type: DataSourceType.ALERT,
         source: 'alerts',
         unit: 'm',
         range: this.calculateRange(normalizedData.map(d => d.value))
@@ -143,18 +202,21 @@ export class DataNormalizationService {
     };
   }
 
-  private static normalizeReports(data: ChartDataArray): ChartDataSet {
-    const normalizedData = data.map((item: Record<string, unknown>) => ({
-      timestamp: String(item.date || item.timestamp || item.created_at || new Date().toISOString()),
-      value: parseFloat(String(item.average_level || item.max_level || item.value || '0')),
-      label: String(item.period || item.type || 'Reporte'),
-      station: String(item.station_id || 'all')
+  /**
+   * Normaliza datos de reportes con type safety
+   */
+  private static normalizeReports(data: ReportDataArray): ChartDataSet {
+    const normalizedData: ChartDataPoint[] = data.map((item) => ({
+      timestamp: parseToTimestamp(item.date || item.timestamp || item.created_at),
+      value: parseToNumber(item.average_level || item.max_level || item.value),
+      label: parseToString(item.period || item.type || 'Reporte'),
+      station: parseToString(item.station_id || 'all')
     }));
 
     return {
       data: normalizedData,
       metadata: {
-        type: 'report',
+        type: DataSourceType.REPORT,
         source: 'reports',
         unit: 'm',
         range: this.calculateRange(normalizedData.map(d => d.value))
@@ -162,18 +224,21 @@ export class DataNormalizationService {
     };
   }
 
-  private static normalizeApiV1(data: ChartDataArray): ChartDataSet {
-    const normalizedData = data.map((item: Record<string, unknown>) => ({
-      timestamp: String(item.time || item.date || item.timestamp || new Date().toISOString()),
-      value: parseFloat(String(item.level || item.measurement || item.data || '0')),
-      label: String(item.location || item.name || 'API V1'),
-      station: String(item.sensor_id || item.id || '')
+  /**
+   * Normaliza datos de API V1 con type safety
+   */
+  private static normalizeApiV1(data: ApiV1DataArray): ChartDataSet {
+    const normalizedData: ChartDataPoint[] = data.map((item) => ({
+      timestamp: parseToTimestamp(item.time || item.date || item.timestamp),
+      value: parseToNumber(item.level || item.measurement || item.data),
+      label: parseToString(item.location || item.name || 'API V1'),
+      station: parseToString(item.sensor_id || item.id)
     }));
 
     return {
       data: normalizedData,
       metadata: {
-        type: 'api_v1',
+        type: DataSourceType.API_V1,
         source: 'external_api_v1',
         unit: 'm',
         range: this.calculateRange(normalizedData.map(d => d.value))
@@ -181,18 +246,21 @@ export class DataNormalizationService {
     };
   }
 
-  private static normalizeApiV2(data: ChartDataArray): ChartDataSet {
-    const normalizedData = data.map((item: Record<string, unknown>) => ({
-      timestamp: String(item.datetime || item.timestamp || item.recorded_at || new Date().toISOString()),
-      value: parseFloat(String(item.water_height || item.height || item.level || '0')),
-      label: String(item.sensor_name || item.device || 'API V2'),
-      station: String(item.device_id || item.sensor_id || '')
+  /**
+   * Normaliza datos de API V2 con type safety
+   */
+  private static normalizeApiV2(data: ApiV2DataArray): ChartDataSet {
+    const normalizedData: ChartDataPoint[] = data.map((item) => ({
+      timestamp: parseToTimestamp(item.datetime || item.timestamp || item.recorded_at),
+      value: parseToNumber(item.water_height || item.height || item.level),
+      label: parseToString(item.sensor_name || item.device || 'API V2'),
+      station: parseToString(item.device_id || item.sensor_id)
     }));
 
     return {
       data: normalizedData,
       metadata: {
-        type: 'api_v2',
+        type: DataSourceType.API_V2,
         source: 'external_api_v2',
         unit: 'm',
         range: this.calculateRange(normalizedData.map(d => d.value))
@@ -200,18 +268,21 @@ export class DataNormalizationService {
     };
   }
 
-  private static normalizeCsv(data: ChartDataArray): ChartDataSet {
-    const normalizedData = data.map((item: Record<string, unknown>) => ({
-      timestamp: String(item.fecha || item.timestamp || item.date || item.time || new Date().toISOString()),
-      value: parseFloat(String(item.nivel || item.level || item.value || item.medicion || '0')),
-      label: String(item.estacion || item.station || item.nombre || 'CSV'),
-      station: String(item.id || item.station_id || 'csv')
+  /**
+   * Normaliza datos de CSV con type safety
+   */
+  private static normalizeCsv(data: CsvDataArray): ChartDataSet {
+    const normalizedData: ChartDataPoint[] = data.map((item) => ({
+      timestamp: parseToTimestamp(item.fecha || item.timestamp || item.date || item.time),
+      value: parseToNumber(item.nivel || item.level || item.value || item.medicion),
+      label: parseToString(item.estacion || item.station || item.nombre || 'CSV'),
+      station: parseToString(item.id || item.station_id || 'csv')
     }));
 
     return {
       data: normalizedData,
       metadata: {
-        type: 'csv',
+        type: DataSourceType.CSV,
         source: 'csv_import',
         unit: 'm',
         range: this.calculateRange(normalizedData.map(d => d.value))
@@ -219,38 +290,52 @@ export class DataNormalizationService {
     };
   }
 
-  private static normalizeJson(data: ChartDataArray): ChartDataSet {
-    const normalizedData = data.map((item, index) => {
-      const keys = Object.keys(item as Record<string, unknown>);
-      const timestampKey = keys.find(k => 
-        k.toLowerCase().includes('time') || 
-        k.toLowerCase().includes('date') || 
+  /**
+   * Normaliza datos de JSON con type safety y detección automática de campos
+   */
+  private static normalizeJson(data: JsonDataArray): ChartDataSet {
+    const normalizedData: ChartDataPoint[] = data.map((item, index) => {
+      const keys = Object.keys(item);
+
+      // Buscar campo de timestamp usando patrones comunes
+      const timestampKey = keys.find(k =>
+        k.toLowerCase().includes('time') ||
+        k.toLowerCase().includes('date') ||
         k.toLowerCase().includes('fecha')
       );
-      const valueKey = keys.find(k => 
-        k.toLowerCase().includes('level') || 
-        k.toLowerCase().includes('value') || 
+
+      // Buscar campo de valor usando patrones comunes
+      const valueKey = keys.find(k =>
+        k.toLowerCase().includes('level') ||
+        k.toLowerCase().includes('value') ||
         k.toLowerCase().includes('nivel') ||
         k.toLowerCase().includes('medicion')
       );
-      const labelKey = keys.find(k => 
-        k.toLowerCase().includes('name') || 
-        k.toLowerCase().includes('station') || 
+
+      // Buscar campo de etiqueta usando patrones comunes
+      const labelKey = keys.find(k =>
+        k.toLowerCase().includes('name') ||
+        k.toLowerCase().includes('station') ||
         k.toLowerCase().includes('label')
       );
 
+      // Extraer valores con fallbacks seguros
+      const timestampValue = timestampKey ? item[timestampKey] : undefined;
+      const rawValue = valueKey ? item[valueKey] : Object.values(item)[0];
+      const labelValue = labelKey ? item[labelKey] : `Item ${index + 1}`;
+
       return {
-        timestamp: timestampKey ? String(item[timestampKey]) : new Date().toISOString(),
-        value: parseFloat(valueKey ? String(item[valueKey]) : String(Object.values(item as Record<string, unknown>)[0]) || '0'),
-        label: labelKey ? String(item[labelKey]) : `Item ${index + 1}`,
-        station: String(item.id || index.toString())
+        timestamp: parseToTimestamp(timestampValue),
+        value: parseToNumber(rawValue),
+        label: parseToString(labelValue),
+        station: parseToString(item.id || index.toString())
       };
     });
 
     return {
       data: normalizedData,
       metadata: {
-        type: 'json',
+        type: DataSourceType.JSON,
         source: 'json_import',
         unit: 'm',
         range: this.calculateRange(normalizedData.map(d => d.value))
@@ -267,12 +352,15 @@ export class DataNormalizationService {
     };
   }
 
-  static getChartConfig(dataSet: ChartDataSet) {
+  /**
+   * Obtiene configuración del chart basada en el tipo de datos con type safety
+   */
+  static getChartConfig(dataSet: ChartDataSet): ChartConfig {
     const { metadata } = dataSet;
-    
-    const baseConfig = {
-      xAxisKey: 'timestamp',
-      yAxisKey: 'value',
+
+    const baseConfig: ChartConfig = {
+      xAxisKey: 'timestamp' as const,
+      yAxisKey: 'value' as const,
       unit: metadata.unit,
       color: 'var(--gov-primary)',
       strokeWidth: 2,
@@ -280,9 +368,9 @@ export class DataNormalizationService {
       formatValue: (value: number) => `${value.toFixed(2)}${metadata.unit}`,
       formatTimestamp: (timestamp: string) => {
         try {
-          return new Date(timestamp).toLocaleTimeString("es-CL", { 
-            hour: "2-digit", 
-            minute: "2-digit" 
+          return new Date(timestamp).toLocaleTimeString("es-CL", {
+            hour: "2-digit",
+            minute: "2-digit"
           });
         } catch {
           return timestamp;
@@ -291,38 +379,56 @@ export class DataNormalizationService {
     };
 
     switch (metadata.type) {
-      case 'measurement':
+      case DataSourceType.MEASUREMENT:
         return {
           ...baseConfig,
           color: 'var(--gov-primary)',
           strokeWidth: 3,
           dotRadius: 4
         };
-      
-      case 'station':
+
+      case DataSourceType.STATION:
         return {
           ...baseConfig,
           color: 'var(--gov-green)',
           strokeWidth: 2,
           dotRadius: 6
         };
-      
-      case 'alert':
+
+      case DataSourceType.ALERT:
         return {
           ...baseConfig,
           color: 'var(--gov-secondary)',
           strokeWidth: 4,
           dotRadius: 8
         };
-      
-      case 'report':
+
+      case DataSourceType.REPORT:
         return {
           ...baseConfig,
           color: 'var(--gov-orange)',
           strokeWidth: 2,
           dotRadius: 5
         };
-      
+
+      case DataSourceType.API_V1:
+      case DataSourceType.API_V2:
+        return {
+          ...baseConfig,
+          color: 'var(--gov-blue)',
+          strokeWidth: 2,
+          dotRadius: 5
+        };
+
+      case DataSourceType.CSV:
+      case DataSourceType.JSON:
+        return {
+          ...baseConfig,
+          color: 'var(--gov-purple)',
+          strokeWidth: 2,
+          dotRadius: 4
+        };
+
       default:
         return {
           ...baseConfig,
@@ -332,4 +438,18 @@ export class DataNormalizationService {
         };
     }
   }
+}
+
+// ==========================================
+// Interface para configuración de chart
+// ==========================================
+export interface ChartConfig {
+  xAxisKey: 'timestamp';
+  yAxisKey: 'value';
+  unit: string;
+  color: string;
+  strokeWidth: number;
+  dotRadius: number;
+  formatValue: (value: number) => string;
+  formatTimestamp: (timestamp: string) => string;
 }

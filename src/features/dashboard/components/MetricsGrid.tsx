@@ -14,7 +14,7 @@ export function MetricsGrid({ stats }: MetricsGridProps) {
     : 'Sin alertas';
 
   return (
-    <div className='grid grid-cols-4 gap-2'>
+    <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6' data-testid="metrics-grid">
       <MetricCard
         title='Estaciones'
         value={stats.totalStations}

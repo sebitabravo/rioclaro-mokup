@@ -16,6 +16,7 @@ export function PageLoader({ isLoading, title = 'Cargando', subtitle = 'Preparan
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.2 }}
+          data-testid="page-loader"
         >
           <motion.div
             className="text-center"
