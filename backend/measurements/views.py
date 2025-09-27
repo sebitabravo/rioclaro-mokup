@@ -666,7 +666,9 @@ def daily_average_report(request):
         avg_value=Avg('value'),
         min_value=Min('value'),
         max_value=Max('value'),
-        count_measurements=Count('id')
+        count_measurements=Count('id'),
+        first_measurement_time=Min('timestamp'),
+        last_measurement_time=Max('timestamp')
     ).order_by('date', 'station__name')
 
     # Formatear datos para el serializer
@@ -682,8 +684,10 @@ def daily_average_report(request):
             'avg_value': daily_avg['avg_value'],
             'min_value': daily_avg['min_value'],
             'max_value': daily_avg['max_value'],
-            'count_measurements': daily_avg['count_measurements'],
-            'unit': daily_avg['unit']
+            'count': daily_avg['count_measurements'],
+            'unit': daily_avg['unit'],
+            'first_measurement_time': daily_avg['first_measurement_time'],
+            'last_measurement_time': daily_avg['last_measurement_time']
         })
 
     serializer = DailyAverageReportSerializer(report_data, many=True)
@@ -937,35 +941,75 @@ def comparative_report(request):
         count_measurements=Count('id')
     ).order_by('time_period', 'station__name')
 
-    # Formatear datos para el serializer
-    report_data = []
+    # Formatear datos para el serializer ComparativeReportSerializer
+    # El serializer espera una estructura específica, creamos un objeto único con todos los datos
+
+    # Crear datos por estación
+    stations_data = []
+    global_stats = {
+        'total_measurements': 0,
+        'avg_value': 0,
+        'min_value': None,
+        'max_value': None
+    }
+
+    # Agrupar por estación
+    station_groups = {}
     for data in comparative_data:
-        report_data.append({
-            'time_period': data['time_period'],
-            'station_id': data['station__id'],
-            'station_name': data['station__name'],
-            'station_code': data['station__code'],
-            'measurement_type': measurement_type,
-            'measurement_type_display': dict(MeasurementType.choices).get(measurement_type, measurement_type),
-            'avg_value': data['avg_value'],
-            'min_value': data['min_value'],
-            'max_value': data['max_value'],
-            'count_measurements': data['count_measurements'],
-            'unit': data['unit'],
-            'aggregation_type': aggregation
-        })
+        station_id = data['station__id']
+        if station_id not in station_groups:
+            station_groups[station_id] = {
+                'station_id': station_id,
+                'station_name': data['station__name'],
+                'station_code': data['station__code'],
+                'unit': data['unit'],
+                'data_points': [],
+                'statistics': {
+                    'count': 0,
+                    'avg': 0,
+                    'min': None,
+                    'max': None
+                }
+            }
 
-    # Información de las estaciones incluidas
-    stations_info = []
-    for station in accessible_stations:
-        stations_info.append({
-            'id': station.id,
-            'name': station.name,
-            'code': station.code,
-            'location': station.location
-        })
+        # Agregar estadísticas de esta estación
+        station_stats = station_groups[station_id]['statistics']
+        station_stats['count'] += data['count_measurements']
+        if station_stats['avg'] == 0:
+            station_stats['avg'] = float(data['avg_value']) if data['avg_value'] else 0
+        if station_stats['min'] is None or (data['min_value'] and float(data['min_value']) < station_stats['min']):
+            station_stats['min'] = float(data['min_value']) if data['min_value'] else 0
+        if station_stats['max'] is None or (data['max_value'] and float(data['max_value']) > station_stats['max']):
+            station_stats['max'] = float(data['max_value']) if data['max_value'] else 0
 
-    serializer = ComparativeReportSerializer(report_data, many=True)
+        # Actualizar estadísticas globales
+        global_stats['total_measurements'] += data['count_measurements']
+        if global_stats['min_value'] is None or (data['min_value'] and float(data['min_value']) < global_stats['min_value']):
+            global_stats['min_value'] = float(data['min_value']) if data['min_value'] else 0
+        if global_stats['max_value'] is None or (data['max_value'] and float(data['max_value']) > global_stats['max_value']):
+            global_stats['max_value'] = float(data['max_value']) if data['max_value'] else 0
+
+    # Convertir grupos a lista
+    for station_data in station_groups.values():
+        stations_data.append(station_data)
+
+    # Calcular promedio global
+    if stations_data:
+        total_avg = sum(station['statistics']['avg'] for station in stations_data)
+        global_stats['avg_value'] = total_avg / len(stations_data)
+
+    # Crear datos para el serializer
+    report_data = {
+        'measurement_type': measurement_type,
+        'measurement_type_display': dict(MeasurementType.choices).get(measurement_type, measurement_type),
+        'period_start': f"{date_from_obj}T00:00:00Z",
+        'period_end': f"{date_to_obj}T23:59:59Z",
+        'total_stations': len(accessible_stations),
+        'stations_data': stations_data,
+        'global_statistics': global_stats
+    }
+
+    serializer = ComparativeReportSerializer(report_data)
 
     return Response({
         'report_info': {
@@ -974,8 +1018,8 @@ def comparative_report(request):
             'date_to': date_to,
             'measurement_type': measurement_type,
             'aggregation': aggregation,
-            'stations_included': stations_info,
-            'total_records': len(report_data)
+            'stations_included': [{'id': s.id, 'name': s.name, 'code': s.code, 'location': s.location} for s in accessible_stations],
+            'total_records': len(comparative_data)
         },
         'results': serializer.data
     })
