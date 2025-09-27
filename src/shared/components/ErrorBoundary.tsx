@@ -28,15 +28,10 @@ export class ErrorBoundary extends Component<Props, State> {
       errorInfo
     });
 
-    // Log error to console in development
     if (process.env.NODE_ENV === 'development') {
       // eslint-disable-next-line no-console
       console.error('ErrorBoundary caught an error:', error, errorInfo);
     }
-
-    // En producción, aquí podrías enviar el error a un servicio de logging
-    // como Sentry, LogRocket, etc.
-    // Example: errorReportingService.captureException(error, { extra: errorInfo });
   }
 
   private handleRetry = () => {

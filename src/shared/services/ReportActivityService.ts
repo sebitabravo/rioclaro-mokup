@@ -11,7 +11,6 @@ export class ReportActivityService {
     const now = new Date();
     const logs: ActivityLog[] = [];
 
-    // Simular actividades de generación de reportes
     const activities = [
       {
         activity_type: 'report_generated' as const,

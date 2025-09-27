@@ -16,7 +16,6 @@ export interface ExportOptions {
   };
 }
 
-// Mapeo de tipos de actividad a español
 const activityTypeLabels: Record<string, string> = {
   user_login: 'Inicio de sesión',
   user_logout: 'Cierre de sesión',
@@ -75,7 +74,6 @@ export class ExportService {
     filename: string,
     options: ExportOptions
   ): Promise<void> {
-    // Preparar datos para Excel
     const excelData = data.map(log => ({
       'Fecha y Hora': formatDateTime(log.timestamp),
       'Tipo de Actividad': activityTypeLabels[log.activity_type] || log.activity_type,
@@ -90,13 +88,10 @@ export class ExportService {
       } : {})
     }));
 
-    // Crear libro de trabajo
     const wb = XLSX.utils.book_new();
     
-    // Hoja principal con datos
     const ws = XLSX.utils.json_to_sheet(excelData);
     
-    // Configurar ancho de columnas
     const columnWidths = [
       { wch: 20 }, // Fecha y Hora
       { wch: 25 }, // Tipo de Actividad
@@ -112,14 +107,12 @@ export class ExportService {
 
     XLSX.utils.book_append_sheet(wb, ws, 'Historial de Actividad');
 
-    // Agregar hoja de resumen si hay datos
     if (data.length > 0) {
       const summaryData = this.generateSummaryData(data);
       const summaryWs = XLSX.utils.json_to_sheet(summaryData);
       XLSX.utils.book_append_sheet(wb, summaryWs, 'Resumen');
     }
 
-    // Descargar archivo
     XLSX.writeFile(wb, filename);
   }
 
@@ -130,7 +123,6 @@ export class ExportService {
     data: ActivityLog[],
     filename: string,
   ): Promise<void> {
-    // Preparar datos para CSV
     const csvData = data.map(log => ({
       'Fecha y Hora': formatDateTime(log.timestamp),
       'Tipo de Actividad': activityTypeLabels[log.activity_type] || log.activity_type,
@@ -142,7 +134,6 @@ export class ExportService {
       'Dirección IP': log.ip_address || 'N/A'
     }));
 
-    // Convertir a CSV
     const headers = Object.keys(csvData[0] || {});
     const csvContent = [
       headers.join(','),
@@ -153,7 +144,6 @@ export class ExportService {
       )
     ].join('\n');
 
-    // Crear y descargar archivo
     const blob = new Blob(['\uFEFF' + csvContent], { 
       type: 'text/csv;charset=utf-8;' 
     });
@@ -172,17 +162,14 @@ export class ExportService {
     const pageWidth = doc.internal.pageSize.width;
     const pageHeight = doc.internal.pageSize.height;
     
-    // Colores del gobierno
     const govBlue = '#1e40af';
     const govGray = '#6b7280';
     const govDark = '#1f2937';
 
-    // Header del documento
     this.addPDFHeader(doc, pageWidth);
     
     let currentY = 50;
 
-    // Título del reporte
     doc.setFontSize(18);
     doc.setTextColor(govDark);
     doc.setFont('helvetica', 'bold');
@@ -190,7 +177,6 @@ export class ExportService {
     
     currentY += 10;
     
-    // Subtítulo
     doc.setFontSize(12);
     doc.setTextColor(govGray);
     doc.setFont('helvetica', 'normal');
@@ -198,7 +184,6 @@ export class ExportService {
     
     currentY += 15;
 
-    // Información del reporte
     const reportInfo = [
       `Fecha de generación: ${formatDateTime(new Date().toISOString())}`,
       `Período: ${options.dateRange ? 
@@ -216,7 +201,6 @@ export class ExportService {
 
     currentY += 10;
 
-    // Preparar datos para la tabla
     const tableData = data.map(log => [
       formatDateTime(log.timestamp),
       activityTypeLabels[log.activity_type] || log.activity_type,
@@ -226,7 +210,6 @@ export class ExportService {
       log.station_name || 'N/A'
     ]);
 
-    // Configurar tabla
     autoTable(doc, {
       head: [['Fecha/Hora', 'Tipo', 'Actividad', 'Estado', 'Usuario', 'Estación']],
       body: tableData,
@@ -254,18 +237,15 @@ export class ExportService {
       },
       margin: { left: 10, right: 10 },
       didDrawPage: (data: { pageNumber: number }) => {
-        // Footer en cada página
         this.addPDFFooter(doc, pageWidth, pageHeight, data.pageNumber);
       }
     });
 
-    // Agregar página de resumen si hay muchos datos
     if (data.length > 10) {
       doc.addPage();
       this.addPDFSummaryPage(doc, data, pageWidth);
     }
 
-    // Descargar PDF
     doc.save(filename);
   }
 
@@ -275,12 +255,10 @@ export class ExportService {
   private static addPDFHeader(doc: jsPDF, pageWidth: number): void {
     const govBlue = '#1e40af';
     
-    // Línea superior
     doc.setDrawColor(govBlue);
     doc.setLineWidth(2);
     doc.line(10, 15, pageWidth - 10, 15);
     
-    // Logo placeholder y título
     doc.setFontSize(16);
     doc.setTextColor(govBlue);
     doc.setFont('helvetica', 'bold');
@@ -291,7 +269,6 @@ export class ExportService {
     doc.setFont('helvetica', 'normal');
     doc.text('Río Claro', 20, 32);
     
-    // Fecha en el header
     doc.setFontSize(10);
     doc.text(`Generado: ${new Date().toLocaleDateString('es-CL')}`, pageWidth - 60, 25);
   }
@@ -302,17 +279,14 @@ export class ExportService {
   private static addPDFFooter(doc: jsPDF, pageWidth: number, pageHeight: number, pageNumber: number): void {
     const govGray = '#6b7280';
     
-    // Línea inferior
     doc.setDrawColor(govGray);
     doc.setLineWidth(0.5);
     doc.line(10, pageHeight - 20, pageWidth - 10, pageHeight - 20);
     
-    // Número de página
     doc.setFontSize(8);
     doc.setTextColor(govGray);
     doc.text(`Página ${pageNumber}`, pageWidth / 2, pageHeight - 12, { align: 'center' });
     
-    // Texto del gobierno
     doc.text('Gobierno Regional de La Araucanía - Sistema de Monitoreo Hídrico', pageWidth / 2, pageHeight - 8, { align: 'center' });
   }
 
@@ -325,7 +299,6 @@ export class ExportService {
     
     let currentY = 40;
     
-    // Título de resumen
     doc.setFontSize(16);
     doc.setTextColor(govBlue);
     doc.setFont('helvetica', 'bold');
@@ -333,7 +306,6 @@ export class ExportService {
     
     currentY += 20;
     
-    // Estadísticas generales
     const stats = this.generateSummaryData(data);
     
     doc.setFontSize(12);
