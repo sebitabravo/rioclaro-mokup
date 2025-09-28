@@ -4,6 +4,7 @@ import { UserRepository } from '@domain/repositories/UserRepository';
 import { MeasurementRepository } from '@domain/repositories/MeasurementRepository';
 import { AlertRepository, VariableModuleRepository } from '@domain/repositories/AlertRepository';
 import { ReportRepository } from '@domain/repositories/ReportRepository';
+import { AuthRepository } from '@domain/repositories/AuthRepository';
 
 // Use Cases
 import { GetStationsUseCase, GetStationByIdUseCase } from '@application/use-cases/GetStations';
@@ -14,13 +15,24 @@ import { GetStationsPaginatedUseCase } from '@application/use-cases/GetStationsP
 import { GetLatestMeasurementsUseCase, GetHistoricalMeasurementsUseCase } from '@application/use-cases/GetMeasurements';
 import { GetUsersUseCase, CreateUserUseCase, UpdateUserUseCase, DeleteUserUseCase } from '@application/use-cases/ManageUsers';
 import { GenerateDailyAverageReportUseCase, GenerateCriticalEventsReportUseCase, ExportReportUseCase } from '@application/use-cases/GenerateReports';
+import { LoginUseCase, RegisterUseCase, LogoutUseCase, ValidateTokenUseCase, RefreshTokenUseCase } from '@application/use-cases/AuthUseCases';
 
-// Mock Implementations
+// API Implementations
+import { ApiStationRepository } from '../adapters/ApiStationRepository';
+import { ApiUserRepository } from '../adapters/ApiUserRepository';
+import { ApiMeasurementRepository } from '../adapters/ApiMeasurementRepository';
+import { ApiAlertRepository, ApiVariableModuleRepository } from '../adapters/ApiAlertRepository';
+import { ApiReportRepository } from '../adapters/ApiReportRepository';
+import { ApiAuthRepository } from '../adapters/ApiAuthRepository';
+import { apiClient } from '../adapters/ApiClient';
+
+// Mock Implementations (for fallback/development)
 import { MockStationRepository } from '../adapters/MockStationRepository';
 import { MockUserRepository } from '../adapters/MockUserRepository';
 import { MockMeasurementRepository } from '../adapters/MockMeasurementRepository';
 import { MockAlertRepository, MockVariableModuleRepository } from '../adapters/MockAlertRepository';
 import { MockReportRepository } from '../adapters/MockReportRepository';
+import { MockAuthRepository } from '../adapters/MockAuthRepository';
 
 export class DIContainer {
   private static instance: DIContainer;
@@ -32,6 +44,7 @@ export class DIContainer {
   private _alertRepository!: AlertRepository;
   private _variableModuleRepository!: VariableModuleRepository;
   private _reportRepository!: ReportRepository;
+  private _authRepository!: AuthRepository;
   
   // Use Cases
   private _getStationsUseCase!: GetStationsUseCase;
@@ -49,6 +62,11 @@ export class DIContainer {
   private _generateDailyAverageReportUseCase!: GenerateDailyAverageReportUseCase;
   private _generateCriticalEventsReportUseCase!: GenerateCriticalEventsReportUseCase;
   private _exportReportUseCase!: ExportReportUseCase;
+  private _loginUseCase!: LoginUseCase;
+  private _registerUseCase!: RegisterUseCase;
+  private _logoutUseCase!: LogoutUseCase;
+  private _validateTokenUseCase!: ValidateTokenUseCase;
+  private _refreshTokenUseCase!: RefreshTokenUseCase;
 
   private constructor() {
     this.initializeRepositories();
@@ -63,13 +81,28 @@ export class DIContainer {
   }
 
   private initializeRepositories(): void {
-    // Aquí puedes cambiar entre implementaciones Mock y API
-    this._stationRepository = new MockStationRepository();
-    this._userRepository = new MockUserRepository();
-    this._measurementRepository = new MockMeasurementRepository();
-    this._alertRepository = new MockAlertRepository();
-    this._variableModuleRepository = new MockVariableModuleRepository();
-    this._reportRepository = new MockReportRepository();
+    // Variables de entorno para determinar qué implementación usar
+    const useApiImplementation = (import.meta as { env?: Record<string, string> }).env?.VITE_USE_API !== 'false';
+
+    if (useApiImplementation) {
+      // Usar implementaciones API reales
+      this._stationRepository = new ApiStationRepository(apiClient);
+      this._userRepository = new ApiUserRepository(apiClient);
+      this._measurementRepository = new ApiMeasurementRepository(apiClient);
+      this._alertRepository = new ApiAlertRepository(apiClient);
+      this._variableModuleRepository = new ApiVariableModuleRepository(apiClient);
+      this._reportRepository = new ApiReportRepository(apiClient);
+      this._authRepository = new ApiAuthRepository(apiClient);
+    } else {
+      // Usar implementaciones Mock para desarrollo/testing
+      this._stationRepository = new MockStationRepository();
+      this._userRepository = new MockUserRepository();
+      this._measurementRepository = new MockMeasurementRepository();
+      this._alertRepository = new MockAlertRepository();
+      this._variableModuleRepository = new MockVariableModuleRepository();
+      this._reportRepository = new MockReportRepository();
+      this._authRepository = new MockAuthRepository();
+    }
   }
 
   private initializeUseCases(): void {
@@ -88,6 +121,11 @@ export class DIContainer {
     this._generateDailyAverageReportUseCase = new GenerateDailyAverageReportUseCase(this._reportRepository);
     this._generateCriticalEventsReportUseCase = new GenerateCriticalEventsReportUseCase(this._reportRepository);
     this._exportReportUseCase = new ExportReportUseCase(this._reportRepository);
+    this._loginUseCase = new LoginUseCase(this._authRepository);
+    this._registerUseCase = new RegisterUseCase(this._authRepository);
+    this._logoutUseCase = new LogoutUseCase(this._authRepository);
+    this._validateTokenUseCase = new ValidateTokenUseCase(this._authRepository);
+    this._refreshTokenUseCase = new RefreshTokenUseCase(this._authRepository);
   }
 
   // Getters para Use Cases
@@ -106,6 +144,11 @@ export class DIContainer {
   get generateDailyAverageReportUseCase(): GenerateDailyAverageReportUseCase { return this._generateDailyAverageReportUseCase; }
   get generateCriticalEventsReportUseCase(): GenerateCriticalEventsReportUseCase { return this._generateCriticalEventsReportUseCase; }
   get exportReportUseCase(): ExportReportUseCase { return this._exportReportUseCase; }
+  get loginUseCase(): LoginUseCase { return this._loginUseCase; }
+  get registerUseCase(): RegisterUseCase { return this._registerUseCase; }
+  get logoutUseCase(): LogoutUseCase { return this._logoutUseCase; }
+  get validateTokenUseCase(): ValidateTokenUseCase { return this._validateTokenUseCase; }
+  get refreshTokenUseCase(): RefreshTokenUseCase { return this._refreshTokenUseCase; }
 
   // Getters para Repositories (por si necesitas acceso directo)
   get stationRepository(): StationRepository { return this._stationRepository; }
@@ -114,4 +157,11 @@ export class DIContainer {
   get alertRepository(): AlertRepository { return this._alertRepository; }
   get variableModuleRepository(): VariableModuleRepository { return this._variableModuleRepository; }
   get reportRepository(): ReportRepository { return this._reportRepository; }
+  get authRepository(): AuthRepository { return this._authRepository; }
 }
+
+// Default export for singleton instance
+export const Container = DIContainer.getInstance();
+
+// Named export for class
+// DIContainer is already exported as class declaration above

@@ -3,15 +3,33 @@ import { StationRepository } from '@domain/repositories/StationRepository';
 import { PaginationParams, PaginatedResult, StationFilters } from '@shared/types/pagination';
 import { ApiClient } from './ApiClient';
 
+interface ApiStationData {
+  id: number;
+  name: string;
+  code: string;
+  latitude: string;
+  longitude: string;
+  location?: string;
+  description?: string;
+  is_active: boolean;
+  current_level?: number;
+  threshold?: number;
+  last_measurement?: string;
+  created_at: string;
+  updated_at: string;
+}
+
 export class ApiStationRepository implements StationRepository {
   constructor(private apiClient: ApiClient) {}
 
   async findAll(): Promise<Station[]> {
-    return await this.apiClient.get<Station[]>('/monitoring/stations/');
+    const response = await this.apiClient.get<{ results: ApiStationData[] }>('/api/stations/');
+    return response.results.map(this.convertApiToStation);
   }
 
   async findById(id: number): Promise<Station | null> {
-    return await this.apiClient.get<Station>(`/monitoring/stations/${id}/`);
+    const data = await this.apiClient.get<ApiStationData>(`/api/stations/${id}/`);
+    return this.convertApiToStation(data);
   }
 
   async findPaginated(params: PaginationParams, filters?: StationFilters): Promise<PaginatedResult<Station>> {
@@ -48,19 +66,39 @@ export class ApiStationRepository implements StationRepository {
       });
     }
 
-    return await this.apiClient.get<PaginatedResult<Station>>(`/monitoring/stations/paginated/?${queryParams}`);
+    return await this.apiClient.get<PaginatedResult<Station>>(`/api/stations/paginated/?${queryParams}`);
   }
 
   async create(stationData: Omit<Station, 'id' | 'created_at' | 'updated_at'>): Promise<Station> {
-    return await this.apiClient.post<Station>('/monitoring/stations/', stationData);
+    return await this.apiClient.post<Station>('/api/stations/', stationData);
   }
 
   async update(id: number, stationData: Partial<Station>): Promise<Station | null> {
-    return await this.apiClient.patch<Station>(`/monitoring/stations/${id}/`, stationData);
+    return await this.apiClient.patch<Station>(`/api/stations/${id}/`, stationData);
   }
 
   async delete(id: number): Promise<boolean> {
-    await this.apiClient.delete(`/monitoring/stations/${id}/`);
+    await this.apiClient.delete(`/api/stations/${id}/`);
     return true;
+  }
+
+  /**
+   * Convierte el formato de la API Django al formato esperado por el frontend
+   */
+  private convertApiToStation(data: ApiStationData): Station {
+    return {
+      id: data.id,
+      name: data.name,
+      code: data.code,
+      location: data.location || `${data.latitude}, ${data.longitude}`,
+      latitude: parseFloat(data.latitude),  // Convertir string a número
+      longitude: parseFloat(data.longitude), // Convertir string a número
+      status: data.is_active ? 'active' : 'inactive',
+      current_level: data.current_level || 0,
+      threshold: data.threshold || 0,
+      last_measurement: data.last_measurement || new Date().toISOString(),
+      created_at: data.created_at,
+      updated_at: data.updated_at
+    };
   }
 }

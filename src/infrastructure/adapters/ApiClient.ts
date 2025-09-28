@@ -54,7 +54,7 @@ export class ApiClient {
     }
 
     if (this.token) {
-      headers.Authorization = `Bearer ${this.token}`;
+      headers.Authorization = `Token ${this.token}`;
     }
 
     let response: Response;
@@ -238,5 +238,5 @@ export class ApiClient {
   }
 }
 
-const API_BASE_URL = (import.meta as unknown as { env: Record<string, string> }).env?.VITE_API_URL || "http://localhost:8000/api";
+const API_BASE_URL = (import.meta as unknown as { env: Record<string, string> }).env?.VITE_API_URL || "http://localhost:8000";
 export const apiClient = new ApiClient(API_BASE_URL);
