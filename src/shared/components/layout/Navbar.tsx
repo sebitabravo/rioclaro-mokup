@@ -14,17 +14,17 @@ const getNavigationForUser = (userRole?: string) => {
   ];
 
   // Historial solo para Técnicos y Administradores
-  if (userRole === 'technician' || userRole === 'admin') {
+  if (userRole === 'Técnico' || userRole === 'Administrador') {
     baseNavigation.push({ name: "Historial", href: "/activity", icon: Clock });
   }
 
   // Configuración de Alertas para Técnicos y Administradores
-  if (userRole === 'technician' || userRole === 'admin') {
+  if (userRole === 'Técnico' || userRole === 'Administrador') {
     baseNavigation.push({ name: "Alertas", href: "/alerts/configuration", icon: Settings });
   }
 
   // Admin solo para Administradores
-  if (userRole === 'admin') {
+  if (userRole === 'Administrador') {
     baseNavigation.push({ name: "Admin", href: "/admin", icon: Users });
   }
 

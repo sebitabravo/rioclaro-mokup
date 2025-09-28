@@ -1,3 +1,4 @@
+import React, { useEffect } from 'react';
 import { MotionWrapper } from '@shared/components/MotionWrapper';
 import { SkipNav } from '@shared/components/accessibility/SkipNav';
 import {
@@ -10,8 +11,11 @@ import { DashboardHeader } from '@features/dashboard/components/DashboardHeader'
 import { MetricsGrid } from '@features/dashboard/components/MetricsGrid';
 import { StationsMap } from '@features/dashboard/components/StationsMap';
 import { MetricsDashboard } from '@features/dashboard/components/MetricsDashboard';
-import { EmergencyAlert } from '@shared/components/ui/EmergencyAlert';
 import { useDashboardData } from '@features/dashboard/hooks/useDashboardData';
+import { QuickOnboarding } from '@shared/components/onboarding/OnboardingManager';
+import { dashboardTourSteps } from '@features/dashboard/data/dashboardTourSteps';
+import { AlertContainer } from '@shared/components/alerts/AlertContainer';
+import { useAlerts } from '@shared/stores/AlertStore';
 
 export function DashboardPage() {
   const {
@@ -30,6 +34,15 @@ export function DashboardPage() {
     handleRefresh,
     toggleAutoRefresh
   } = useDashboardData();
+
+  const { checkStationAlerts } = useAlerts();
+
+  // Verificar alertas cuando cambien las estaciones
+  useEffect(() => {
+    if (stations && stations.length > 0) {
+      checkStationAlerts(stations);
+    }
+  }, [stations, checkStationAlerts]);
 
   return (
     <>
@@ -72,19 +85,6 @@ export function DashboardPage() {
             aria-label="Contenido principal del dashboard"
           >
             <MotionWrapper>
-              {/* Emergency Alert Section */}
-              {stats.criticalStations > 0 && (
-                <div className="mb-8">
-                  <EmergencyAlert
-                    criticalCount={stats.criticalStations}
-                    onViewDetails={() => {
-                      // TODO: Navigate to detailed alerts view
-                      // Implementation pending
-                    }}
-                  />
-                </div>
-              )}
-
               {/* Metrics Grid Section */}
               <section
                 aria-labelledby="metrics-heading"
@@ -200,6 +200,19 @@ export function DashboardPage() {
             </MotionWrapper>
           </div>
         </main>
+
+        {/* Onboarding System */}
+        <QuickOnboarding
+          tourSteps={dashboardTourSteps}
+          tourType="hasSeenDashboardTour"
+        />
+
+        {/* Enhanced Alert System */}
+        <AlertContainer
+          position="top-right"
+          maxVisible={3}
+          showSettings={true}
+        />
       </div>
     </>
   );

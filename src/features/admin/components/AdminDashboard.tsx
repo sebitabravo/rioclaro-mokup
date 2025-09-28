@@ -1,10 +1,13 @@
 // Panel principal de administración con navegación por pestañas
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Users, MapPin, Settings, BarChart3 } from 'lucide-react';
 
 // UI Components
 import { Card } from '@shared/components/ui/card';
 import { RoleGuard } from '@shared/components/auth/RoleGuard';
+
+// Auth Hook
+import { useAuth } from '@features/auth/stores/AuthStore';
 
 // Componentes de administración
 import { UserManagement } from './users/UserManagement';
@@ -18,16 +21,34 @@ interface TabConfig {
   icon: React.ReactNode;
   component: React.ReactNode;
   description: string;
+  allowedRoles: Array<'Administrador' | 'Técnico' | 'Observador'>;
 }
 
+// Función para verificar si el usuario tiene acceso a una pestaña
+const hasAccessToTab = (userRole: string, allowedRoles: Array<string>): boolean => {
+  const roleHierarchy = {
+    'Administrador': 3,
+    'Técnico': 2,
+    'Observador': 1
+  };
+
+  const userLevel = roleHierarchy[userRole as keyof typeof roleHierarchy] || 0;
+  return allowedRoles.some(role => {
+    const requiredLevel = roleHierarchy[role as keyof typeof roleHierarchy] || 0;
+    return userLevel >= requiredLevel;
+  });
+};
+
 export const AdminDashboard: React.FC = () => {
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<AdminTab>('users');
 
-  const tabs: TabConfig[] = [
+  const allTabs: TabConfig[] = [
     {
       id: 'users',
       label: 'Usuarios',
       icon: <Users className="h-5 w-5" />,
+      allowedRoles: ['Administrador'],
       component: (
         <RoleGuard allowedRoles={['Administrador']}>
           <UserManagement />
@@ -39,6 +60,7 @@ export const AdminDashboard: React.FC = () => {
       id: 'stations',
       label: 'Estaciones',
       icon: <MapPin className="h-5 w-5" />,
+      allowedRoles: ['Administrador', 'Técnico'],
       component: (
         <RoleGuard allowedRoles={['Administrador', 'Técnico']}>
           <StationManagement />
@@ -50,6 +72,7 @@ export const AdminDashboard: React.FC = () => {
       id: 'settings',
       label: 'Configuración',
       icon: <Settings className="h-5 w-5" />,
+      allowedRoles: ['Administrador'],
       component: (
         <RoleGuard allowedRoles={['Administrador']}>
           <div className="flex items-center justify-center h-64">
@@ -71,6 +94,7 @@ export const AdminDashboard: React.FC = () => {
       id: 'analytics',
       label: 'Analíticas',
       icon: <BarChart3 className="h-5 w-5" />,
+      allowedRoles: ['Administrador', 'Técnico'],
       component: (
         <RoleGuard allowedRoles={['Administrador', 'Técnico']}>
           <div className="flex items-center justify-center h-64">
@@ -90,7 +114,26 @@ export const AdminDashboard: React.FC = () => {
     }
   ];
 
-  const activeTabConfig = tabs.find(tab => tab.id === activeTab);
+  // Filtrar pestañas según el rol del usuario
+  const tabs = useMemo(() => {
+    if (!user) return [];
+    return allTabs.filter(tab => hasAccessToTab(user.role, tab.allowedRoles));
+  }, [user]);
+
+  // Asegurar que la pestaña activa sea válida
+  const validActiveTab = useMemo(() => {
+    const hasValidTab = tabs.some(tab => tab.id === activeTab);
+    return hasValidTab ? activeTab : tabs[0]?.id || 'users';
+  }, [tabs, activeTab]);
+
+  // Actualizar la pestaña activa si no es válida
+  React.useEffect(() => {
+    if (validActiveTab !== activeTab) {
+      setActiveTab(validActiveTab);
+    }
+  }, [validActiveTab, activeTab]);
+
+  const activeTabConfig = tabs.find(tab => tab.id === validActiveTab);
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -115,12 +158,12 @@ export const AdminDashboard: React.FC = () => {
                   onClick={() => setActiveTab(tab.id)}
                   className={`
                     flex items-center space-x-2 py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap
-                    ${activeTab === tab.id
+                    ${validActiveTab === tab.id
                       ? 'border-blue-500 text-blue-600 dark:text-blue-400'
                       : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200'
                     }
                   `}
-                  aria-current={activeTab === tab.id ? 'page' : undefined}
+                  aria-current={validActiveTab === tab.id ? 'page' : undefined}
                 >
                   {tab.icon}
                   <span>{tab.label}</span>
