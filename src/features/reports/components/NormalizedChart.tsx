@@ -30,8 +30,7 @@ export function NormalizedChart({
 		rawData,
 		sourceType
 	);
-	const chartConfig =
-		DataNormalizationService.getChartConfig(normalizedDataSet);
+	// const chartConfig = DataNormalizationService.getChartConfig(normalizedDataSet); // Commented out as currently unused
 
 	// If no data, render placeholder message so the card doesn't look empty
 	if (!normalizedDataSet.data || normalizedDataSet.data.length === 0) {
