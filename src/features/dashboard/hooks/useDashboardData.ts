@@ -15,6 +15,8 @@ export function useDashboardData() {
   const [currentTime, setCurrentTime] = useState<Date | null>(null);
   const [mounted, setMounted] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
+  const [autoRefreshEnabled, setAutoRefreshEnabled] = useState(true);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
   const { stations, fetchStations } = useStationStore();
   const { measurements, fetchLatestMeasurements } = useMeasurementStore();
@@ -46,9 +48,14 @@ export function useDashboardData() {
     setRefreshing(true);
     try {
       await Promise.all([fetchStations(), fetchLatestMeasurements()]);
+      setLastUpdated(new Date());
     } finally {
       setTimeout(() => setRefreshing(false), 200);
     }
+  };
+
+  const toggleAutoRefresh = () => {
+    setAutoRefreshEnabled(!autoRefreshEnabled);
   };
 
   useEffect(() => {
@@ -64,6 +71,7 @@ export function useDashboardData() {
           fetchLatestMeasurements(),
           loadingPromise
         ]);
+        setLastUpdated(new Date());
       } finally {
         setInitialLoading(false);
       }
@@ -71,12 +79,30 @@ export function useDashboardData() {
 
     initializeDashboard();
 
-    const interval = setInterval(() => {
+    // Actualizar hora cada minuto
+    const timeInterval = setInterval(() => {
       setCurrentTime(new Date());
     }, 60000);
 
-    return () => clearInterval(interval);
+    return () => clearInterval(timeInterval);
   }, [fetchStations, fetchLatestMeasurements]);
+
+  // Auto-refresh de datos cada 30 segundos
+  useEffect(() => {
+    if (!autoRefreshEnabled || initialLoading) return;
+
+    const refreshInterval = setInterval(async () => {
+      // Auto-refresh ejecutado
+      try {
+        await Promise.all([fetchStations(), fetchLatestMeasurements()]);
+        setLastUpdated(new Date());
+      } catch (error) {
+        console.error('Error en auto-refresh:', error);
+      }
+    }, 30000); // 30 segundos
+
+    return () => clearInterval(refreshInterval);
+  }, [autoRefreshEnabled, initialLoading, fetchStations, fetchLatestMeasurements]);
 
   return {
     // State
@@ -84,6 +110,8 @@ export function useDashboardData() {
     currentTime,
     mounted,
     initialLoading,
+    autoRefreshEnabled,
+    lastUpdated,
 
     // Data
     stations,
@@ -92,6 +120,7 @@ export function useDashboardData() {
     stats,
 
     // Actions
-    handleRefresh
+    handleRefresh,
+    toggleAutoRefresh
   };
 }

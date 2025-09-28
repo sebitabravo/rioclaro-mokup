@@ -17,9 +17,9 @@ export function DashboardPage() {
   const {
     // State
     refreshing,
-    currentTime,
-    mounted,
     initialLoading,
+    autoRefreshEnabled,
+    lastUpdated,
 
     // Data
     stations,
@@ -27,7 +27,8 @@ export function DashboardPage() {
     stats,
 
     // Actions
-    handleRefresh
+    handleRefresh,
+    toggleAutoRefresh
   } = useDashboardData();
 
   return (
@@ -56,10 +57,11 @@ export function DashboardPage() {
           {/* Header Section */}
           <div className="mb-8">
             <DashboardHeader
-              currentTime={currentTime}
-              mounted={mounted}
               refreshing={refreshing}
+              autoRefreshEnabled={autoRefreshEnabled}
+              lastUpdated={lastUpdated}
               onRefresh={handleRefresh}
+              onToggleAutoRefresh={toggleAutoRefresh}
             />
           </div>
 
