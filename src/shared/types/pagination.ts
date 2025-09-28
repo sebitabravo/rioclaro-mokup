@@ -39,3 +39,14 @@ export interface StationFilters {
     max?: number;
   };
 }
+
+// Filtros para usuarios en administración
+export interface UserFilters {
+  username?: string;
+  email?: string;
+  first_name?: string;
+  last_name?: string;
+  role?: 'Administrador' | 'Técnico' | 'Observador';
+  is_staff?: boolean;
+  is_superuser?: boolean;
+}

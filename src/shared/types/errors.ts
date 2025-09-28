@@ -527,7 +527,7 @@ export interface ErrorLogger {
 export class ConsoleErrorLogger implements ErrorLogger {
   logError(error: AppError): void {
     if (process.env.NODE_ENV === 'development') {
-      // eslint-disable-next-line no-console
+       
       console.error('🚨 Error:', error.toJSON());
     }
   }
@@ -538,7 +538,7 @@ export class ProductionErrorLogger implements ErrorLogger {
   logError(error: AppError): void {
     // Integración con servicio de logging en producción
     // Sentry.captureException(error);
-    // eslint-disable-next-line no-console
+     
     console.error('Error logged to external service:', error.code);
   }
 }
