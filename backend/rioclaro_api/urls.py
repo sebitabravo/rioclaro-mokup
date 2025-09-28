@@ -23,6 +23,12 @@ from rest_framework.authtoken.views import obtain_auth_token
 from users.views import UserViewSet
 from stations.views import StationViewSet, StationAssignmentViewSet
 
+# Import health check views
+from .health import health_check, health_detailed, ready_check, live_check
+
+# Import monitoring views
+from .monitoring import metrics, system_info
+
 # Configure DRF Router
 router = DefaultRouter()
 router.register(r'users', UserViewSet)
@@ -34,6 +40,16 @@ urlpatterns = [
     path('api/', include(router.urls)),
     path('api-auth/', include('rest_framework.urls')),
     path('api/auth/token/', obtain_auth_token, name='api_token_auth'),
+
+    # Health Check Endpoints
+    path('health/', health_check, name='health_check'),
+    path('health/detailed/', health_detailed, name='health_detailed'),
+    path('health/ready/', ready_check, name='ready_check'),
+    path('health/live/', live_check, name='live_check'),
+
+    # Monitoring and Metrics Endpoints
+    path('metrics/', metrics, name='metrics'),
+    path('system/', system_info, name='system_info'),
 
     # Módulo 2: Gestión de Variables y Datos
     path('api/measurements/', include('measurements.urls')),

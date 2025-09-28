@@ -1,12 +1,44 @@
-asgiref==3.9.2
+# Core Django and DRF
 Django==5.0.1
+djangorestframework==3.14.0
+asgiref==3.9.2
 sqlparse==0.5.3
 typing_extensions==4.15.0
-djangorestframework==3.14.0
+
+# Django Extensions and Utilities
 django-cors-headers==4.3.1
 django-filter==23.5
-mysqlclient==2.2.0
-python-dotenv==1.0.0
 django-environ==0.11.2
-requests==2.31.0
+python-dotenv==1.0.0
+
+# Database Drivers
+mysqlclient==2.2.0
+psycopg2-binary==2.9.9
+
+# Production Server
 gunicorn==21.2.0
+uvicorn[standard]==0.24.0
+
+# Caching and Task Queue
+redis==5.0.1
+django-redis==5.4.0
+celery==5.3.4
+
+# Monitoring and System Metrics
+psutil==5.9.6
+sentry-sdk==1.40.0
+
+# Security and Validation
+cryptography==41.0.8
+certifi==2023.11.17
+
+# HTTP Client
+requests==2.31.0
+
+# Development and Testing (optional)
+django-debug-toolbar==4.2.0
+django-extensions==3.2.3
+
+# Production Utilities
+whitenoise==6.6.0
+dj-database-url==2.1.0

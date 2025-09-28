@@ -51,6 +51,12 @@ class UserViewSet(viewsets.ModelViewSet):
         return super().destroy(request, *args, **kwargs)
 
     @action(detail=False, methods=['get'])
+    def me(self, request):
+        """Endpoint para obtener información del usuario autenticado"""
+        serializer = UserSerializer(request.user)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['get'])
     def roles(self, request):
         """Endpoint para obtener los roles disponibles"""
         from .models import UserRole

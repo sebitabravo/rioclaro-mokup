@@ -134,6 +134,12 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # Custom User Model
 AUTH_USER_MODEL = 'users.CustomUser'
 
+# Authentication Backends
+AUTHENTICATION_BACKENDS = [
+    'users.authentication.EmailOrUsernameBackend',
+    'django.contrib.auth.backends.ModelBackend',  # Fallback
+]
+
 # Django Rest Framework Configuration
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
@@ -155,14 +161,18 @@ REST_FRAMEWORK = {
     ],
 }
 
-# CORS Settings
+# CORS Settings - Desarrollo (más permisivo)
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
     "http://localhost:5173",
     "http://127.0.0.1:5173",
+    "http://localhost:5174",
+    "http://127.0.0.1:5174",
 ]
 
+# Para desarrollo - permitir todos los orígenes (temporal)
+CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
 
 # Internationalization
