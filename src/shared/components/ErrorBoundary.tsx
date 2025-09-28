@@ -68,7 +68,7 @@ export class ErrorBoundary extends Component<Props, State> {
     }
 
     if (process.env.NODE_ENV === 'development') {
-      // eslint-disable-next-line no-console
+       
       console.error('ErrorBoundary caught an error:', error, errorInfo);
     }
   }
@@ -271,7 +271,7 @@ export const useErrorHandler = () => {
 
     // En desarrollo, mostrar en consola con más detalles
     if (process.env.NODE_ENV === 'development') {
-      // eslint-disable-next-line no-console
+       
       console.error('Error handled by useErrorHandler:', {
         error: appError.toJSON(),
         originalError: error,
@@ -300,7 +300,7 @@ export const useErrorHandler = () => {
     errorLogger.logError(appError);
 
     if (process.env.NODE_ENV === 'development') {
-      // eslint-disable-next-line no-console
+       
       console.error('Async error handled:', appError.toJSON());
     }
 

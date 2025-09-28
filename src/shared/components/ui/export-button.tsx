@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Download, FileSpreadsheet, FileText, FileBarChart } from 'lucide-react';
 import { Button } from '@shared/components/ui/button';
+import { useRoleCheck } from '@shared/components/auth/RoleGuard';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -34,7 +35,13 @@ export function ExportButton<T = unknown>({
   exportType = 'data',
   filename
 }: ExportButtonProps<T>) {
+  const { canExportData } = useRoleCheck();
   const [isExporting, setIsExporting] = useState(false);
+
+  // Si el usuario no tiene permisos de exportación, no mostrar el botón
+  if (!canExportData) {
+    return null;
+  }
 
   const handleExport = async (format: ExportFormat) => {
     if (isExporting || data.length === 0) return;
@@ -54,7 +61,7 @@ export function ExportButton<T = unknown>({
       );
     } catch (error) {
       // Error handling - log error and could show toast notification in production
-      // eslint-disable-next-line no-console
+       
       console.error('Error exporting data:', error);
     } finally {
       setIsExporting(false);
