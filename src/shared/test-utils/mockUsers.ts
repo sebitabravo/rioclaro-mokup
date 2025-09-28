@@ -1,4 +1,4 @@
-import { User } from '@domain/entities/User';
+// User types for testing different roles and permissions
 
 /**
  * Mock users for testing different roles and permissions
@@ -13,7 +13,7 @@ export const mockUsers = {
     role: 'Administrador' as const,
     is_staff: true,
     is_superuser: true,
-    assigned_stations: [1, 2, 3, 4, 5],
+    assigned_stations: [1, 2, 3, 4, 5] as number[],
     created_at: '2024-01-01T00:00:00Z',
     updated_at: '2024-09-28T00:00:00Z',
   },
@@ -26,7 +26,7 @@ export const mockUsers = {
     role: 'Técnico' as const,
     is_staff: true,
     is_superuser: false,
-    assigned_stations: [1, 2, 3],
+    assigned_stations: [1, 2, 3] as number[],
     created_at: '2024-01-15T00:00:00Z',
     updated_at: '2024-09-28T00:00:00Z',
   },
@@ -39,7 +39,7 @@ export const mockUsers = {
     role: 'Observador' as const,
     is_staff: true,
     is_superuser: false,
-    assigned_stations: [1],
+    assigned_stations: [1] as number[],
     created_at: '2024-02-01T00:00:00Z',
     updated_at: '2024-09-28T00:00:00Z',
   },
@@ -52,7 +52,7 @@ export const mockUsers = {
     role: 'Observador' as const,
     is_staff: false, // Inactive user
     is_superuser: false,
-    assigned_stations: [],
+    assigned_stations: [] as number[],
     created_at: '2024-03-01T00:00:00Z',
     updated_at: '2024-09-28T00:00:00Z',
   },

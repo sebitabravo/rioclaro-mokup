@@ -4,11 +4,24 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Development Commands
 
-### Core Development Scripts
-- `pnpm dev` - Start development server (http://localhost:5173)
+### Frontend Development Scripts
+- `pnpm dev` - Start frontend development server (http://localhost:5173)
 - `pnpm build` - Build for production (runs TypeScript check + Vite build)
 - `pnpm preview` - Preview production build
 - `pnpm lint` - Run ESLint on TypeScript/TSX files with max 0 warnings
+
+### Backend Development Scripts (Django)
+- `cd backend && python manage.py runserver` - Start Django development server (http://localhost:8000)
+- `cd backend && python manage.py migrate` - Apply database migrations
+- `cd backend && python manage.py makemigrations` - Create new migrations
+- `cd backend && python manage.py collectstatic` - Collect static files for production
+- `cd backend && python manage.py createsuperuser` - Create Django admin user
+
+### Full Stack Development (Docker)
+- `docker compose -f docker/docker-compose.yml up` - Start complete stack (MySQL + Django + React)
+- `docker compose -f docker/docker-compose.yml up --profile simulator` - Include Arduino simulator
+- `docker compose -f docker/docker-compose.yml down` - Stop all services
+- `docker compose -f docker/docker-compose.yml logs` - View container logs
 
 ### Testing Commands
 #### Unit Tests (Vitest)
@@ -37,9 +50,32 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Architecture Overview
 
-This is a **Clean Architecture** React application for river water level monitoring, built with **Vite + React 19 + TypeScript**.
+This is a **full-stack Clean Architecture** application for river water level monitoring, with a **Django REST API backend** and **React frontend**, built with **Vite + React 18 + TypeScript**.
 
-### Core Architecture Layers
+### Project Structure
+
+```
+rioclaro-mokup/
+├── backend/          # Django REST API backend
+│   ├── rioclaro_api/ # Django project settings
+│   ├── users/        # User management app
+│   ├── stations/     # Station monitoring app
+│   ├── measurements/ # Data measurement app
+│   ├── alerts/       # Alert system app
+│   └── manage.py     # Django management script
+├── src/              # React frontend (Clean Architecture)
+│   ├── domain/       # Business entities and repository interfaces
+│   ├── application/  # Use cases and business logic
+│   ├── infrastructure/ # External adapters and DI container
+│   ├── presentation/ # React components, pages, and Zustand stores
+│   ├── features/     # Feature-based modules (dashboard, reports, admin, activity)
+│   └── shared/       # Cross-cutting utilities and services
+├── docker/           # Docker configuration files
+├── database/         # Database initialization scripts
+└── arduino/          # Arduino simulator for IoT data
+```
+
+### Frontend Architecture Layers (Clean Architecture)
 
 ```
 src/
@@ -67,17 +103,42 @@ src/
 - Stores call use cases through the DI Container
 - Stores handle loading states and error management
 
+### Backend Architecture (Django)
+- **Django REST Framework** for API endpoints
+- **MySQL database** with Docker support
+- **Model-View-Serializer** pattern for API structure
+- **Django Apps**: users, stations, measurements, alerts organized by domain
+- **Environment-based configuration** (development/production)
+
 ### Development vs Production
-Switch between Mock and real API implementations by modifying `src/infrastructure/di/Container.ts` initializeRepositories method. Components and use cases remain unchanged.
+**Frontend**: Switch between Mock and real API implementations by modifying `src/infrastructure/di/Container.ts` initializeRepositories method. Components and use cases remain unchanged.
+
+**Backend**: Configure environment variables in `.env` file:
+- `DATA_SOURCE=SIMULATOR` for development with mock data
+- `DATA_SOURCE=API` for production with real sensors
+- `DEBUG=True/False` for Django debug mode
+
+### Docker Development Environment
+Complete development stack includes:
+- **MySQL 8.0** database with initialization scripts
+- **Django backend** on port 8000 with hot reload
+- **React frontend** on port 3000 with Vite HMR
+- **Arduino simulator** (optional) for IoT data simulation
 
 ## Key Technologies & Dependencies
 
-### Core Stack
-- **React 19** with TypeScript
+### Frontend Stack
+- **React 18** with TypeScript
 - **Vite** for build tooling
 - **Tailwind CSS** for styling
 - **Zustand** for state management
 - **React Router DOM** for navigation
+
+### Backend Stack
+- **Django 4.x** with Django REST Framework
+- **Python 3.x** with modern features
+- **MySQL 8.0** database
+- **Docker & Docker Compose** for containerization
 
 ### UI Components
 - **Radix UI** components (extensive set including accordion, dialog, dropdown, etc.)
@@ -139,10 +200,24 @@ Change repository implementations in DI Container from Mock to API versions. No 
 
 ## Important Files
 
+### Frontend Configuration
 - `src/infrastructure/di/Container.ts` - Central dependency injection configuration
 - `src/shared/services/DataNormalizationService.ts` - Data source normalization
 - `vite.config.ts` - Path aliases configured for clean imports (@domain, @application, etc.)
 - `tailwind.config.js` - Custom government theme colors and animations
+
+### Backend Configuration
+- `backend/rioclaro_api/settings.py` - Django settings and configuration
+- `backend/manage.py` - Django management commands entry point
+- `backend/requirements.txt` - Python dependencies
+- `docker/docker-compose.yml` - Full development stack setup
+
+### Development Setup
+- `docker/docker-compose.yml` - Complete development environment
+- `.env` - Environment variables for backend configuration
+- `package.json` - Frontend dependencies and scripts
+
+### Documentation
 - `docs/ARCHITECTURE.md` - Detailed architecture documentation
 - `docs/DEVELOPMENT_GUIDE.md` - Comprehensive development patterns and examples
 

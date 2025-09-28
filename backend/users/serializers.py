@@ -12,7 +12,7 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = [
             'id', 'username', 'email', 'first_name', 'last_name',
-            'role', 'is_active', 'password', 'created_at', 'updated_at'
+            'role', 'is_active', 'is_staff', 'is_superuser', 'password', 'created_at', 'updated_at'
         ]
         read_only_fields = ['created_at', 'updated_at']
 
@@ -46,4 +46,4 @@ class UserListSerializer(serializers.ModelSerializer):
     """Serializer simplificado para listados"""
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'first_name', 'last_name', 'role', 'is_active']
+        fields = ['id', 'username', 'email', 'first_name', 'last_name', 'role', 'is_active', 'is_staff', 'is_superuser']

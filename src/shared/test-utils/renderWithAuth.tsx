@@ -1,6 +1,7 @@
 import { ReactElement } from 'react';
 import { render } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
+import { vi } from 'vitest';
 import { User } from '@domain/entities/User';
 import { mockUsers } from './mockUsers';
 

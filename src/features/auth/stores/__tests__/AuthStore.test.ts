@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, vi, Mock } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useAuthStore } from '../AuthStore';
 import { mockUsers, mockCredentials, mockAuthResponses } from '@shared/test-utils';
@@ -17,7 +17,7 @@ vi.mock('@infrastructure/di/Container', () => ({
       logoutUseCase: {
         execute: vi.fn(),
       },
-      validateSessionUseCase: {
+      validateTokenUseCase: {
         execute: vi.fn(),
       },
     })),
@@ -35,12 +35,28 @@ Object.defineProperty(window, 'localStorage', {
   value: localStorageMock,
 });
 
+// Type for mocked DIContainer
+interface MockedDIContainer {
+  loginUseCase: {
+    execute: Mock;
+  };
+  registerUseCase: {
+    execute: Mock;
+  };
+  logoutUseCase: {
+    execute: Mock;
+  };
+  validateTokenUseCase: {
+    execute: Mock;
+  };
+}
+
 describe('AuthStore', () => {
-  let mockContainer: any;
+  let mockContainer: MockedDIContainer;
 
   beforeEach(() => {
     vi.clearAllMocks();
-    mockContainer = DIContainer.getInstance();
+    mockContainer = DIContainer.getInstance() as unknown as MockedDIContainer;
     localStorageMock.getItem.mockReturnValue(null);
   });
 
@@ -203,7 +219,7 @@ describe('AuthStore', () => {
     it('should validate existing session successfully', async () => {
       const { result } = renderHook(() => useAuthStore());
 
-      mockContainer.validateSessionUseCase.execute.mockResolvedValue(mockAuthResponses.administrador);
+      mockContainer.validateTokenUseCase.execute.mockResolvedValue(mockAuthResponses.administrador);
 
       await act(async () => {
         await result.current.validateSession();
@@ -217,7 +233,7 @@ describe('AuthStore', () => {
       const { result } = renderHook(() => useAuthStore());
 
       const sessionError = new Error('Invalid session');
-      mockContainer.validateSessionUseCase.execute.mockRejectedValue(sessionError);
+      mockContainer.validateTokenUseCase.execute.mockRejectedValue(sessionError);
 
       await act(async () => {
         await result.current.validateSession();

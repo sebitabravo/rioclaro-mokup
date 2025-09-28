@@ -30,7 +30,7 @@ export function DashboardHeader({
         locale: es,
         addSuffix: true
       });
-    } catch (error) {
+    } catch {
       // Fallback en caso de error con date-fns
       const now = new Date();
       const diffMs = now.getTime() - lastUpdated.getTime();

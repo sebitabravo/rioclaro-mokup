@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Download, FileSpreadsheet, FileText, FileBarChart } from 'lucide-react';
 import { Button } from '@shared/components/ui/button';
-import { useRoleCheck } from '@shared/components/auth/RoleGuard';
+import { useRoleCheck } from '@shared/hooks/useAuthHooks';
 import {
   DropdownMenu,
   DropdownMenuContent,

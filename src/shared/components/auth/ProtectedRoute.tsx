@@ -20,21 +20,12 @@ export function ProtectedRoute({
   const { isAuthenticated, user, isLoading, validateSession } = useAuth();
   const location = useLocation();
 
-  // BYPASS TEMPORAL PARA TESTING - Verificar si hay token en localStorage
-  const hasToken = typeof window !== 'undefined' && localStorage.getItem('access_token');
-
-  // Validar sesión al montar el componente (hooks always called)
+  // Validar sesión al montar el componente
   useEffect(() => {
-    if (!hasToken) {
+    if (!isAuthenticated) {
       validateSession();
     }
-  }, [validateSession, hasToken]);
-
-  if (hasToken) {
-    // Simular usuario para testing
-    // BYPASS: Using testing mode with token
-    return <>{children}</>;
-  }
+  }, [validateSession, isAuthenticated]);
 
   // Mostrar loading mientras se valida la sesión
   if (isLoading) {
@@ -47,8 +38,20 @@ export function ProtectedRoute({
   }
 
   // Verificar permisos de rol si están especificados
-  if (requiredRoles && !requiredRoles.includes(user.role)) {
-    return <Navigate to="/unauthorized" replace />;
+  if (requiredRoles && requiredRoles.length > 0) {
+    // Mapear roles del frontend a roles del backend
+    const roleMap: Record<string, string> = {
+      'Administrador': 'admin',
+      'Técnico': 'technician',
+      'Observador': 'observer'
+    };
+
+    const userBackendRole = user.role;
+    const requiredBackendRoles = requiredRoles.map(role => roleMap[role] || role);
+
+    if (!requiredBackendRoles.includes(userBackendRole)) {
+      return <Navigate to="/unauthorized" replace />;
+    }
   }
 
   // Verificar si requiere permisos de administrador

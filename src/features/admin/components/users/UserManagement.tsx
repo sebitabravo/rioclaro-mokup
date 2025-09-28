@@ -4,7 +4,8 @@ import { Plus, Search, MoreHorizontal, Edit, Trash2 } from 'lucide-react';
 import { useUserStore } from '@features/admin/stores/UserStore';
 import { User } from '@domain/entities/User';
 import { UserFilters } from '@shared/types/pagination';
-import { RoleGuard, useRoleCheck } from '@shared/components/auth/RoleGuard';
+import { RoleGuard } from '@shared/components/auth/RoleGuard';
+import { useRoleCheck } from '@shared/hooks/useAuthHooks';
 
 // UI Components
 import { Button } from '@shared/components/ui/button';
@@ -164,27 +165,27 @@ export const UserManagement: React.FC = () => {
             </div>
           </div>
           <div className="flex gap-2">
-            <Select value={filters.role || ''} onValueChange={(value) =>
-              setFilters(prev => ({ ...prev, role: (value as 'Administrador' | 'Técnico' | 'Observador') || undefined }))
+            <Select value={filters.role || 'all'} onValueChange={(value) =>
+              setFilters(prev => ({ ...prev, role: value === 'all' ? undefined : (value as 'Administrador' | 'Técnico' | 'Observador') }))
             }>
               <SelectTrigger className="w-40">
                 <SelectValue placeholder="Filtrar por rol" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todos los roles</SelectItem>
+                <SelectItem value="all">Todos los roles</SelectItem>
                 <SelectItem value="Administrador">Administrador</SelectItem>
                 <SelectItem value="Técnico">Técnico</SelectItem>
                 <SelectItem value="Observador">Observador</SelectItem>
               </SelectContent>
             </Select>
-            <Select value={filters.is_staff?.toString() || ''} onValueChange={(value) =>
-              setFilters(prev => ({ ...prev, is_staff: value ? value === 'true' : undefined }))
+            <Select value={filters.is_staff?.toString() || 'all'} onValueChange={(value) =>
+              setFilters(prev => ({ ...prev, is_staff: value === 'all' ? undefined : value === 'true' }))
             }>
               <SelectTrigger className="w-32">
                 <SelectValue placeholder="Estado" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todos</SelectItem>
+                <SelectItem value="all">Todos</SelectItem>
                 <SelectItem value="true">Activo</SelectItem>
                 <SelectItem value="false">Inactivo</SelectItem>
               </SelectContent>

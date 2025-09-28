@@ -177,14 +177,14 @@ export const StationManagement: React.FC = () => {
             </div>
           </div>
           <div className="flex gap-2">
-            <Select value={filters.status || ''} onValueChange={(value) =>
-              setFilters(prev => ({ ...prev, status: (value as 'active' | 'maintenance' | 'inactive') || undefined }))
+            <Select value={filters.status || 'all'} onValueChange={(value) =>
+              setFilters(prev => ({ ...prev, status: value === 'all' ? undefined : (value as 'active' | 'maintenance' | 'inactive') }))
             }>
               <SelectTrigger className="w-40">
                 <SelectValue placeholder="Filtrar por estado" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todos los estados</SelectItem>
+                <SelectItem value="all">Todos los estados</SelectItem>
                 <SelectItem value="active">Activa</SelectItem>
                 <SelectItem value="maintenance">Mantenimiento</SelectItem>
                 <SelectItem value="inactive">Inactiva</SelectItem>
