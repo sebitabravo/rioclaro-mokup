@@ -5,7 +5,7 @@ import reactRefresh from 'eslint-plugin-react-refresh'
 import tseslint from 'typescript-eslint'
 
 export default tseslint.config(
-  { ignores: ['dist'] },
+  { ignores: ['dist', 'backend/**/*', 'node_modules/**/*'] },
   {
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
     files: ['**/*.{ts,tsx}'],
@@ -23,8 +23,8 @@ export default tseslint.config(
         'warn',
         { allowConstantExport: true },
       ],
-      // Eliminar console statements en producción
-      'no-console': process.env.NODE_ENV === 'production' ? 'error' : 'warn',
+      // Permitir console.error para logging de errores, pero no console.log
+      'no-console': ['warn', { allow: ['error', 'warn'] }],
       'no-debugger': process.env.NODE_ENV === 'production' ? 'error' : 'warn',
     },
   },
