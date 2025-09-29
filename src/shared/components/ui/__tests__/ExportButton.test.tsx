@@ -4,6 +4,12 @@ import userEvent from '@testing-library/user-event';
 import { ExportButton } from '../export-button';
 import type { FileGenerationResult } from '@shared/types/export-types';
 
+vi.mock('@shared/hooks/useAuthHooks', () => ({
+  useRoleCheck: () => ({
+    canExportData: true,
+  }),
+}));
+
 vi.mock('@shared/services/ExportService', () => ({
   ExportService: {
     exportActivityData: vi.fn().mockResolvedValue({ success: true, filename: 'test.csv' })

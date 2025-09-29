@@ -1,63 +1,80 @@
-import { describe, it, expect, beforeEach, vi, Mock } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useAuthStore } from '../AuthStore';
 import { mockUsers, mockCredentials, mockAuthResponses } from '@shared/test-utils';
-import { DIContainer } from '@infrastructure/di/Container';
+
+const {
+  mockLoginUseCase,
+  mockRegisterUseCase,
+  mockLogoutUseCase,
+  mockValidateTokenUseCase,
+  getInstanceMock,
+  localStorageMock,
+} = vi.hoisted(() => {
+  const mockLoginUseCase = { execute: vi.fn() };
+  const mockRegisterUseCase = { execute: vi.fn() };
+  const mockLogoutUseCase = { execute: vi.fn() };
+  const mockValidateTokenUseCase = { execute: vi.fn() };
+
+  const mockContainerInstance = {
+    loginUseCase: mockLoginUseCase,
+    registerUseCase: mockRegisterUseCase,
+    logoutUseCase: mockLogoutUseCase,
+    validateTokenUseCase: mockValidateTokenUseCase,
+  };
+
+  const getInstanceMock = vi.fn(() => mockContainerInstance);
+
+  const localStorageMock = {
+    getItem: vi.fn(),
+    setItem: vi.fn(),
+    removeItem: vi.fn(),
+    clear: vi.fn(),
+  };
+
+  Object.defineProperty(globalThis, 'localStorage', {
+    configurable: true,
+    value: localStorageMock,
+  });
+
+  return {
+    mockLoginUseCase,
+    mockRegisterUseCase,
+    mockLogoutUseCase,
+    mockValidateTokenUseCase,
+    getInstanceMock,
+    localStorageMock,
+  };
+});
 
 // Mock DIContainer
 vi.mock('@infrastructure/di/Container', () => ({
   DIContainer: {
-    getInstance: vi.fn(() => ({
-      loginUseCase: {
-        execute: vi.fn(),
-      },
-      registerUseCase: {
-        execute: vi.fn(),
-      },
-      logoutUseCase: {
-        execute: vi.fn(),
-      },
-      validateTokenUseCase: {
-        execute: vi.fn(),
-      },
-    })),
+    getInstance: getInstanceMock,
   },
 }));
 
-// Mock localStorage
-const localStorageMock = {
-  getItem: vi.fn(),
-  setItem: vi.fn(),
-  removeItem: vi.fn(),
-  clear: vi.fn(),
-};
-Object.defineProperty(window, 'localStorage', {
-  value: localStorageMock,
-});
-
-// Type for mocked DIContainer
-interface MockedDIContainer {
-  loginUseCase: {
-    execute: Mock;
-  };
-  registerUseCase: {
-    execute: Mock;
-  };
-  logoutUseCase: {
-    execute: Mock;
-  };
-  validateTokenUseCase: {
-    execute: Mock;
-  };
-}
-
 describe('AuthStore', () => {
-  let mockContainer: MockedDIContainer;
-
   beforeEach(() => {
     vi.clearAllMocks();
-    mockContainer = DIContainer.getInstance() as unknown as MockedDIContainer;
+    mockLoginUseCase.execute.mockReset();
+    mockRegisterUseCase.execute.mockReset();
+    mockLogoutUseCase.execute.mockReset();
+    mockValidateTokenUseCase.execute.mockReset();
+    getInstanceMock.mockClear();
+
+    useAuthStore.setState({
+      user: null,
+      token: null,
+      isAuthenticated: false,
+      isLoading: false,
+      error: null,
+    });
+
     localStorageMock.getItem.mockReturnValue(null);
+    localStorageMock.setItem.mockClear();
+    localStorageMock.removeItem.mockClear();
+    localStorageMock.clear.mockClear();
   });
 
   describe('Initial State', () => {
@@ -77,7 +94,7 @@ describe('AuthStore', () => {
       const { result } = renderHook(() => useAuthStore());
       const mockAuthResponse = mockAuthResponses.administrador;
 
-      mockContainer.loginUseCase.execute.mockResolvedValue(mockAuthResponse);
+    mockLoginUseCase.execute.mockResolvedValue(mockAuthResponse);
 
       await act(async () => {
         await result.current.login(mockCredentials.administrador);
@@ -94,7 +111,7 @@ describe('AuthStore', () => {
       const { result } = renderHook(() => useAuthStore());
       const mockAuthResponse = mockAuthResponses.tecnico;
 
-      mockContainer.loginUseCase.execute.mockResolvedValue(mockAuthResponse);
+    mockLoginUseCase.execute.mockResolvedValue(mockAuthResponse);
 
       await act(async () => {
         await result.current.login(mockCredentials.tecnico);
@@ -110,7 +127,7 @@ describe('AuthStore', () => {
       const { result } = renderHook(() => useAuthStore());
       const mockAuthResponse = mockAuthResponses.observador;
 
-      mockContainer.loginUseCase.execute.mockResolvedValue(mockAuthResponse);
+    mockLoginUseCase.execute.mockResolvedValue(mockAuthResponse);
 
       await act(async () => {
         await result.current.login(mockCredentials.observador);
@@ -125,10 +142,12 @@ describe('AuthStore', () => {
       const { result } = renderHook(() => useAuthStore());
       const loginError = new Error('Invalid credentials');
 
-      mockContainer.loginUseCase.execute.mockRejectedValue(loginError);
+      mockLoginUseCase.execute.mockRejectedValue(loginError);
 
       await act(async () => {
-        await result.current.login(mockCredentials.invalid);
+        await expect(
+          result.current.login(mockCredentials.invalid),
+        ).rejects.toThrow('Invalid credentials');
       });
 
       expect(result.current.isLoading).toBe(false);
@@ -142,10 +161,12 @@ describe('AuthStore', () => {
       const { result } = renderHook(() => useAuthStore());
       const inactiveError = new Error('User account is inactive');
 
-      mockContainer.loginUseCase.execute.mockRejectedValue(inactiveError);
+      mockLoginUseCase.execute.mockRejectedValue(inactiveError);
 
       await act(async () => {
-        await result.current.login(mockCredentials.inactiveUser);
+        await expect(
+          result.current.login(mockCredentials.inactiveUser),
+        ).rejects.toThrow('User account is inactive');
       });
 
       expect(result.current.isAuthenticated).toBe(false);
@@ -155,15 +176,17 @@ describe('AuthStore', () => {
     it('should set loading state during login', async () => {
       const { result } = renderHook(() => useAuthStore());
 
-      mockContainer.loginUseCase.execute.mockImplementation(() =>
-        new Promise(resolve => setTimeout(() => resolve(mockAuthResponses.administrador), 100))
-      );
-
-      act(() => {
-        result.current.login(mockCredentials.administrador);
+      mockLoginUseCase.execute.mockImplementationOnce(async () => {
+        expect(useAuthStore.getState().isLoading).toBe(true);
+        return mockAuthResponses.administrador;
       });
 
-      expect(result.current.isLoading).toBe(true);
+      await act(async () => {
+        await result.current.login(mockCredentials.administrador);
+      });
+
+      expect(result.current.isLoading).toBe(false);
+      expect(result.current.isAuthenticated).toBe(true);
     });
   });
 
@@ -172,7 +195,7 @@ describe('AuthStore', () => {
       const { result } = renderHook(() => useAuthStore());
 
       // First login
-      mockContainer.loginUseCase.execute.mockResolvedValue(mockAuthResponses.administrador);
+      mockLoginUseCase.execute.mockResolvedValue(mockAuthResponses.administrador);
       await act(async () => {
         await result.current.login(mockCredentials.administrador);
       });
@@ -180,7 +203,7 @@ describe('AuthStore', () => {
       expect(result.current.isAuthenticated).toBe(true);
 
       // Then logout
-      mockContainer.logoutUseCase.execute.mockResolvedValue(undefined);
+      mockLogoutUseCase.execute.mockResolvedValue(undefined);
       await act(async () => {
         await result.current.logout();
       });
@@ -195,14 +218,14 @@ describe('AuthStore', () => {
       const { result } = renderHook(() => useAuthStore());
 
       // First login
-      mockContainer.loginUseCase.execute.mockResolvedValue(mockAuthResponses.administrador);
+    mockLoginUseCase.execute.mockResolvedValue(mockAuthResponses.administrador);
       await act(async () => {
         await result.current.login(mockCredentials.administrador);
       });
 
       // Logout with error
-      const logoutError = new Error('Logout failed');
-      mockContainer.logoutUseCase.execute.mockRejectedValue(logoutError);
+  const logoutError = new Error('Logout failed');
+  mockLogoutUseCase.execute.mockRejectedValue(logoutError);
 
       await act(async () => {
         await result.current.logout();
@@ -218,8 +241,11 @@ describe('AuthStore', () => {
   describe('Session Validation', () => {
     it('should validate existing session successfully', async () => {
       const { result } = renderHook(() => useAuthStore());
+  mockValidateTokenUseCase.execute.mockResolvedValue(mockUsers.administrador);
 
-      mockContainer.validateTokenUseCase.execute.mockResolvedValue(mockAuthResponses.administrador);
+      act(() => {
+        useAuthStore.setState({ token: mockAuthResponses.administrador.token });
+      });
 
       await act(async () => {
         await result.current.validateSession();
@@ -233,7 +259,11 @@ describe('AuthStore', () => {
       const { result } = renderHook(() => useAuthStore());
 
       const sessionError = new Error('Invalid session');
-      mockContainer.validateTokenUseCase.execute.mockRejectedValue(sessionError);
+      mockValidateTokenUseCase.execute.mockRejectedValue(sessionError);
+
+      act(() => {
+        useAuthStore.setState({ token: 'invalid-token' });
+      });
 
       await act(async () => {
         await result.current.validateSession();
@@ -251,10 +281,12 @@ describe('AuthStore', () => {
 
       // Trigger an error
       const loginError = new Error('Login failed');
-      mockContainer.loginUseCase.execute.mockRejectedValue(loginError);
+      mockLoginUseCase.execute.mockRejectedValue(loginError);
 
       await act(async () => {
-        await result.current.login(mockCredentials.invalid);
+        await expect(
+          result.current.login(mockCredentials.invalid),
+        ).rejects.toThrow('Login failed');
       });
 
       expect(result.current.error).toBe('Login failed');
@@ -272,7 +304,7 @@ describe('AuthStore', () => {
     it('should correctly identify Administrator permissions', async () => {
       const { result } = renderHook(() => useAuthStore());
 
-      mockContainer.loginUseCase.execute.mockResolvedValue(mockAuthResponses.administrador);
+  mockLoginUseCase.execute.mockResolvedValue(mockAuthResponses.administrador);
       await act(async () => {
         await result.current.login(mockCredentials.administrador);
       });
@@ -287,7 +319,7 @@ describe('AuthStore', () => {
     it('should correctly identify Técnico permissions', async () => {
       const { result } = renderHook(() => useAuthStore());
 
-      mockContainer.loginUseCase.execute.mockResolvedValue(mockAuthResponses.tecnico);
+    mockLoginUseCase.execute.mockResolvedValue(mockAuthResponses.tecnico);
       await act(async () => {
         await result.current.login(mockCredentials.tecnico);
       });
@@ -302,7 +334,7 @@ describe('AuthStore', () => {
     it('should correctly identify Observador permissions', async () => {
       const { result } = renderHook(() => useAuthStore());
 
-      mockContainer.loginUseCase.execute.mockResolvedValue(mockAuthResponses.observador);
+    mockLoginUseCase.execute.mockResolvedValue(mockAuthResponses.observador);
       await act(async () => {
         await result.current.login(mockCredentials.observador);
       });
@@ -319,7 +351,7 @@ describe('AuthStore', () => {
     it('should persist authentication state to localStorage', async () => {
       const { result } = renderHook(() => useAuthStore());
 
-      mockContainer.loginUseCase.execute.mockResolvedValue(mockAuthResponses.administrador);
+    mockLoginUseCase.execute.mockResolvedValue(mockAuthResponses.administrador);
       await act(async () => {
         await result.current.login(mockCredentials.administrador);
       });
