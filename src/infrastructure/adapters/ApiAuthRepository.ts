@@ -1,6 +1,9 @@
 import { User } from '@domain/entities/User';
 import { AuthRepository, LoginCredentials, RegisterData, AuthResponse } from '@domain/repositories/AuthRepository';
+import { mapUserFromApi } from '@shared/utils/roles';
 import { ApiClient } from './ApiClient';
+
+type ApiUserDto = Omit<User, 'role'> & { role: string };
 
 export class ApiAuthRepository implements AuthRepository {
   constructor(private apiClient: ApiClient) {}
@@ -13,10 +16,11 @@ export class ApiAuthRepository implements AuthRepository {
     this.apiClient.setToken(tokenResponse.token);
 
     // Obtener datos del usuario autenticado
-    const user = await this.apiClient.get<User>('/api/users/me/');
+  const apiUser = await this.apiClient.get<ApiUserDto>('/api/users/me/');
+    const user = mapUserFromApi(apiUser);
 
     return {
-      user: user,
+      user,
       token: tokenResponse.token
     };
   }
@@ -59,7 +63,8 @@ export class ApiAuthRepository implements AuthRepository {
       this.apiClient.setToken(token);
 
       // Usar el endpoint /api/users/me/ para obtener el usuario autenticado
-      const user = await this.apiClient.get<User>('/api/users/me/');
+  const apiUser = await this.apiClient.get<ApiUserDto>('/api/users/me/');
+      const user = mapUserFromApi(apiUser);
 
       return user;
     } catch {

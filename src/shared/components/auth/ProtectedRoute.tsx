@@ -3,6 +3,7 @@ import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@features/auth/stores/AuthStore';
 import { PageLoading } from '@shared/components/ui/page-loading';
 import { User } from '@domain/entities/User';
+import { ROLE_HIERARCHY } from '@shared/utils/roles';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -39,17 +40,13 @@ export function ProtectedRoute({
 
   // Verificar permisos de rol si están especificados
   if (requiredRoles && requiredRoles.length > 0) {
-    // Mapear roles del frontend a roles del backend
-    const roleMap: Record<string, string> = {
-      'Administrador': 'admin',
-      'Técnico': 'technician',
-      'Observador': 'observer'
-    };
+    const userLevel = ROLE_HIERARCHY[user.role] ?? 0;
+    const hasRequiredRole = requiredRoles.some(role => {
+      const requiredLevel = ROLE_HIERARCHY[role] ?? 0;
+      return userLevel >= requiredLevel;
+    });
 
-    const userBackendRole = user.role;
-    const requiredBackendRoles = requiredRoles.map(role => roleMap[role] || role);
-
-    if (!requiredBackendRoles.includes(userBackendRole)) {
+    if (!hasRequiredRole) {
       return <Navigate to="/unauthorized" replace />;
     }
   }

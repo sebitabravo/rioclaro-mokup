@@ -1,6 +1,7 @@
 import { ReactNode } from 'react';
 import { useAuth } from '@features/auth/stores/AuthStore';
 import { User } from '@domain/entities/User';
+import { ROLE_HIERARCHY } from '@shared/utils/roles';
 
 interface RoleGuardProps {
   children: ReactNode;
@@ -21,17 +22,13 @@ export function RoleGuard({
     return <>{fallback}</>;
   }
 
+  const normalizedAllowedRoles = allowedRoles ?? [];
+  const userLevel = ROLE_HIERARCHY[user.role] ?? 0;
+
   const hasPermission = requireExact
-    ? allowedRoles.includes(user.role)
-    : allowedRoles.some(role => {
-        // Jerarquía de roles: Administrador > Técnico > Observador
-        const roleHierarchy = {
-          'Administrador': 3,
-          'Técnico': 2,
-          'Observador': 1
-        };
-        const userLevel = roleHierarchy[user.role] || 0;
-        const requiredLevel = roleHierarchy[role] || 0;
+    ? normalizedAllowedRoles.includes(user.role)
+    : normalizedAllowedRoles.some(role => {
+        const requiredLevel = ROLE_HIERARCHY[role] ?? 0;
         return userLevel >= requiredLevel;
       });
 

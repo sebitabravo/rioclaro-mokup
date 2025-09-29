@@ -1,5 +1,9 @@
 import { defineConfig, devices } from '@playwright/test';
 
+if (!process.env.VITE_USE_API) {
+  process.env.VITE_USE_API = 'false';
+}
+
 /**
  * @see https://playwright.dev/docs/test-configuration
  */
