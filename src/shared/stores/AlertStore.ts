@@ -1,6 +1,7 @@
+import { useCallback } from 'react';
 import { create } from 'zustand';
-import { AlertData, NotificationLevel } from '@shared/components/ui/EnhancedAlert';
-import { notificationService } from '@shared/services/NotificationService';
+import { AlertData } from '@shared/components/ui/EnhancedAlert';
+import { NotificationLevel } from '@shared/services/NotificationService';
 
 interface AlertStore {
   // State
@@ -175,118 +176,141 @@ if (savedSettings) {
 
 // Hook para usar el store de alertas con funciones helper
 export function useAlerts() {
-  const store = useAlertStore();
+  const alerts = useAlertStore((state) => state.alerts);
+  const globalSettings = useAlertStore((state) => state.globalSettings);
+  const addAlert = useAlertStore((state) => state.addAlert);
+  const removeAlert = useAlertStore((state) => state.removeAlert);
+  const clearAlerts = useAlertStore((state) => state.clearAlerts);
+  const updateGlobalSettings = useAlertStore((state) => state.updateGlobalSettings);
+  const showInfo = useAlertStore((state) => state.showInfo);
+  const showWarning = useAlertStore((state) => state.showWarning);
+  const showCritical = useAlertStore((state) => state.showCritical);
+  const showEmergency = useAlertStore((state) => state.showEmergency);
+  const getCriticalCount = useAlertStore((state) => state.getCriticalCount);
+  const getEmergencyCount = useAlertStore((state) => state.getEmergencyCount);
+  const hasActiveAlerts = useAlertStore((state) => state.hasActiveAlerts);
 
-  // Función helper para verificar estaciones críticas y mostrar alertas apropiadas
-  const checkStationAlerts = (stations: Array<{ id: number; status: string; name: string }>) => {
-    const criticalStations = stations.filter(s => s.status === 'critical');
-    const warningStations = stations.filter(s => s.status === 'warning');
+  const checkStationAlerts = useCallback(
+    (stations: Array<{ id: number; status: string; name: string }>) => {
+      const criticalStations = stations.filter((s) => s.status === 'critical');
+      const warningStations = stations.filter((s) => s.status === 'warning');
 
-    // Limpiar alertas existentes de estaciones
-    store.clearAlerts('critical');
-    store.clearAlerts('warning');
+      clearAlerts('critical');
+      clearAlerts('warning');
 
-    if (criticalStations.length > 0) {
-      if (criticalStations.length >= 3) {
-        // Emergencia si hay 3 o más estaciones críticas
-        store.showEmergency(
-          '🚨 EMERGENCIA DEL SISTEMA',
-          `${criticalStations.length} estaciones en estado crítico. Activar protocolo de emergencia inmediatamente.`,
-          criticalStations.length,
-          [
-            {
-              label: 'Protocolo Emergencia',
-              onClick: () => {
-                // Activar protocolo de emergencia
-                window.open('/emergency-protocol', '_blank');
+      if (criticalStations.length > 0) {
+        if (criticalStations.length >= 3) {
+          showEmergency(
+            '🚨 EMERGENCIA DEL SISTEMA',
+            `${criticalStations.length} estaciones en estado crítico. Activar protocolo de emergencia inmediatamente.`,
+            criticalStations.length,
+            [
+              {
+                label: 'Protocolo Emergencia',
+                onClick: () => {
+                  window.open('/emergency-protocol', '_blank');
+                },
+                variant: 'destructive',
+                icon: '🚨',
               },
-              variant: 'destructive',
-              icon: '🚨'
-            },
+              {
+                label: 'Ver Estaciones',
+                onClick: () => {
+                  window.location.href = '/stations?filter=critical';
+                },
+                variant: 'outline',
+                icon: '👁️',
+              },
+            ]
+          );
+        } else {
+          showCritical(
+            '🔴 ALERTA CRÍTICA',
+            `${criticalStations.length} ${criticalStations.length === 1 ? 'estación presenta' : 'estaciones presentan'} niveles críticos.`,
+            criticalStations.length,
+            [
+              {
+                label: 'Ver Detalles',
+                onClick: () => {
+                  window.location.href = '/stations?filter=critical';
+                },
+                variant: 'default',
+                icon: '👁️',
+              },
+              {
+                label: 'Contactar Técnico',
+                onClick: () => {
+                  window.open('tel:+56-9-12345678');
+                },
+                variant: 'outline',
+                icon: '📞',
+              },
+            ]
+          );
+        }
+      }
+
+      if (warningStations.length > 0 && criticalStations.length === 0) {
+        showWarning(
+          '⚠️ Alerta de Monitoreo',
+          `${warningStations.length} ${warningStations.length === 1 ? 'estación requiere' : 'estaciones requieren'} atención.`,
+          [
             {
               label: 'Ver Estaciones',
               onClick: () => {
-                // Navegar a vista de estaciones críticas
-                window.location.href = '/stations?filter=critical';
+                window.location.href = '/stations?filter=warning';
               },
               variant: 'outline',
-              icon: '👁️'
-            }
-          ]
-        );
-      } else {
-        // Crítico si hay 1-2 estaciones críticas
-        store.showCritical(
-          '🔴 ALERTA CRÍTICA',
-          `${criticalStations.length} ${criticalStations.length === 1 ? 'estación presenta' : 'estaciones presentan'} niveles críticos.`,
-          criticalStations.length,
-          [
-            {
-              label: 'Ver Detalles',
-              onClick: () => {
-                window.location.href = '/stations?filter=critical';
-              },
-              variant: 'default',
-              icon: '👁️'
+              icon: '👁️',
             },
-            {
-              label: 'Contactar Técnico',
-              onClick: () => {
-                window.open('tel:+56-9-12345678');
-              },
-              variant: 'outline',
-              icon: '📞'
-            }
           ]
         );
       }
-    }
+    },
+    [clearAlerts, showCritical, showEmergency, showWarning]
+  );
 
-    if (warningStations.length > 0 && criticalStations.length === 0) {
-      store.showWarning(
-        '⚠️ Alerta de Monitoreo',
-        `${warningStations.length} ${warningStations.length === 1 ? 'estación requiere' : 'estaciones requieren'} atención.`,
-        [
-          {
-            label: 'Ver Estaciones',
-            onClick: () => {
-              window.location.href = '/stations?filter=warning';
+  const showConnectionAlert = useCallback(
+    (isOnline: boolean) => {
+      if (!isOnline) {
+        showWarning(
+          'Conexión Perdida',
+          'Se ha perdido la conexión a internet. Los datos pueden no estar actualizados.',
+          [
+            {
+              label: 'Reintentar',
+              onClick: () => {
+                window.location.reload();
+              },
+              variant: 'outline',
+              icon: '🔄',
             },
-            variant: 'outline',
-            icon: '👁️'
-          }
-        ]
-      );
-    }
-  };
-
-  // Función helper para mostrar alertas de conexión
-  const showConnectionAlert = (isOnline: boolean) => {
-    if (!isOnline) {
-      store.showWarning(
-        'Conexión Perdida',
-        'Se ha perdido la conexión a internet. Los datos pueden no estar actualizados.',
-        [
-          {
-            label: 'Reintentar',
-            onClick: () => {
-              window.location.reload();
-            },
-            variant: 'outline',
-            icon: '🔄'
-          }
-        ]
-      );
-    } else {
-      store.showInfo(
-        'Conexión Restablecida',
-        'La conexión se ha restablecido correctamente.'
-      );
-    }
-  };
+          ]
+        );
+      } else {
+        showInfo(
+          'Conexión Restablecida',
+          'La conexión se ha restablecido correctamente.'
+        );
+      }
+    },
+    [showInfo, showWarning]
+  );
 
   return {
-    ...store,
+    alerts,
+    globalSettings,
+    addAlert,
+    removeAlert,
+    clearAlerts,
+    updateGlobalSettings,
+    showInfo,
+    showWarning,
+    showCritical,
+    showEmergency,
+    getCriticalCount,
+    getEmergencyCount,
+    hasActiveAlerts,
     checkStationAlerts,
     showConnectionAlert,
   };
