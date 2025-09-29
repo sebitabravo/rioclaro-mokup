@@ -49,6 +49,8 @@ THIRD_PARTY_APPS = [
     'rest_framework.authtoken',
     'corsheaders',
     'django_filters',
+    'axes',
+    'django_ratelimit',
 ]
 
 LOCAL_APPS = [
@@ -66,9 +68,15 @@ MIDDLEWARE = [
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
+    'users.middleware.RequestSanitizationMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'users.middleware.SessionTimeoutMiddleware',
+    'users.security_logging.RequestContextMiddleware',
+    'axes.middleware.AxesMiddleware',
+    'users.middleware.AuditLogMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'users.middleware.SecurityHeadersMiddleware',
 ]
 
 ROOT_URLCONF = 'rioclaro_api.urls'
@@ -142,6 +150,7 @@ AUTH_USER_MODEL = 'users.CustomUser'
 
 # Authentication Backends
 AUTHENTICATION_BACKENDS = [
+    'axes.backends.AxesStandaloneBackend',
     'users.authentication.EmailOrUsernameBackend',
     'django.contrib.auth.backends.ModelBackend',  # Fallback
 ]
@@ -175,11 +184,16 @@ REST_FRAMEWORK = {
 # CORS Settings
 CORS_ALLOW_ALL_ORIGINS = env('CORS_ALLOW_ALL_ORIGINS')
 CORS_ALLOW_CREDENTIALS = env('CORS_ALLOW_CREDENTIALS')
+CORS_ALLOWED_ORIGINS = env.list('CORS_ALLOWED_ORIGINS', default=[])
 
-# Security Settings
+# Security Headers
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = 'DENY'
+SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
+
+# Rate Limiting Headers (implementar con django-ratelimit en producción)
+# RATELIMIT_ENABLE = True
 
 # Session Configuration
 SESSION_COOKIE_SECURE = not DEBUG
@@ -261,6 +275,16 @@ LOGGING = {
             'level': 'INFO',
             'propagate': False,
         },
+        'rioclaro.security': {
+            'handlers': ['console', 'error_file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'rioclaro.ratelimit': {
+            'handlers': ['console', 'error_file'],
+            'level': 'WARNING',
+            'propagate': False,
+        },
     },
 }
 
@@ -279,3 +303,10 @@ CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = TIME_ZONE
+
+# Django-Axes Configuration (Security)
+AXES_FAILURE_LIMIT = 5  # Number of failed attempts before lockout
+AXES_COOLOFF_TIME = 1  # Hours to wait before attempting again
+AXES_RESET_ON_SUCCESS = True
+AXES_LOCK_OUT_BY_USER_OR_IP = True  # Track failures by user or IP
+AXES_LOCKOUT_PARAMETERS = ['ip_address', 'username']  # Lock by both

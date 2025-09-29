@@ -53,6 +53,8 @@ INSTALLED_APPS = [
     'corsheaders',
     'django_filters',
     'django_extensions',  # For management commands
+    'django_ratelimit',   # Rate limiting
+    'axes',              # Advanced authentication security
     'users',
     'stations',
     'sensors',
@@ -62,12 +64,16 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'corsheaders.middleware.CorsMiddleware',
+    'users.security_logging.RequestContextMiddleware',  # Request context for logging
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'users.middleware.SessionTimeoutMiddleware',  # Custom session timeout
-    'users.middleware.AuditLogMiddleware',       # Custom audit logging
+    'axes.middleware.AxesMiddleware',                    # Django-axes protection
+    'users.middleware.SessionTimeoutMiddleware',        # Custom session timeout
+    'users.middleware.AuditLogMiddleware',             # Custom audit logging
+    'users.middleware.SecurityHeadersMiddleware',       # Custom security headers
+    'users.middleware.RequestSanitizationMiddleware',   # Input sanitization
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -231,6 +237,9 @@ LOGGING = {
             'format': '{levelname} {message}',
             'style': '{',
         },
+        'json': {
+            '()': 'users.security_logging.SecurityLogFormatter',
+        },
     },
     'handlers': {
         'file': {
@@ -243,6 +252,31 @@ LOGGING = {
             'level': env('LOG_LEVEL', default='INFO'),
             'class': 'logging.StreamHandler',
             'formatter': 'simple',
+        },
+        'security_file': {
+            'level': 'INFO',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': BASE_DIR / 'logs' / 'security.log',
+            'maxBytes': 10 * 1024 * 1024,  # 10MB
+            'backupCount': 10,
+            'formatter': 'json',
+        },
+        'security_critical': {
+            'level': 'ERROR',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': BASE_DIR / 'logs' / 'security_critical.log',
+            'maxBytes': 5 * 1024 * 1024,  # 5MB
+            'backupCount': 20,
+            'formatter': 'json',
+        },
+        'audit_file': {
+            'level': 'INFO',
+            'class': 'logging.handlers.TimedRotatingFileHandler',
+            'filename': BASE_DIR / 'logs' / 'audit.log',
+            'when': 'midnight',
+            'interval': 1,
+            'backupCount': 365,
+            'formatter': 'json',
         },
     },
     'root': {
@@ -258,6 +292,26 @@ LOGGING = {
         'rioclaro': {
             'handlers': ['console', 'file'],
             'level': env('LOG_LEVEL', default='INFO'),
+            'propagate': False,
+        },
+        'rioclaro.security': {
+            'handlers': ['security_file', 'security_critical', 'audit_file', 'console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'rioclaro.auth': {
+            'handlers': ['security_file', 'console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'rioclaro.ratelimit': {
+            'handlers': ['security_file', 'console'],
+            'level': 'WARNING',
+            'propagate': False,
+        },
+        'axes': {
+            'handlers': ['security_file', 'console'],
+            'level': 'WARNING',
             'propagate': False,
         },
     },
@@ -323,3 +377,53 @@ if SENTRY_DSN and not DEBUG:
         traces_sample_rate=0.1,
         send_default_pii=True
     )
+
+# Django-axes Configuration (Anti-brute force protection)
+AXES_HANDLER = 'axes.handlers.database.AxesDatabaseHandler'
+AXES_FAILURE_LIMIT = env('AXES_FAILURE_LIMIT', default=5)
+AXES_COOLOFF_TIME = env('AXES_COOLOFF_TIME', default=1)  # Hours
+AXES_RESET_ON_SUCCESS = env('AXES_RESET_ON_SUCCESS', default=True)
+AXES_LOCKOUT_CALLABLE = 'users.security_logging.log_lockout_event'
+AXES_ENABLE_ADMIN = env('AXES_ENABLE_ADMIN', default=True)
+AXES_VERBOSE = env('AXES_VERBOSE', default=True)
+AXES_LOCK_OUT_AT_FAILURE = env('AXES_LOCK_OUT_AT_FAILURE', default=True)
+AXES_USE_USER_AGENT = env('AXES_USE_USER_AGENT', default=True)
+AXES_LOCK_OUT_BY_COMBINATION_USER_AND_IP = env('AXES_LOCK_OUT_BY_COMBINATION_USER_AND_IP', default=True)
+
+# Rate Limiting Configuration
+RATELIMIT_USE_CACHE = 'default'
+RATELIMIT_ENABLE = env('RATELIMIT_ENABLE', default=True)
+
+# Additional Security Settings for Production
+if not DEBUG:
+    # Force HTTPS in production
+    SECURE_SSL_REDIRECT = env('SECURE_SSL_REDIRECT', default=True)
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+    # HSTS Settings
+    SECURE_HSTS_SECONDS = env('SECURE_HSTS_SECONDS', default=31536000)  # 1 year
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = env('SECURE_HSTS_INCLUDE_SUBDOMAINS', default=True)
+    SECURE_HSTS_PRELOAD = env('SECURE_HSTS_PRELOAD', default=True)
+
+    # Additional Security Headers
+    SECURE_CONTENT_TYPE_NOSNIFF = env('SECURE_CONTENT_TYPE_NOSNIFF', default=True)
+    SECURE_BROWSER_XSS_FILTER = env('SECURE_BROWSER_XSS_FILTER', default=True)
+    SECURE_REFERRER_POLICY = env('SECURE_REFERRER_POLICY', default='strict-origin-when-cross-origin')
+
+    # Cookie Security
+    SESSION_COOKIE_SECURE = env('SESSION_COOKIE_SECURE', default=True)
+    SESSION_COOKIE_HTTPONLY = env('SESSION_COOKIE_HTTPONLY', default=True)
+    SESSION_COOKIE_SAMESITE = env('SESSION_COOKIE_SAMESITE', default='Strict')
+    CSRF_COOKIE_SECURE = env('CSRF_COOKIE_SECURE', default=True)
+    CSRF_COOKIE_HTTPONLY = env('CSRF_COOKIE_HTTPONLY', default=True)
+    CSRF_COOKIE_SAMESITE = env('CSRF_COOKIE_SAMESITE', default='Strict')
+
+# Security Event Monitoring
+SECURITY_MONITORING = {
+    'ENABLE_INTRUSION_DETECTION': env('ENABLE_INTRUSION_DETECTION', default=True),
+    'ENABLE_RATE_LIMIT_MONITORING': env('ENABLE_RATE_LIMIT_MONITORING', default=True),
+    'ENABLE_AUTHENTICATION_MONITORING': env('ENABLE_AUTHENTICATION_MONITORING', default=True),
+    'SUSPICIOUS_ACTIVITY_THRESHOLD': env('SUSPICIOUS_ACTIVITY_THRESHOLD', default=10),
+    'AUTO_BLOCK_SUSPICIOUS_IPS': env('AUTO_BLOCK_SUSPICIOUS_IPS', default=False),
+    'NOTIFICATION_EMAIL': env('SECURITY_NOTIFICATION_EMAIL', default=DEFAULT_FROM_EMAIL),
+}
