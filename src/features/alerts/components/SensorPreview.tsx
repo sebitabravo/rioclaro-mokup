@@ -19,7 +19,7 @@ import {
   Legend,
   ResponsiveContainer,
   ReferenceLine
-} from 'recharts';
+} from '@shared/lib/recharts';
 import {
   RefreshCw,
   TrendingUp,

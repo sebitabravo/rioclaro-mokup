@@ -29,7 +29,6 @@ export function OnboardingTour({
   title = 'Tour Interactivo'
 }: OnboardingTourProps) {
   const [currentStep, setCurrentStep] = useState(0);
-  const [targetElement, setTargetElement] = useState<Element | null>(null);
 
   const currentStepData = steps[currentStep];
 
@@ -39,8 +38,6 @@ export function OnboardingTour({
 
     const element = document.querySelector(currentStepData.target);
     if (element) {
-      setTargetElement(element);
-
       // Hacer scroll suave al elemento
       element.scrollIntoView({
         behavior: 'smooth',
@@ -203,7 +200,7 @@ export function OnboardingTour({
       </div>
 
       {/* CSS Styles for Highlighting */}
-      <style jsx global>{`
+      <HighlightStyles $jsx $global>{`
         .onboarding-highlight {
           position: relative;
           z-index: 51 !important;
@@ -221,7 +218,17 @@ export function OnboardingTour({
             box-shadow: 0 0 0 8px rgba(59, 130, 246, 0.1);
           }
         }
-      `}</style>
+      `}</HighlightStyles>
     </>
   );
 }
+
+interface HighlightStylesProps {
+  $jsx?: boolean;
+  $global?: boolean;
+  children: React.ReactNode;
+}
+
+const HighlightStyles = ({ children }: HighlightStylesProps) => (
+  <style>{children}</style>
+);

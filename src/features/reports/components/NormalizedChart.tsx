@@ -6,7 +6,7 @@ import {
 	CartesianGrid,
 	Tooltip,
 	ResponsiveContainer
-} from 'recharts';
+} from '@shared/lib/recharts';
 import {
 	DataNormalizationService,
 	ChartDataSet,
