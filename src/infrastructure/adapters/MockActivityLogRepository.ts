@@ -202,6 +202,14 @@ export class MockActivityLogRepository implements ActivityLogRepository {
     return newLog;
   }
 
+  async deleteById(id: number): Promise<boolean> {
+    await new Promise(resolve => setTimeout(resolve, 250));
+
+    const initialLength = this.logs.length;
+    this.logs = this.logs.filter(log => log.id !== id);
+    return this.logs.length < initialLength;
+  }
+
   async deleteOld(daysToKeep: number): Promise<number> {
     await new Promise(resolve => setTimeout(resolve, 500));
     

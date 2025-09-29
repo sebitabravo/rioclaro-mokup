@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@shared/components/ui/card";
 import { Button } from "@shared/components/ui/button";
 import { Badge } from "@shared/components/ui/badge";
@@ -8,7 +8,12 @@ import {
   MapPin,
   Plus,
   AlertTriangle,
-  BarChart3
+  BarChart3,
+  Bell,
+  BellOff,
+  Volume2,
+  VolumeX,
+  Trash2
 } from "lucide-react";
 import { useAlertStore } from '../stores/useAlertStore';
 import { StationSelector } from './StationSelector';
@@ -16,6 +21,8 @@ import { ConfigurationList } from './ConfigurationList';
 import { ThresholdForm } from './ThresholdForm';
 import { SensorPreview } from './SensorPreview';
 import { DeleteConfirmationDialog } from './DeleteConfirmationDialog';
+import { useAlerts } from '@shared/stores/AlertStore';
+import { notificationService } from '@shared/services/NotificationService';
 
 export const AlertConfigurationDashboard: React.FC = () => {
   const {
@@ -28,12 +35,38 @@ export const AlertConfigurationDashboard: React.FC = () => {
     isDeleteDialogOpen,
     configurationToDelete,
     openForm,
+    refreshData
   } = useAlertStore();
 
   const [activeView, setActiveView] = useState<'configurations' | 'preview'>('configurations');
+  const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>('default');
 
   const selectedStation = stations.find(s => s.id === selectedStationId);
   const stationConfigurations = configurations.filter(c => c.station_id === selectedStationId);
+  const {
+    globalSettings,
+    updateGlobalSettings,
+    clearAlerts
+  } = useAlerts();
+
+  useEffect(() => {
+    setNotificationPermission(notificationService.getPermissionStatus());
+  }, []);
+
+  useEffect(() => {
+    if (!stations.length && !isLoadingStations && !error) {
+      refreshData();
+    }
+  }, [stations.length, isLoadingStations, error, refreshData]);
+
+  const requestNotificationPermission = async () => {
+    const hasPermission = await notificationService.checkPermission();
+    setNotificationPermission(notificationService.getPermissionStatus());
+
+    if (hasPermission) {
+      updateGlobalSettings({ pushNotificationsEnabled: true });
+    }
+  };
 
 
   const getActiveThresholds = () => {
@@ -178,6 +211,128 @@ export const AlertConfigurationDashboard: React.FC = () => {
           ) : (
             <SensorPreview />
           )}
+
+          {/* Alert Settings Panel */}
+          <Card className="border border-gray-200 shadow-sm">
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <Settings className="h-5 w-5" />
+                <span>Ajustes globales de alertas</span>
+              </CardTitle>
+              <CardDescription>
+                Define cómo se comportan las notificaciones del sistema para todos los usuarios.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  {globalSettings.soundEnabled ? (
+                    <Volume2 className="h-5 w-5 text-blue-600" />
+                  ) : (
+                    <VolumeX className="h-5 w-5 text-gray-400" />
+                  )}
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">Sonidos</p>
+                    <p className="text-xs text-gray-500">Reproduce una alerta audible cuando se emitan notificaciones.</p>
+                  </div>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => updateGlobalSettings({ soundEnabled: !globalSettings.soundEnabled })}
+                >
+                  {globalSettings.soundEnabled ? 'Activado' : 'Desactivado'}
+                </Button>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  {globalSettings.pushNotificationsEnabled ? (
+                    <Bell className="h-5 w-5 text-blue-600" />
+                  ) : (
+                    <BellOff className="h-5 w-5 text-gray-400" />
+                  )}
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">Notificaciones Push</p>
+                    <p className="text-xs text-gray-500">Envía avisos en el navegador incluso fuera del panel.</p>
+                  </div>
+                </div>
+                {notificationPermission === 'granted' ? (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => updateGlobalSettings({ pushNotificationsEnabled: !globalSettings.pushNotificationsEnabled })}
+                  >
+                    {globalSettings.pushNotificationsEnabled ? 'Activado' : 'Desactivado'}
+                  </Button>
+                ) : notificationPermission === 'denied' ? (
+                  <span className="text-xs text-red-600">Permiso denegado en el navegador</span>
+                ) : (
+                  <Button variant="default" size="sm" onClick={requestNotificationPermission}>
+                    Permitir
+                  </Button>
+                )}
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-900">Auto-ocultar información</p>
+                  <p className="text-xs text-gray-500">Las alertas informativas se cierran automáticamente tras unos segundos.</p>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => updateGlobalSettings({ autoHideInfo: !globalSettings.autoHideInfo })}
+                >
+                  {globalSettings.autoHideInfo ? 'Sí' : 'No'}
+                </Button>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-900">Auto-ocultar advertencias</p>
+                  <p className="text-xs text-gray-500">Desaparecen automáticamente las alertas de nivel advertencia.</p>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => updateGlobalSettings({ autoHideWarning: !globalSettings.autoHideWarning })}
+                >
+                  {globalSettings.autoHideWarning ? 'Sí' : 'No'}
+                </Button>
+              </div>
+
+              <div className="flex flex-wrap gap-2 pt-2 border-t border-gray-200">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex items-center space-x-2"
+                  onClick={() => clearAlerts('info')}
+                >
+                  <Trash2 className="h-4 w-4" />
+                  <span>Limpiar info</span>
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex items-center space-x-2"
+                  onClick={() => clearAlerts('warning')}
+                >
+                  <Trash2 className="h-4 w-4" />
+                  <span>Limpiar advertencias</span>
+                </Button>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  className="flex items-center space-x-2"
+                  onClick={() => clearAlerts()}
+                >
+                  <Trash2 className="h-4 w-4" />
+                  <span>Limpiar todas</span>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         </>
       )}
 

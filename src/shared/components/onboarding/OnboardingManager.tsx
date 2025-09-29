@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { HelpCircle, Play, X } from 'lucide-react';
 import { Button } from '@shared/components/ui/button';
 import { Card } from '@shared/components/ui/card';
@@ -29,7 +29,8 @@ export function OnboardingManager({
     markTourCompleted,
     shouldShowInitialTour,
     completeFirstLogin,
-    isFirstTimeUser
+    isFirstTimeUser,
+    isLoaded
   } = useOnboarding();
 
   const [showTour, setShowTour] = useState(false);
@@ -38,7 +39,7 @@ export function OnboardingManager({
 
   // Verificar si debe mostrar el tour automáticamente
   useEffect(() => {
-    if (!user) return;
+  if (!user || !isLoaded) return;
 
     // Mostrar automáticamente si es primera vez y está configurado para autostart
     if (autoStart && shouldShowInitialTour() && tourType === 'hasSeenDashboardTour') {
@@ -54,7 +55,7 @@ export function OnboardingManager({
       }, 1500);
       return () => clearTimeout(timer);
     }
-  }, [user, autoStart, showPrompt, tourType, shouldShowTour, shouldShowInitialTour, promptDismissed]);
+  }, [user, autoStart, showPrompt, tourType, shouldShowTour, shouldShowInitialTour, promptDismissed, isLoaded]);
 
   const startTour = () => {
     setShowFirstTimePrompt(false);
@@ -71,6 +72,16 @@ export function OnboardingManager({
       completeFirstLogin();
     }
     setShowTour(false);
+  };
+
+  const skipTourPermanently = () => {
+    markTourCompleted(tourType);
+    if (isFirstTimeUser && tourType === 'hasSeenDashboardTour') {
+      completeFirstLogin();
+    }
+    setShowTour(false);
+    setShowFirstTimePrompt(false);
+    setPromptDismissed(true);
   };
 
   const dismissPrompt = () => {
@@ -92,6 +103,7 @@ export function OnboardingManager({
         isOpen={showTour}
         onClose={closeTour}
         onComplete={completeTour}
+        onSkip={skipTourPermanently}
         title={`Tour: ${
           tourType === 'hasSeenDashboardTour' ? 'Dashboard Principal' :
           tourType === 'hasSeenAdminTour' ? 'Panel de Administración' :

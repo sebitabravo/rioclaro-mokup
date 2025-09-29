@@ -2,6 +2,7 @@ import React from 'react';
 import { Navbar } from "@shared/components/layout/Navbar";
 import { AlertConfigurationDashboard } from '@features/alerts/components/AlertConfigurationDashboard';
 import { RoleGuard } from '@shared/components/auth/RoleGuard';
+import { AlertContainer } from '@shared/components/alerts/AlertContainer';
 
 export const AlertConfigurationPage: React.FC = () => {
   return (
@@ -22,7 +23,14 @@ export const AlertConfigurationPage: React.FC = () => {
           </div>
         }
       >
-        <AlertConfigurationDashboard />
+        <div className="relative">
+          <AlertConfigurationDashboard />
+          <AlertContainer
+            position="top-right"
+            maxVisible={5}
+            showSettings={false}
+          />
+        </div>
       </RoleGuard>
     </div>
   );

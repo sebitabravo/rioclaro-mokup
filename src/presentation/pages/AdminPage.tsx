@@ -1,6 +1,8 @@
 import React from 'react';
 import { AdminDashboard } from '@features/admin/components/AdminDashboard';
 import { RoleGuard } from '@shared/components/auth/RoleGuard';
+import { Navbar } from '@shared/components/layout/Navbar';
+import { AlertContainer } from '@shared/components/alerts/AlertContainer';
 
 export const AdminPage: React.FC = () => {
   return (
@@ -19,7 +21,13 @@ export const AdminPage: React.FC = () => {
         </div>
       }
     >
-      <AdminDashboard />
+      <div className="min-h-screen bg-gray-50">
+        <Navbar />
+        <div className="relative">
+          <AdminDashboard />
+          <AlertContainer position="top-right" maxVisible={5} showSettings={false} />
+        </div>
+      </div>
     </RoleGuard>
   );
 };

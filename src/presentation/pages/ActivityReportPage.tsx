@@ -4,6 +4,21 @@ import { Navbar } from '@shared/components/layout/Navbar';
 import { Card, CardContent, CardHeader, CardTitle } from '@shared/components/ui/card';
 import { Button } from '@shared/components/ui/button';
 import { Input } from '@shared/components/ui/input';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle
+} from '@shared/components/ui/dialog';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger
+} from '@shared/components/ui/dropdown-menu';
 import { ActivityExportButton } from '@features/activity/components/ActivityExportButton';
 import {
   Activity,
@@ -68,6 +83,11 @@ export function ActivityReportPage() {
     byStatus: Record<string, number>;
     recentActivity: ActivityLog[];
   } | null>(null);
+  const [selectedLog, setSelectedLog] = useState<ActivityLog | null>(null);
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const [actionFeedback, setActionFeedback] = useState<string | null>(null);
+  const [logPendingDeletion, setLogPendingDeletion] = useState<ActivityLog | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const loadLogs = useCallback(async () => {
     setLoading(true);
@@ -95,6 +115,76 @@ export function ActivityReportPage() {
   useEffect(() => {
     loadLogs();
   }, [loadLogs]);
+
+  useEffect(() => {
+    if (!actionFeedback) return;
+
+    const timeoutId = window.setTimeout(() => {
+      setActionFeedback(null);
+    }, 3000);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [actionFeedback]);
+
+  const handleViewDetails = useCallback((log: ActivityLog) => {
+    setSelectedLog(log);
+    setIsDetailsOpen(true);
+  }, []);
+
+  const handleDeleteRequest = useCallback((log: ActivityLog) => {
+    setLogPendingDeletion(log);
+  }, []);
+
+  const handleCopy = useCallback(async (value: string, label: string) => {
+    try {
+      if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(value);
+      } else {
+        const textarea = document.createElement('textarea');
+        textarea.value = value;
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.focus();
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+      }
+
+      setActionFeedback(`${label} copiado al portapapeles.`);
+    } catch (error) {
+      console.error('Error copiando texto:', error);
+      setActionFeedback('No se pudo copiar el texto.');
+    }
+  }, []);
+
+  const closeDeleteDialog = useCallback(() => {
+    setLogPendingDeletion(null);
+  }, []);
+
+  const handleConfirmDelete = useCallback(async () => {
+    if (!logPendingDeletion) return;
+
+    setIsDeleting(true);
+    try {
+      const deleted = await activityLogRepo.deleteById(logPendingDeletion.id);
+
+      if (deleted) {
+        setActionFeedback('Actividad eliminada correctamente.');
+        await loadLogs();
+      } else {
+        setActionFeedback('No se pudo eliminar la actividad seleccionada.');
+      }
+    } catch (error) {
+      console.error('Error eliminando actividad:', error);
+      setActionFeedback('Ocurrió un error al eliminar la actividad.');
+    } finally {
+      setIsDeleting(false);
+      closeDeleteDialog();
+    }
+  }, [logPendingDeletion, closeDeleteDialog, loadLogs]);
 
   const ActivityIcon = ({ type }: { type: keyof typeof activityTypeConfig }) => {
     const config = activityTypeConfig[type];
@@ -163,6 +253,12 @@ export function ActivityReportPage() {
             />
           </div>
         </div>
+
+        {actionFeedback && (
+          <div className="mb-6 rounded-md border border-gov-green bg-gov-green/10 px-3 py-2 text-sm text-gov-green">
+            {actionFeedback}
+          </div>
+        )}
 
         {/* Stats Cards */}
         {stats && (
@@ -375,16 +471,45 @@ export function ActivityReportPage() {
                               variant="ghost"
                               size="sm"
                               className="h-8 w-8 p-0"
+                              onClick={() => handleViewDetails(log)}
                             >
                               <Eye className="h-4 w-4" />
                             </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-8 w-8 p-0"
-                            >
-                              <MoreVertical className="h-4 w-4" />
-                            </Button>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-8 w-8 p-0"
+                                >
+                                  <MoreVertical className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem onSelect={() => handleViewDetails(log)}>
+                                  Ver detalles
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onSelect={() => handleCopy(String(log.id), 'ID de actividad')}>
+                                  Copiar ID
+                                </DropdownMenuItem>
+                                {log.metadata && (
+                                  <DropdownMenuItem onSelect={() => handleCopy(JSON.stringify(log.metadata, null, 2), 'Metadatos')}>
+                                    Copiar metadatos
+                                  </DropdownMenuItem>
+                                )}
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem onSelect={() => handleCopy(JSON.stringify(log, null, 2), 'Registro completo')}>
+                                  Copiar registro completo
+                                </DropdownMenuItem>
+                                 <DropdownMenuSeparator />
+                                 <DropdownMenuItem
+                                   className="text-gov-secondary focus:text-gov-secondary"
+                                   onSelect={() => handleDeleteRequest(log)}
+                                 >
+                                   Eliminar actividad
+                                 </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
                           </div>
                         </div>
                       </div>
@@ -395,6 +520,167 @@ export function ActivityReportPage() {
             )}
           </CardContent>
         </Card>
+
+        <Dialog
+          open={isDetailsOpen && !!selectedLog}
+          onOpenChange={(open) => {
+            setIsDetailsOpen(open);
+            if (!open) {
+              setSelectedLog(null);
+            }
+          }}
+        >
+          <DialogContent className="max-h-[80vh] overflow-y-auto">
+            {selectedLog && (
+              <>
+                <DialogHeader>
+                  <DialogTitle className="text-gov-black">{selectedLog.title}</DialogTitle>
+                  <DialogDescription>
+                    Registrado el {formatDateTime(selectedLog.timestamp)} · Estado:{' '}
+                    <span className="font-medium text-gov-black">
+                      {statusConfig[selectedLog.status]?.label || selectedLog.status}
+                    </span>
+                  </DialogDescription>
+                </DialogHeader>
+
+                <div className="space-y-4 text-sm">
+                  <p className="text-gov-gray-a">{selectedLog.description}</p>
+
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div>
+                      <span className="text-xs uppercase text-gov-gray-b">Tipo de actividad</span>
+                      <p className="font-medium text-gov-black">
+                        {activityTypeConfig[selectedLog.activity_type]?.label || selectedLog.activity_type}
+                      </p>
+                    </div>
+                    <div>
+                      <span className="text-xs uppercase text-gov-gray-b">ID de actividad</span>
+                      <p className="font-medium text-gov-black">#{selectedLog.id}</p>
+                    </div>
+                    {selectedLog.user_name && (
+                      <div>
+                        <span className="text-xs uppercase text-gov-gray-b">Usuario</span>
+                        <p className="font-medium text-gov-black">{selectedLog.user_name}</p>
+                      </div>
+                    )}
+                    {selectedLog.station_name && (
+                      <div>
+                        <span className="text-xs uppercase text-gov-gray-b">Estación</span>
+                        <p className="font-medium text-gov-black">{selectedLog.station_name}</p>
+                      </div>
+                    )}
+                    {selectedLog.ip_address && (
+                      <div>
+                        <span className="text-xs uppercase text-gov-gray-b">IP registrada</span>
+                        <p className="font-medium text-gov-black">{selectedLog.ip_address}</p>
+                      </div>
+                    )}
+                    {selectedLog.user_agent && (
+                      <div className="sm:col-span-2">
+                        <span className="text-xs uppercase text-gov-gray-b">Agente de usuario</span>
+                        <p className="font-medium text-gov-black break-words">{selectedLog.user_agent}</p>
+                      </div>
+                    )}
+                    <div>
+                      <span className="text-xs uppercase text-gov-gray-b">Creado en</span>
+                      <p className="font-medium text-gov-black">{formatDateTime(selectedLog.created_at)}</p>
+                    </div>
+                  </div>
+
+                  {selectedLog.metadata && (
+                    <div className="space-y-2">
+                      <span className="text-xs uppercase text-gov-gray-b">Metadatos</span>
+                      <pre className="max-h-48 overflow-y-auto rounded-md bg-gov-neutral p-3 text-xs text-gov-black">
+                        {JSON.stringify(selectedLog.metadata, null, 2)}
+                      </pre>
+                    </div>
+                  )}
+                </div>
+
+                <DialogFooter className="sm:flex-row sm:items-center sm:justify-between">
+                  <Button
+                    variant="outline"
+                    onClick={() => handleCopy(JSON.stringify(selectedLog, null, 2), 'Registro completo')}
+                  >
+                    Copiar registro
+                  </Button>
+                  <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+                    <Button
+                      onClick={() => {
+                        setIsDetailsOpen(false);
+                        setSelectedLog(null);
+                      }}
+                    >
+                      Cerrar
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      onClick={() => {
+                        const logForDeletion = selectedLog;
+                        setIsDetailsOpen(false);
+                        setSelectedLog(null);
+                        if (logForDeletion) {
+                          handleDeleteRequest(logForDeletion);
+                        }
+                      }}
+                    >
+                      Eliminar
+                    </Button>
+                  </div>
+                </DialogFooter>
+              </>
+            )}
+          </DialogContent>
+        </Dialog>
+
+        <Dialog
+          open={!!logPendingDeletion}
+          onOpenChange={(open) => {
+            if (!open) {
+              closeDeleteDialog();
+            }
+          }}
+        >
+          <DialogContent>
+            {logPendingDeletion && (
+              <>
+                <DialogHeader>
+                  <DialogTitle className="text-gov-black">Eliminar actividad</DialogTitle>
+                  <DialogDescription>
+                    Esta acción eliminará el registro de actividad <span className="font-medium text-gov-black">#{logPendingDeletion.id}</span>{' '}
+                    ({logPendingDeletion.title}). Esta operación no se puede deshacer.
+                  </DialogDescription>
+                </DialogHeader>
+
+                <div className="space-y-2 text-sm text-gov-gray-a">
+                  <p>Confirma que deseas remover permanentemente este evento del historial.</p>
+                  {logPendingDeletion.timestamp && (
+                    <p>
+                      Registrado el {formatDateTime(logPendingDeletion.timestamp)}.
+                    </p>
+                  )}
+                </div>
+
+                <DialogFooter className="sm:flex-row sm:justify-end">
+                  <Button
+                    variant="outline"
+                    onClick={closeDeleteDialog}
+                    disabled={isDeleting}
+                  >
+                    Cancelar
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    onClick={handleConfirmDelete}
+                    disabled={isDeleting}
+                  >
+                    {isDeleting ? 'Eliminando...' : 'Eliminar actividad'}
+                  </Button>
+                </DialogFooter>
+              </>
+            )}
+          </DialogContent>
+        </Dialog>
       </main>
     </div>
   );

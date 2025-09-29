@@ -12,6 +12,8 @@ import { useAuth } from '@features/auth/stores/AuthStore';
 // Componentes de administración
 import { UserManagement } from './users/UserManagement';
 import { StationManagement } from './stations/StationManagement';
+import { SystemConfiguration } from './settings/SystemConfiguration';
+import { AdminAnalytics } from './analytics/AdminAnalytics';
 
 type AdminTab = 'users' | 'stations' | 'settings' | 'analytics';
 
@@ -43,7 +45,7 @@ export const AdminDashboard: React.FC = () => {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<AdminTab>('users');
 
-  const allTabs: TabConfig[] = [
+  const allTabs: TabConfig[] = useMemo(() => ([
     {
       id: 'users',
       label: 'Usuarios',
@@ -75,17 +77,7 @@ export const AdminDashboard: React.FC = () => {
       allowedRoles: ['Administrador'],
       component: (
         <RoleGuard allowedRoles={['Administrador']}>
-          <div className="flex items-center justify-center h-64">
-            <div className="text-center">
-              <Settings className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-                Configuración del Sistema
-              </h3>
-              <p className="text-gray-500 dark:text-gray-400">
-                Próximamente: Configuraciones generales del sistema
-              </p>
-            </div>
-          </div>
+          <SystemConfiguration />
         </RoleGuard>
       ),
       description: 'Configuraciones del sistema (Solo Administradores)'
@@ -97,28 +89,18 @@ export const AdminDashboard: React.FC = () => {
       allowedRoles: ['Administrador', 'Técnico'],
       component: (
         <RoleGuard allowedRoles={['Administrador', 'Técnico']}>
-          <div className="flex items-center justify-center h-64">
-            <div className="text-center">
-              <BarChart3 className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-                Analíticas Administrativas
-              </h3>
-              <p className="text-gray-500 dark:text-gray-400">
-                Próximamente: Métricas de uso y estadísticas del sistema
-              </p>
-            </div>
-          </div>
+          <AdminAnalytics />
         </RoleGuard>
       ),
       description: 'Métricas y estadísticas (Administradores y Técnicos)'
     }
-  ];
+  ]), []);
 
   // Filtrar pestañas según el rol del usuario
   const tabs = useMemo(() => {
     if (!user) return [];
     return allTabs.filter(tab => hasAccessToTab(user.role, tab.allowedRoles));
-  }, [user]);
+  }, [user, allTabs]);
 
   // Asegurar que la pestaña activa sea válida
   const validActiveTab = useMemo(() => {

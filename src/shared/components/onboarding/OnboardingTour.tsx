@@ -18,6 +18,7 @@ interface OnboardingTourProps {
   isOpen: boolean;
   onClose: () => void;
   onComplete: () => void;
+  onSkip?: () => void;
   title?: string;
 }
 
@@ -26,6 +27,7 @@ export function OnboardingTour({
   isOpen,
   onClose,
   onComplete,
+  onSkip,
   title = 'Tour Interactivo'
 }: OnboardingTourProps) {
   const [currentStep, setCurrentStep] = useState(0);
@@ -86,7 +88,11 @@ export function OnboardingTour({
   };
 
   const skipTour = () => {
-    onClose();
+    if (onSkip) {
+      onSkip();
+    } else {
+      onClose();
+    }
   };
 
   if (!isOpen || !currentStepData) return null;

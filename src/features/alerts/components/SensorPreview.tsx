@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@shared/components/ui/card";
 import { Badge } from "@shared/components/ui/badge";
 import { Button } from "@shared/components/ui/button";
@@ -32,11 +32,14 @@ import {
   Clock
 } from 'lucide-react';
 import { useAlertStore } from '../stores/useAlertStore';
+import { useAlerts } from '@shared/stores/AlertStore';
 import { Container } from '@infrastructure/di/Container';
 import { Measurement } from '@domain/entities/Measurement';
+import type { AlertThreshold } from '@domain/entities/Alert';
 
 interface SensorReading {
   timestamp: string;
+  isoTimestamp: string;
   value: number;
   quality?: string;
 }
@@ -44,7 +47,8 @@ interface SensorReading {
 export const SensorPreview: React.FC = () => {
   const {
     selectedStationId,
-    configurations
+    configurations,
+    stations
   } = useAlertStore();
 
   const [selectedSensorType, setSelectedSensorType] = useState<string>('');
@@ -52,7 +56,11 @@ export const SensorPreview: React.FC = () => {
   const [currentValue, setCurrentValue] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [lastAlertSignature, setLastAlertSignature] = useState<string | null>(null);
 
+  const { showWarning, showCritical, showEmergency } = useAlerts();
+
+  const selectedStation = stations.find(station => station.id === selectedStationId);
   const stationConfigurations = configurations.filter(c => c.station_id === selectedStationId);
   const selectedConfiguration = stationConfigurations.find(c => c.sensor_type === selectedSensorType);
 
@@ -78,14 +86,18 @@ export const SensorPreview: React.FC = () => {
       const sensorMeasurements = measurements
         .filter((m: Measurement) => m.variable_type === selectedSensorType)
         .slice(0, 24) // Last 24 readings
-        .map((m: Measurement) => ({
-          timestamp: new Date(m.timestamp).toLocaleTimeString('es-ES', {
-            hour: '2-digit',
-            minute: '2-digit'
-          }),
-          value: m.value,
-          quality: m.quality
-        }))
+        .map((m: Measurement) => {
+          const measurementDate = new Date(m.timestamp);
+          return {
+            timestamp: measurementDate.toLocaleTimeString('es-ES', {
+              hour: '2-digit',
+              minute: '2-digit'
+            }),
+            isoTimestamp: m.timestamp,
+            value: m.value,
+            quality: m.quality
+          };
+        })
         .reverse(); // Show oldest to newest
 
       setSensorData(sensorMeasurements);
@@ -111,45 +123,160 @@ export const SensorPreview: React.FC = () => {
     return () => clearInterval(interval);
   }, [selectedStationId, selectedSensorType, fetchSensorData]);
 
-  const getCurrentStatus = () => {
-    if (!selectedConfiguration || currentValue === null) {
-      return { level: 'unknown', message: 'Sin datos' };
+  const isThresholdBreached = useCallback((value: number, threshold: AlertThreshold) => {
+    const { min_value, max_value, tolerance = 0 } = threshold;
+
+    if (min_value !== undefined && max_value !== undefined) {
+      return value < (min_value - tolerance) || value > (max_value + tolerance);
     }
 
-    // Check thresholds in order: emergency -> critical -> warning
+    if (min_value !== undefined) {
+      return value < (min_value - tolerance);
+    }
+
+    if (max_value !== undefined) {
+      return value > (max_value + tolerance);
+    }
+
+    return false;
+  }, []);
+
+  const evaluateCurrentStatus = useCallback((): {
+    level: 'unknown' | 'normal' | 'warning' | 'critical' | 'emergency';
+    message: string;
+    threshold: AlertThreshold | null;
+  } => {
+    if (!selectedConfiguration) {
+      return { level: 'unknown', message: 'Sin configuración', threshold: null };
+    }
+
+    if (currentValue === null) {
+      return { level: 'unknown', message: 'Sin datos', threshold: null };
+    }
+
     const activeThresholds = selectedConfiguration.thresholds
       .filter(t => t.is_active)
       .sort((a, b) => {
-        const order = { emergency: 3, critical: 2, warning: 1 };
+        const order = { emergency: 3, critical: 2, warning: 1 } as const;
         return order[b.level] - order[a.level];
       });
 
     for (const threshold of activeThresholds) {
-      const { min_value, max_value, tolerance = 0 } = threshold;
-
-      let isTriggered = false;
-
-      if (min_value !== undefined && max_value !== undefined) {
-        // Range threshold
-        isTriggered = currentValue < (min_value - tolerance) || currentValue > (max_value + tolerance);
-      } else if (min_value !== undefined) {
-        // Minimum threshold
-        isTriggered = currentValue < (min_value - tolerance);
-      } else if (max_value !== undefined) {
-        // Maximum threshold
-        isTriggered = currentValue > (max_value + tolerance);
+      if (!isThresholdBreached(currentValue, threshold)) {
+        continue;
       }
 
-      if (isTriggered) {
-        return {
-          level: threshold.level,
-          message: `Umbral ${threshold.level} activado`
-        };
+      if (threshold.persistence_time && threshold.persistence_time > 0) {
+        const windowStart = Date.now() - threshold.persistence_time * 60 * 1000;
+
+        const relevantReadings = sensorData.filter((reading) => {
+          const readingTime = new Date(reading.isoTimestamp).getTime();
+          return readingTime >= windowStart;
+        });
+
+        if (!relevantReadings.length) {
+          continue;
+        }
+
+        const sustained = relevantReadings.every((reading) =>
+          isThresholdBreached(reading.value, threshold)
+        );
+
+        if (!sustained) {
+          continue;
+        }
       }
+
+      return {
+        level: threshold.level,
+        message: `Umbral ${threshold.level} activado`,
+        threshold
+      };
     }
 
-    return { level: 'normal', message: 'Valores normales' };
-  };
+    return { level: 'normal', message: 'Valores normales', threshold: null };
+  }, [selectedConfiguration, currentValue, sensorData, isThresholdBreached]);
+
+  const status = useMemo(() => evaluateCurrentStatus(), [evaluateCurrentStatus]);
+
+  const formatThresholdDescription = useCallback((threshold: AlertThreshold, unit?: string) => {
+    const formatValue = (value?: number) => {
+      if (value === undefined) return undefined;
+      return unit ? `${value} ${unit}` : `${value}`;
+    };
+
+    if (threshold.min_value !== undefined && threshold.max_value !== undefined) {
+      return `${formatValue(threshold.min_value)} - ${formatValue(threshold.max_value)}`;
+    }
+
+    if (threshold.min_value !== undefined) {
+      return `≥ ${formatValue(threshold.min_value)}`;
+    }
+
+    if (threshold.max_value !== undefined) {
+      return `≤ ${formatValue(threshold.max_value)}`;
+    }
+
+    return 'Valor crítico';
+  }, []);
+
+  useEffect(() => {
+    if (status.level !== 'warning' && status.level !== 'critical' && status.level !== 'emergency') {
+      if (lastAlertSignature !== null) {
+        setLastAlertSignature(null);
+      }
+      return;
+    }
+
+    if (!status.threshold || !selectedStation || !selectedConfiguration || sensorData.length === 0) {
+      return;
+    }
+
+    const latestReading = sensorData[sensorData.length - 1];
+    const signature = `${selectedStation.id}-${selectedConfiguration.sensor_type}-${status.threshold.id}-${status.level}-${latestReading.isoTimestamp}`;
+
+    if (signature === lastAlertSignature) {
+      return;
+    }
+
+    const unitLabel = selectedConfiguration.sensor_unit ? ` ${selectedConfiguration.sensor_unit}` : '';
+    const formattedValue = `${latestReading.value.toFixed(2)}${unitLabel}`;
+    const thresholdDescription = formatThresholdDescription(status.threshold, selectedConfiguration.sensor_unit);
+    const readingTime = new Date(latestReading.isoTimestamp).toLocaleTimeString('es-ES', {
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+
+    const baseTitle =
+      status.level === 'warning'
+        ? 'Alerta preventiva'
+        : status.level === 'critical'
+          ? 'Alerta crítica'
+          : 'Alerta de emergencia';
+
+    const title = `${baseTitle} - ${selectedStation.name ?? 'Estación'}`;
+    const message = `El sensor ${selectedConfiguration.sensor_type} registró ${formattedValue} a las ${readingTime} en la estación ${selectedStation.name ?? ''}, superando el umbral ${thresholdDescription}.`;
+
+    if (status.level === 'warning') {
+      showWarning(title, message);
+    } else if (status.level === 'critical') {
+      showCritical(title, message, 1);
+    } else if (status.level === 'emergency') {
+      showEmergency(title, message, 1);
+    }
+
+    setLastAlertSignature(signature);
+  }, [
+    status,
+    sensorData,
+    selectedStation,
+    selectedConfiguration,
+    formatThresholdDescription,
+    showWarning,
+    showCritical,
+    showEmergency,
+    lastAlertSignature
+  ]);
 
   const getStatusColor = (level: string) => {
     switch (level) {
@@ -185,8 +312,6 @@ export const SensorPreview: React.FC = () => {
       return <Minus className="h-4 w-4 text-gray-400" />;
     }
   };
-
-  const status = getCurrentStatus();
 
   return (
     <div className="space-y-6">

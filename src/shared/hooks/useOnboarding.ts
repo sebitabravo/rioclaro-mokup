@@ -11,41 +11,58 @@ export interface OnboardingState {
 
 const ONBOARDING_STORAGE_KEY = 'rioclaro_onboarding_state';
 
+const DEFAULT_ONBOARDING_STATE: OnboardingState = {
+  hasSeenDashboardTour: false,
+  hasSeenAdminTour: false,
+  hasSeenReportsTour: false,
+  hasSeenAlertsTour: false,
+  isFirstLogin: true
+};
+
 export function useOnboarding() {
   const { user, isAuthenticated } = useAuth();
-  const [onboardingState, setOnboardingState] = useState<OnboardingState>({
-    hasSeenDashboardTour: false,
-    hasSeenAdminTour: false,
-    hasSeenReportsTour: false,
-    hasSeenAlertsTour: false,
-    isFirstLogin: true
-  });
+  const [onboardingState, setOnboardingState] = useState<OnboardingState>(() => ({
+    ...DEFAULT_ONBOARDING_STATE
+  }));
+  const [isLoaded, setIsLoaded] = useState(false);
+  const storageKey = user ? `${ONBOARDING_STORAGE_KEY}_${user.id}` : null;
 
   // Cargar estado del localStorage al inicializar
   useEffect(() => {
-    if (!user || !isAuthenticated) return;
+    if (!user || !isAuthenticated || !storageKey) {
+      setOnboardingState({ ...DEFAULT_ONBOARDING_STATE });
+      setIsLoaded(false);
+      return;
+    }
 
-    const savedState = localStorage.getItem(`${ONBOARDING_STORAGE_KEY}_${user.id}`);
+    const savedState = localStorage.getItem(storageKey);
+
     if (savedState) {
       try {
         const parsed = JSON.parse(savedState);
-        setOnboardingState(parsed);
+        setOnboardingState({ ...DEFAULT_ONBOARDING_STATE, ...parsed });
       } catch (error) {
         console.warn('Error loading onboarding state:', error);
+        setOnboardingState({ ...DEFAULT_ONBOARDING_STATE });
       }
+    } else {
+      setOnboardingState({ ...DEFAULT_ONBOARDING_STATE });
     }
-  }, [user, isAuthenticated]);
+
+    setIsLoaded(true);
+  }, [user, isAuthenticated, storageKey]);
 
   // Guardar estado cuando cambie
   const saveState = (newState: Partial<OnboardingState>) => {
-    if (!user) return;
+    if (!storageKey) return;
 
-    const updatedState = { ...onboardingState, ...newState };
-    setOnboardingState(updatedState);
-    localStorage.setItem(
-      `${ONBOARDING_STORAGE_KEY}_${user.id}`,
-      JSON.stringify(updatedState)
-    );
+    setOnboardingState(prevState => {
+      const updatedState = { ...prevState, ...newState };
+      localStorage.setItem(storageKey, JSON.stringify(updatedState));
+      return updatedState;
+    });
+
+    setIsLoaded(true);
   };
 
   // Marcar tour como completado
@@ -55,31 +72,23 @@ export function useOnboarding() {
 
   // Verificar si debe mostrar el tour inicial
   const shouldShowInitialTour = () => {
+    if (!isLoaded) return false;
     return onboardingState.isFirstLogin && !onboardingState.hasSeenDashboardTour;
   };
 
   // Verificar si debe mostrar tour específico
   const shouldShowTour = (tourType: keyof OnboardingState) => {
+    if (!isLoaded) return false;
     return !onboardingState[tourType];
   };
 
   // Resetear onboarding (para testing o re-onboarding)
   const resetOnboarding = () => {
-    if (!user) return;
+    if (!storageKey) return;
 
-    const initialState: OnboardingState = {
-      hasSeenDashboardTour: false,
-      hasSeenAdminTour: false,
-      hasSeenReportsTour: false,
-      hasSeenAlertsTour: false,
-      isFirstLogin: true
-    };
-
-    setOnboardingState(initialState);
-    localStorage.setItem(
-      `${ONBOARDING_STORAGE_KEY}_${user.id}`,
-      JSON.stringify(initialState)
-    );
+    setOnboardingState({ ...DEFAULT_ONBOARDING_STATE });
+    localStorage.setItem(storageKey, JSON.stringify(DEFAULT_ONBOARDING_STATE));
+    setIsLoaded(true);
   };
 
   // Marcar como usuario experimentado
@@ -102,6 +111,7 @@ export function useOnboarding() {
     // State
     onboardingState,
     isFirstTimeUser: onboardingState.isFirstLogin,
+    isLoaded,
 
     // Checkers
     shouldShowInitialTour,
