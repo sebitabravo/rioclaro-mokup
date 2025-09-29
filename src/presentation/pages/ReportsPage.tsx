@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { endOfDay, format, isAfter, parseISO, startOfDay, subDays, subMonths } from "date-fns";
 import { Navbar } from "@shared/components/layout/Navbar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@shared/components/ui/card";
 import { Button } from "@shared/components/ui/button";
@@ -56,13 +57,200 @@ const mockCriticalEvents = [
   },
 ];
 
+const ISO_DATE_FORMAT = "yyyy-MM-dd";
+
+type DateRange = {
+  start: string;
+  end: string;
+};
+
+type RangeValidation =
+  | { ok: true; startDate: Date; endDate: Date }
+  | { ok: false; message: string };
+
+type QuickRangeKey = "last7Days" | "lastMonth" | "last3Months";
+
+const METRIC_UNITS: Record<MetricType, { unit: string; decimals: number }> = {
+  flujo: { unit: "m³/s", decimals: 1 },
+  nivel: { unit: "m", decimals: 2 },
+  caudal: { unit: "L/s", decimals: 0 },
+  velocidad: { unit: "m/s", decimals: 2 },
+  temperatura: { unit: "°C", decimals: 1 },
+};
+
+const INITIAL_RANGE: DateRange = {
+  start: "2025-01-07",
+  end: "2025-01-13",
+};
+
 export function ReportsPage() {
   const [activeTab, setActiveTab] = useState("daily-average");
   const [selectedMetric, setSelectedMetric] = useState<MetricType>("nivel");
-  const [dateRange, setDateRange] = useState({
-    start: "2025-01-07",
-    end: "2025-01-13",
-  });
+  const [filterInputs, setFilterInputs] = useState<DateRange>(INITIAL_RANGE);
+  const [appliedRange, setAppliedRange] = useState<DateRange>(INITIAL_RANGE);
+  const [rangeError, setRangeError] = useState<string | null>(null);
+  const [filteredDailyData, setFilteredDailyData] = useState(mockDailyData);
+  const [filteredDetailedMetrics, setFilteredDetailedMetrics] = useState(mockDetailedMetrics);
+
+  const rangesEqual = useCallback((a: DateRange, b: DateRange) => a.start === b.start && a.end === b.end, []);
+
+  const validateRange = useCallback((range: DateRange): RangeValidation => {
+    if (!range.start || !range.end) {
+      return { ok: false, message: "Selecciona un rango de fechas válido." };
+    }
+
+    const startDate = parseISO(range.start);
+    const endDate = parseISO(range.end);
+
+    if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime())) {
+      return { ok: false, message: "Formato de fecha inválido." };
+    }
+
+    if (isAfter(startDate, endDate)) {
+      return { ok: false, message: "La fecha de inicio no puede ser posterior a la de fin." };
+    }
+
+    return { ok: true, startDate, endDate };
+  }, []);
+
+  const applyRange = useCallback((range: DateRange, syncInputs = false) => {
+    const validation = validateRange(range);
+    if (!validation.ok) {
+      setRangeError(validation.message);
+      return false;
+    }
+
+    setRangeError(null);
+
+    if (syncInputs) {
+      setFilterInputs(range);
+    }
+
+    setAppliedRange(range);
+    return true;
+  }, [validateRange]);
+
+  const getQuickRange = useCallback((preset: QuickRangeKey): DateRange => {
+    const now = new Date();
+    let startDate: Date;
+
+    switch (preset) {
+      case "last7Days":
+        startDate = subDays(now, 6);
+        break;
+      case "lastMonth":
+        startDate = subMonths(now, 1);
+        break;
+      case "last3Months":
+      default:
+        startDate = subMonths(now, 3);
+        break;
+    }
+
+    return {
+      start: format(startOfDay(startDate), ISO_DATE_FORMAT),
+      end: format(startOfDay(now), ISO_DATE_FORMAT),
+    };
+  }, []);
+
+  const handleQuickRange = useCallback((preset: QuickRangeKey) => {
+    const range = getQuickRange(preset);
+    applyRange(range, true);
+  }, [applyRange, getQuickRange]);
+
+  const handleApplyFilters = useCallback(() => {
+    applyRange(filterInputs);
+  }, [applyRange, filterInputs]);
+
+  const hasPendingChanges = useMemo(
+    () => !rangesEqual(filterInputs, appliedRange),
+    [filterInputs, appliedRange, rangesEqual]
+  );
+
+  const quickRangeOptions = [
+    { key: "last7Days" as QuickRangeKey, label: "Últimos 7 días", range: getQuickRange("last7Days") },
+    { key: "lastMonth" as QuickRangeKey, label: "Último mes", range: getQuickRange("lastMonth") },
+    { key: "last3Months" as QuickRangeKey, label: "Últimos 3 meses", range: getQuickRange("last3Months") },
+  ];
+
+  useEffect(() => {
+    const validation = validateRange(appliedRange);
+    if (!validation.ok) {
+      setFilteredDailyData([]);
+      setFilteredDetailedMetrics([]);
+      return;
+    }
+
+    const { startDate, endDate } = validation;
+    const startBoundary = startOfDay(startDate);
+    const endBoundary = endOfDay(endDate);
+
+    const isWithinRange = (value?: string) => {
+      if (!value) return false;
+      const isoCandidate = value.includes("T") ? value : `${value}T00:00:00Z`;
+      const parsed = parseISO(isoCandidate);
+      if (Number.isNaN(parsed.getTime())) {
+        return false;
+      }
+      return parsed >= startBoundary && parsed <= endBoundary;
+    };
+
+    setFilteredDailyData(
+      mockDailyData.filter((item) => isWithinRange(item.date ?? item.timestamp))
+    );
+
+    setFilteredDetailedMetrics(
+      mockDetailedMetrics.filter((item) => isWithinRange(item.timestamp))
+    );
+  }, [appliedRange, validateRange]);
+
+  const dailyStats = useMemo(() => {
+    if (!filteredDailyData.length) {
+      return { average: "—", max: "—", min: "—" };
+    }
+
+    const values = filteredDailyData.map((item) => {
+      const numericValue = typeof item.value === "number" ? item.value : Number(item.value);
+      return Number.isFinite(numericValue) ? numericValue : 0;
+    });
+
+    const sum = values.reduce((acc, value) => acc + value, 0);
+    const formatMeters = (value: number) => `${value.toFixed(1)}m`;
+
+    return {
+      average: formatMeters(sum / values.length),
+      max: formatMeters(Math.max(...values)),
+      min: formatMeters(Math.min(...values)),
+    };
+  }, [filteredDailyData]);
+
+  const metricStats = useMemo(() => {
+    if (!filteredDetailedMetrics.length) {
+      return { average: "—", max: "—", min: "—", variation: "—" };
+    }
+
+    const values = filteredDetailedMetrics.map((item) => {
+      const metricValue = (item as Record<string, unknown>)[selectedMetric];
+      const numericValue = typeof metricValue === "number" ? metricValue : Number(metricValue);
+      return Number.isFinite(numericValue) ? numericValue : 0;
+    });
+
+    const { unit, decimals } = METRIC_UNITS[selectedMetric];
+    const sum = values.reduce((acc, value) => acc + value, 0);
+    const average = values.length ? sum / values.length : 0;
+    const max = Math.max(...values);
+    const min = Math.min(...values);
+    const variation = max === min ? 0 : (max - min) / 2;
+
+    const formatMetricValue = (value: number) => `${value.toFixed(decimals)} ${unit}`;
+
+    return {
+      average: formatMetricValue(average),
+      max: formatMetricValue(max),
+      min: formatMetricValue(min),
+      variation: `±${variation.toFixed(decimals)} ${unit}`,
+    };
+  }, [filteredDetailedMetrics, selectedMetric]);
 
   return (
     <div className="min-h-screen bg-gov-neutral">
@@ -111,8 +299,8 @@ export function ReportsPage() {
                       </label>
                       <Input
                         type="date"
-                        value={dateRange.start}
-                        onChange={(e) => setDateRange((prev) => ({ ...prev, start: e.target.value }))}
+                        value={filterInputs.start}
+                        onChange={(e) => setFilterInputs((prev) => ({ ...prev, start: e.target.value }))}
                         className="w-full"
                       />
                     </div>
@@ -123,33 +311,46 @@ export function ReportsPage() {
                       </label>
                       <Input
                         type="date"
-                        value={dateRange.end}
-                        onChange={(e) => setDateRange((prev) => ({ ...prev, end: e.target.value }))}
+                        value={filterInputs.end}
+                        onChange={(e) => setFilterInputs((prev) => ({ ...prev, end: e.target.value }))}
                         className="w-full"
                       />
                     </div>
 
-                    <Button className="w-full bg-gov-primary text-white hover:bg-gov-primary/90 transition-colors">
+                    <Button
+                      type="button"
+                      onClick={handleApplyFilters}
+                      disabled={!hasPendingChanges}
+                      className="w-full bg-gov-primary text-white hover:bg-gov-primary/90 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                    >
                       <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                       </svg>
                       Aplicar Filtros
                     </Button>
+                    {rangeError && (
+                      <p className="text-xs text-gov-secondary mt-2" role="status">
+                        {rangeError}
+                      </p>
+                    )}
                   </div>
 
                   {/* Quick Range Buttons */}
                   <div className="pt-4 border-t border-gov-accent">
                     <p className="text-sm font-medium text-gov-black mb-3">Rangos Rápidos</p>
                     <div className="space-y-2">
-                      <Button variant="outline" size="sm" className="w-full justify-start text-xs">
-                        Últimos 7 días
-                      </Button>
-                      <Button variant="outline" size="sm" className="w-full justify-start text-xs">
-                        Último mes
-                      </Button>
-                      <Button variant="outline" size="sm" className="w-full justify-start text-xs">
-                        Últimos 3 meses
-                      </Button>
+                      {quickRangeOptions.map(({ key, label, range }) => (
+                        <Button
+                          key={key}
+                          type="button"
+                          variant={rangesEqual(appliedRange, range) ? "default" : "outline"}
+                          size="sm"
+                          className="w-full justify-start text-xs"
+                          onClick={() => handleQuickRange(key)}
+                        >
+                          {label}
+                        </Button>
+                      ))}
                     </div>
                   </div>
                 </CardContent>
@@ -237,7 +438,7 @@ export function ReportsPage() {
                   <CardContent>
                     <div className="mb-6">
                       <NormalizedChart 
-                        rawData={mockDailyData}
+                        rawData={filteredDailyData}
                         sourceType={DataSourceType.REPORT}
                         height={350}
                       />
@@ -250,7 +451,7 @@ export function ReportsPage() {
                             <TrendingUp className="w-5 h-5 text-gov-green" />
                           </div>
                           <div>
-                            <p className="text-2xl font-bold text-gov-green">2.4m</p>
+                            <p className="text-2xl font-bold text-gov-green">{dailyStats.average}</p>
                             <p className="text-sm text-gov-gray-a">Promedio General</p>
                           </div>
                         </div>
@@ -263,7 +464,7 @@ export function ReportsPage() {
                             </svg>
                           </div>
                           <div>
-                            <p className="text-2xl font-bold text-gov-primary">2.8m</p>
+                            <p className="text-2xl font-bold text-gov-primary">{dailyStats.max}</p>
                             <p className="text-sm text-gov-gray-a">Máximo Registrado</p>
                           </div>
                         </div>
@@ -276,7 +477,7 @@ export function ReportsPage() {
                             </svg>
                           </div>
                           <div>
-                            <p className="text-2xl font-bold text-gov-orange">2.1m</p>
+                            <p className="text-2xl font-bold text-gov-orange">{dailyStats.min}</p>
                             <p className="text-sm text-gov-gray-a">Mínimo Registrado</p>
                           </div>
                         </div>
@@ -374,7 +575,7 @@ export function ReportsPage() {
                     <CardContent>
                       <div className="mb-6">
                         <MetricChart
-                          rawData={mockDetailedMetrics}
+                          rawData={filteredDetailedMetrics}
                           sourceType={DataSourceType.REPORT}
                           metricType={selectedMetric}
                           height={400}
@@ -386,41 +587,25 @@ export function ReportsPage() {
                       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                         <div className="bg-gradient-to-br from-gov-green/5 to-gov-green/10 rounded-lg p-4 border border-gov-green/20">
                           <div className="text-center">
-                            <p className="text-xl font-bold text-gov-green">
-                              {selectedMetric === 'nivel' ? '2.4m' : 
-                               selectedMetric === 'flujo' ? '13.8 m³/s' :
-                               selectedMetric === 'caudal' ? '915 L/s' : '1.35 m/s'}
-                            </p>
+                            <p className="text-xl font-bold text-gov-green">{metricStats.average}</p>
                             <p className="text-sm text-gov-gray-a">Promedio</p>
                           </div>
                         </div>
                         <div className="bg-gradient-to-br from-gov-primary/5 to-gov-primary/10 rounded-lg p-4 border border-gov-primary/20">
                           <div className="text-center">
-                            <p className="text-xl font-bold text-gov-primary">
-                              {selectedMetric === 'nivel' ? '3.0m' : 
-                               selectedMetric === 'flujo' ? '16.1 m³/s' :
-                               selectedMetric === 'caudal' ? '1120 L/s' : '1.7 m/s'}
-                            </p>
+                            <p className="text-xl font-bold text-gov-primary">{metricStats.max}</p>
                             <p className="text-sm text-gov-gray-a">Máximo</p>
                           </div>
                         </div>
                         <div className="bg-gradient-to-br from-gov-orange/5 to-gov-orange/10 rounded-lg p-4 border border-gov-orange/20">
                           <div className="text-center">
-                            <p className="text-xl font-bold text-gov-orange">
-                              {selectedMetric === 'nivel' ? '2.0m' : 
-                               selectedMetric === 'flujo' ? '11.8 m³/s' :
-                               selectedMetric === 'caudal' ? '820 L/s' : '1.1 m/s'}
-                            </p>
+                            <p className="text-xl font-bold text-gov-orange">{metricStats.min}</p>
                             <p className="text-sm text-gov-gray-a">Mínimo</p>
                           </div>
                         </div>
                         <div className="bg-gradient-to-br from-gov-secondary/5 to-gov-secondary/10 rounded-lg p-4 border border-gov-secondary/20">
                           <div className="text-center">
-                            <p className="text-xl font-bold text-gov-secondary">
-                              {selectedMetric === 'nivel' ? '±0.3m' : 
-                               selectedMetric === 'flujo' ? '±1.8 m³/s' :
-                               selectedMetric === 'caudal' ? '±125 L/s' : '±0.2 m/s'}
-                            </p>
+                            <p className="text-xl font-bold text-gov-secondary">{metricStats.variation}</p>
                             <p className="text-sm text-gov-gray-a">Variación</p>
                           </div>
                         </div>

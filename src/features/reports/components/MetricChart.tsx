@@ -9,7 +9,7 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer
-} from "recharts";
+} from "@shared/lib/recharts";
 import { DataNormalizationService, ChartDataSet, DataSourceType } from "@shared/services/DataNormalizationService";
 
 export type MetricType = 'flujo' | 'nivel' | 'caudal' | 'velocidad' | 'temperatura';

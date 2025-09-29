@@ -67,7 +67,7 @@ export function NormalizedChart({
 			className={`bg-gov-white rounded-lg border border-gov-accent shadow-sm ${className}`}
 			data-testid='normalized-chart'
 		>
-			<div className="w-full p-4" style={{ height: 300 }}>
+			<div className="w-full p-4" style={{ height }}>
 				<ResponsiveContainer width="100%" height="100%">
 					<LineChart
 						data={safeData}
