@@ -84,14 +84,43 @@ src/
 - **ESLint 9.15** - Linting con reglas TypeScript
 - **pnpm** - Package manager eficiente
 
-## 📦 Instalación y Desarrollo
+## 🚀 Quick Start
+
+### ⚡ Setup en 30 segundos
+
+```bash
+git clone https://github.com/sebitabravo/rioclaro-mokup.git
+cd rioclaro-mokup
+pnpm install
+pnpm dev
+```
+
+**¡Listo!** Abre [http://localhost:5173](http://localhost:5173) 🎉
+
+### 🐳 Quick Start con Docker (Stack Completo)
+
+```bash
+git clone https://github.com/sebitabravo/rioclaro-mokup.git
+cd rioclaro-mokup
+./deploy.sh dev
+```
+
+**Servicios disponibles:**
+- 🌐 Frontend: [http://localhost:3000](http://localhost:3000)
+- 🔌 API: [http://localhost:8000](http://localhost:8000)
+- 👨‍💼 Admin: [http://localhost:8000/admin](http://localhost:8000/admin)
+
+---
+
+## 📦 Instalación Completa
 
 ### Prerequisitos
 
 - **Node.js** >= 18.0.0
 - **pnpm** >= 8.0.0 (recomendado) o npm >= 8.0.0
+- **Docker** >= 20.10 (opcional, para stack completo)
 
-### Configuración
+### Configuración Detallada
 
 ```bash
 # 1. Clonar el repositorio
@@ -101,7 +130,10 @@ cd rioclaro-mokup
 # 2. Instalar dependencias
 pnpm install
 
-# 3. Ejecutar en desarrollo
+# 3. (Opcional) Configurar variables de entorno
+cp .env.development .env  # Usa valores por defecto seguros
+
+# 4. Ejecutar en desarrollo
 pnpm dev
 ```
 
