@@ -1,76 +1,92 @@
 # 📚 Documentación - Sistema Monitoreo Río Claro
 
-Bienvenido a la documentación completa del Sistema de Monitoreo del Río Claro. Esta documentación está organizada para desarrolladores, operadores y administradores del sistema.
+> Documentación completa y organizada del Sistema de Monitoreo del Río Claro
 
-## 📋 Índice de Documentación
+---
 
-### 🏗️ [Arquitectura del Sistema](ARCHITECTURE.md)
+## 🗂️ Estructura de la Documentación
 
-Documentación completa de la arquitectura Clean Architecture implementada, incluyendo:
+### 🚀 [Getting Started](./getting-started/)
+**Para empezar rápidamente**
+- Quick Start en 30 segundos
+- Instalación completa
+- Configuración de entorno
+- Tutorial para nuevos usuarios
 
-- Estructura de capas y responsabilidades
-- Entidades de dominio (Station, Measurement, Alert, etc.)
-- Casos de uso y lógica de aplicación
-- Repositorios y adaptadores
-- Flujo de datos y patrones de diseño
-- Configuraciones de build y deployment
+### 🏗️ [Architecture](./architecture/)
+**Para entender el sistema**
+- Visión general de Clean Architecture
+- Estructura de carpetas y capas
+- Patrones de diseño implementados
+- Flujo de datos y dependencias
 
-### 🛠️ [Guía de Desarrollo](DEVELOPMENT_GUIDE.md)
+### 🛠️ [Development](./development/)
+**Para desarrollo día a día**
+- Setup de entorno de desarrollo
+- Estándares de código y naming conventions
+- Git workflow y colaboración
+- Testing y debugging
 
-Guía completa para desarrolladores que trabajen en el proyecto:
+### ✨ [Features](./features/)
+**Funcionalidades específicas**
+- [UI Animations](./features/ui-animations.md) - Sistema de animaciones con Framer Motion
+- [Data Normalization](./features/data-normalization.md) - Normalización de múltiples fuentes de datos
+- [Admin Panel](./features/admin-panel.md) - Panel de administración completo
 
-- Configuración del entorno de desarrollo
-- Scripts y herramientas disponibles
-- Convenciones de código y nomenclatura
-- Desarrollo de componentes y páginas
-- Manejo de estado con Zustand
-- Testing con Playwright
-- Optimizaciones de rendimiento
+### 🔌 [API](./api/)
+**Referencia completa de la API**
+- [Authentication](./api/authentication.md) - Tokens y permisos
+- [Measurements](./api/measurements.md) - Mediciones y variables
+- [Reports](./api/reports.md) - Generación de reportes
 
-### 🔄 [Normalización de Datos](DATA_NORMALIZATION.md)
+### 🔧 [Backend](./backend/)
+**Backend Django**
+- [Django Setup](./backend/django-setup.md) - Configuración y arquitectura del backend
+- Modelos y base de datos
+- API REST con Django REST Framework
 
-Documentación del sistema de normalización automática de datos:
+### ⚡ [Performance](./performance/)
+**Optimización y rendimiento**
+- [Optimization Guide](./performance/optimization.md) - Métricas y mejoras de performance
+- Monitoring y observabilidad
+- Best practices de rendimiento
 
-- Problema que resuelve y beneficios
-- Implementación del DataNormalizationService
-- Tipos de fuentes de datos soportadas
-- Ejemplos de uso en componentes
-- Configuración avanzada y personalización
-- Testing del servicio
+### 📘 [Guides](./guides/)
+**Guías avanzadas**
+- [TypeScript Guide](./guides/typescript-guide.md) - Uso avanzado de TypeScript
+- State management con Zustand
+- Component library
+- Troubleshooting
 
-### 🎬 [Sistema de Animaciones](ANIMACIONES.md)
+---
 
-Documentación completa del sistema de animaciones con Framer Motion:
+## 🎯 Rutas Rápidas por Audiencia
 
-- Principios de diseño de animaciones
-- Transiciones de página y lazy loading
-- Componentes animados (botones, gráficos, mapas)
-- Estados de estaciones y feedback visual
-- Optimizaciones de rendimiento
-- Testing de animaciones
+### 👨‍💻 Desarrolladores Nuevos
+1. 📖 [Quick Start](./getting-started/) - Comenzar en 30 segundos
+2. 🏗️ [Architecture Overview](./architecture/overview.md) - Entender la estructura
+3. 🛠️ [Development Setup](./development/setup.md) - Configurar entorno
+4. 🔄 [Data Normalization](./features/data-normalization.md) - Trabajar con datos
 
-## 🚀 Enlaces Rápidos
+### 🔧 Desarrolladores Experimentados
+1. 🏗️ [Architecture](./architecture/) - Patrones avanzados
+2. ✨ [Features](./features/) - Funcionalidades específicas
+3. 🔌 [API Reference](./api/) - Documentación completa de API
+4. ⚡ [Performance](./performance/) - Optimizaciones
 
-### Para Desarrolladores Nuevos
+### 📊 Project Managers
+1. 📖 [README Principal](../README.md) - Visión general del proyecto
+2. 🏗️ [Architecture](./architecture/overview.md) - Capacidades técnicas
+3. 🛠️ [Development Guide](./development/setup.md) - Procesos de desarrollo
 
-1. 📖 Leer [README.md](../README.md) para visión general
-2. 🏗️ Estudiar [Arquitectura](ARCHITECTURE.md) para entender la estructura
-3. 🛠️ Seguir [Guía de Desarrollo](DEVELOPMENT_GUIDE.md) para configurar entorno
-4. 🔄 Comprender [Normalización de Datos](DATA_NORMALIZATION.md) para trabajar con datos
+### 🎨 Designers
+1. ✨ [UI Animations](./features/ui-animations.md) - Sistema de animaciones
+2. 🎨 Design system y componentes
+3. 🌙 Sistema de temas (dark/light mode)
 
-### Para Desarrolladores Experimentados
+---
 
-1. 🎬 Revisar [Sistema de Animaciones](ANIMACIONES.md) para UX
-2. 🏗️ Consultar [Arquitectura](ARCHITECTURE.md) para patrones avanzados
-3. 🔄 Estudiar [Normalización](DATA_NORMALIZATION.md) para integrar nuevas fuentes
-
-### Para Project Managers
-
-1. 📖 Visión general en [README.md](../README.md)
-2. 🏗️ Capacidades técnicas en [Arquitectura](ARCHITECTURE.md)
-3. 🛠️ Procesos de desarrollo en [Guía de Desarrollo](DEVELOPMENT_GUIDE.md)
-
-## 🎯 Funcionalidades Documentadas
+## 📊 Funcionalidades Documentadas
 
 ### ✅ Completamente Documentado
 
@@ -79,49 +95,62 @@ Documentación completa del sistema de animaciones con Framer Motion:
 - **Componentes React** con TypeScript y Zustand
 - **Animaciones Framer Motion** optimizadas
 - **Testing E2E** con Playwright
-- **Build y deployment** con Vite
+- **Build y deployment** con Vite y Docker
 - **Sistema de temas** dark/light mode
 - **Exportación** PDF, Excel, CSV
+- **Panel de administración** completo
+- **API REST** con Django REST Framework
 
 ### 📊 Casos de Uso Cubiertos
 
-- **Monitoreo en tiempo real** de estaciones del río
-- **Visualización de datos** con gráficos interactivos
-- **Sistema de alertas** automáticas
-- **Generación de reportes** personalizados
-- **Administración** de usuarios y estaciones
-- **Mapas interactivos** con ubicaciones
-- **Logs de actividad** del sistema
+- Monitoreo en tiempo real de estaciones del río
+- Visualización de datos con gráficos interactivos
+- Sistema de alertas automáticas
+- Generación de reportes personalizados
+- Administración de usuarios y estaciones
+- Mapas interactivos con ubicaciones
+- Logs de actividad del sistema
 
-## 🧪 Información de Testing
+---
 
-Toda la funcionalidad está cubierta por tests E2E con Playwright:
+## 🧪 Testing
+
+Toda la funcionalidad está cubierta por tests:
 
 ```bash
-# Ejecutar todos los tests
-pnpm test
+# Tests unitarios
+pnpm test:unit
+
+# Tests E2E con Playwright
+pnpm test:e2e
 
 # Tests específicos por área
-pnpm test tests/dashboard-performance.spec.ts
-pnpm test tests/animation-performance.spec.ts
-pnpm test tests/data-normalization.spec.ts
+pnpm test:e2e tests/dashboard-performance.spec.ts
+pnpm test:e2e tests/api/
 ```
+
+---
 
 ## 🔧 Herramientas de Desarrollo
 
-### Configuración VS Code
+### Scripts Principales
 
-- Extensiones recomendadas incluidas
-- Configuración de workspace optimizada
-- IntelliSense para Tailwind CSS
-- Debugging configurado
+```bash
+pnpm dev              # Servidor de desarrollo
+pnpm build            # Build de producción
+pnpm test             # Testing E2E
+pnpm test:unit        # Tests unitarios
+pnpm lint             # Linting con ESLint
+```
 
-### Scripts de Desarrollo
+### Deployment
 
-- `pnpm dev` - Servidor de desarrollo
-- `pnpm build` - Build de producción
-- `pnpm test` - Testing E2E
-- `pnpm lint` - Linting y calidad
+```bash
+./deploy.sh dev       # Desarrollo con Docker
+./deploy.sh prod      # Producción
+```
+
+---
 
 ## 📈 Métricas y Rendimiento
 
@@ -133,46 +162,45 @@ pnpm test tests/data-normalization.spec.ts
 - **GPU acceleration** en animaciones
 - **Memoización** estratégica en React
 
-### Testing de Rendimiento
+### Core Web Vitals
 
-- Tests de performance cross-browser
-- Medición de tiempos de carga
-- Análisis de bundle size
-- Optimización de animaciones
+- LCP < 800ms ✅
+- FID < 100ms ✅
+- CLS < 0.1 ✅
+
+---
 
 ## 🌟 Características Técnicas Destacadas
 
 ### 1. **Arquitectura Escalable**
-
 - Clean Architecture con inversión de dependencias
 - Contenedor DI para fácil testing
 - Separación clara de responsabilidades
 
 ### 2. **Flexibilidad de Datos**
-
 - Sistema de normalización automática
 - Soporte para múltiples fuentes de datos
 - Cambio de fuentes sin modificar componentes
 
 ### 3. **Experiencia de Usuario**
-
 - Animaciones fluidas y significativas
 - Responsive design mobile-first
 - Sistema de temas adaptativo
 
 ### 4. **Calidad del Código**
-
 - TypeScript estricto
 - ESLint con reglas personalizadas
 - Testing E2E comprehensivo
 - Documentación completa
 
-## 🤝 Contribución a la Documentación
+---
 
-Para contribuir a la documentación:
+## 🤝 Contribuir a la Documentación
 
-1. **Identificar** área que necesita documentación
-2. **Crear** o actualizar archivo markdown correspondiente
+### Agregar Nueva Documentación
+
+1. **Identificar** categoría apropiada (`getting-started/`, `features/`, etc.)
+2. **Crear** archivo markdown en la carpeta correspondiente
 3. **Seguir** estructura y estilo existente
 4. **Incluir** ejemplos de código cuando sea relevante
 5. **Actualizar** este índice si es necesario
@@ -182,17 +210,55 @@ Para contribuir a la documentación:
 - **Markdown** bien estructurado con headers claros
 - **Ejemplos de código** con syntax highlighting
 - **Enlaces** entre documentos relacionados
-- **Emojis** para mejor navegación visual
+- **Emojis** para mejor navegación visual 🎯
 - **Tabla de contenidos** en documentos largos
+- **Tags** al final del documento
+
+### Template de Documento
+
+```markdown
+# 📁 Título del Documento
+
+> Breve descripción en 1-2 oraciones
+
+## 📋 Tabla de Contenidos
+
+## Sección Principal
+
+## 🔗 Ver También
+
+---
+
+**Última actualización**: 2025-01-15
+**Autor**: Nombre del Autor
+**Tags**: #tag1 #tag2 #tag3
+```
+
+---
 
 ## 📞 Soporte y Contacto
 
 - **Issues**: [GitHub Issues](https://github.com/sebitabravo/rioclaro-mokup/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/sebitabravo/rioclaro-mokup/discussions)
-- **Email**: <contacto@rioclaro.gov.cl>
+- **Email**: contacto@rioclaro.gov.cl
 
 ---
 
-**Última actualización**: Enero 2025
-**Versión de documentación**: 1.0.0
+## 📝 Historial de Cambios
+
+### 2025-01-15 - v2.0.0
+- ✨ Reorganización completa de la documentación
+- 📁 Nueva estructura por categorías
+- 🔄 Nombres consistentes en inglés
+- ✅ Eliminación de documentos obsoletos
+- 📚 Fusión de documentos duplicados
+- 🎯 READMEs por categoría
+
+### 2025-01-13 - v1.0.0
+- 📚 Documentación inicial del proyecto
+
+---
+
+**Última actualización**: 2025-01-15
+**Versión de documentación**: 2.0.0
 **Mantenido por**: [Sebastian Bravo](https://github.com/sebitabravo)

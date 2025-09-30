@@ -560,12 +560,20 @@ VITE_MAP_DEFAULT_CENTER_LNG=-72.5904
 
 ## 📚 Documentación
 
-La documentación completa está disponible en la carpeta `/docs`:
+La documentación está completamente reorganizada y categorizada en `/docs`:
 
-- 📖 [**Arquitectura del Sistema**](docs/ARCHITECTURE.md) - Diseño y estructura detallada
-- 🛠️ [**Guía de Desarrollo**](docs/DEVELOPMENT_GUIDE.md) - Setup y convenciones
-- 🔄 [**Normalización de Datos**](docs/DATA_NORMALIZATION.md) - Sistema de adaptación de datos
-- 🎬 [**Sistema de Animaciones**](docs/ANIMACIONES.md) - Animaciones y UX
+### 📖 [Índice Principal de Documentación](docs/README.md)
+
+### Por Categorías:
+
+- 🚀 [**Getting Started**](docs/getting-started/) - Quick start y configuración inicial
+- 🏗️ [**Architecture**](docs/architecture/) - Diseño y estructura del sistema
+- 🛠️ [**Development**](docs/development/) - Guías de desarrollo y convenciones
+- ✨ [**Features**](docs/features/) - Funcionalidades específicas (Animaciones, Data Normalization, Admin Panel)
+- 🔌 [**API Reference**](docs/api/) - Documentación completa de la REST API
+- 🔧 [**Backend**](docs/backend/) - Django setup y configuración
+- ⚡ [**Performance**](docs/performance/) - Optimización y rendimiento
+- 📘 [**Guides**](docs/guides/) - Guías avanzadas (TypeScript, State Management, etc.)
 
 ## 🤝 Contribución
 
