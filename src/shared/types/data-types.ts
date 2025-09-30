@@ -44,5 +44,18 @@ export interface ReportData extends DataItem {
   file_path?: string;
 }
 
+// For dashboard metric data points
+export interface MetricDataPoint {
+  timestamp: string;
+  value: number;
+  stationName: string;
+  stationId: number;
+  metricType: string;
+  waterLevel: number;
+  flow: number;
+  flowRate: number;
+  velocity: number;
+}
+
 // Union type for all possible data structures
 export type NormalizableData = DataItem | MeasurementData | StationData | AlertData | ReportData;

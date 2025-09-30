@@ -5,6 +5,7 @@ import { MeasurementRepository } from '@domain/repositories/MeasurementRepositor
 import { AlertRepository, VariableModuleRepository } from '@domain/repositories/AlertRepository';
 import { ReportRepository } from '@domain/repositories/ReportRepository';
 import { AuthRepository } from '@domain/repositories/AuthRepository';
+import { ActivityLogRepository } from '@domain/repositories/ActivityLogRepository';
 
 // Use Cases
 import { GetStationsUseCase, GetStationByIdUseCase } from '@application/use-cases/GetStations';
@@ -24,15 +25,9 @@ import { ApiMeasurementRepository } from '../adapters/ApiMeasurementRepository';
 import { ApiAlertRepository, ApiVariableModuleRepository } from '../adapters/ApiAlertRepository';
 import { ApiReportRepository } from '../adapters/ApiReportRepository';
 import { ApiAuthRepository } from '../adapters/ApiAuthRepository';
+import { ApiActivityLogRepository } from '../adapters/ApiActivityLogRepository';
 import { apiClient } from '../adapters/ApiClient';
 
-// Mock Implementations (for fallback/development)
-import { MockStationRepository } from '../adapters/MockStationRepository';
-import { MockUserRepository } from '../adapters/MockUserRepository';
-import { MockMeasurementRepository } from '../adapters/MockMeasurementRepository';
-import { MockAlertRepository, MockVariableModuleRepository } from '../adapters/MockAlertRepository';
-import { MockReportRepository } from '../adapters/MockReportRepository';
-import { MockAuthRepository } from '../adapters/MockAuthRepository';
 
 export class DIContainer {
   private static instance: DIContainer;
@@ -45,6 +40,7 @@ export class DIContainer {
   private _variableModuleRepository!: VariableModuleRepository;
   private _reportRepository!: ReportRepository;
   private _authRepository!: AuthRepository;
+  private _activityLogRepository!: ActivityLogRepository;
   
   // Use Cases
   private _getStationsUseCase!: GetStationsUseCase;
@@ -81,28 +77,15 @@ export class DIContainer {
   }
 
   private initializeRepositories(): void {
-    // Variables de entorno para determinar qué implementación usar
-    const useApiImplementation = (import.meta as { env?: Record<string, string> }).env?.VITE_USE_API !== 'false';
-
-    if (useApiImplementation) {
-      // Usar implementaciones API reales
-      this._stationRepository = new ApiStationRepository(apiClient);
-      this._userRepository = new ApiUserRepository(apiClient);
-      this._measurementRepository = new ApiMeasurementRepository(apiClient);
-      this._alertRepository = new ApiAlertRepository(apiClient);
-      this._variableModuleRepository = new ApiVariableModuleRepository(apiClient);
-      this._reportRepository = new ApiReportRepository(apiClient);
-      this._authRepository = new ApiAuthRepository(apiClient);
-    } else {
-      // Usar implementaciones Mock para desarrollo/testing
-      this._stationRepository = new MockStationRepository();
-      this._userRepository = new MockUserRepository();
-      this._measurementRepository = new MockMeasurementRepository();
-      this._alertRepository = new MockAlertRepository();
-      this._variableModuleRepository = new MockVariableModuleRepository();
-      this._reportRepository = new MockReportRepository();
-      this._authRepository = new MockAuthRepository();
-    }
+    // Usar siempre implementaciones API reales
+    this._stationRepository = new ApiStationRepository(apiClient);
+    this._userRepository = new ApiUserRepository(apiClient);
+    this._measurementRepository = new ApiMeasurementRepository(apiClient);
+    this._alertRepository = new ApiAlertRepository(apiClient);
+    this._variableModuleRepository = new ApiVariableModuleRepository(apiClient);
+    this._reportRepository = new ApiReportRepository(apiClient);
+    this._authRepository = new ApiAuthRepository(apiClient);
+    this._activityLogRepository = new ApiActivityLogRepository(apiClient);
   }
 
   private initializeUseCases(): void {
@@ -158,6 +141,7 @@ export class DIContainer {
   get variableModuleRepository(): VariableModuleRepository { return this._variableModuleRepository; }
   get reportRepository(): ReportRepository { return this._reportRepository; }
   get authRepository(): AuthRepository { return this._authRepository; }
+  get activityLogRepository(): ActivityLogRepository { return this._activityLogRepository; }
 }
 
 // Default export for singleton instance

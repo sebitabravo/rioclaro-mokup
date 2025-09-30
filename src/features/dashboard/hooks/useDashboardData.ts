@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useStationStore } from '@features/admin/stores/StationStore';
 import { useMeasurementStore } from '@features/dashboard/stores/MeasurementStore';
-import { MockDataService, type MetricDataPoint } from '@shared/services/MockDataService';
+import type { MetricDataPoint } from '@shared/types/data-types';
 
 export interface DashboardStats {
   totalStations: number;
@@ -21,7 +21,7 @@ export function useDashboardData() {
   const { stations, fetchStations } = useStationStore();
   const { measurements, fetchLatestMeasurements } = useMeasurementStore();
 
-  const mockMetricData = measurements.length > 0
+  const metricData = measurements.length > 0
     ? measurements.map(m => ({
         timestamp: m.timestamp,
         value: m.value,
@@ -33,15 +33,15 @@ export function useDashboardData() {
         flowRate: 0,
         velocity: 0
       })) as MetricDataPoint[]
-    : MockDataService.generateMetricData();
+    : [];
 
   const stats: DashboardStats = {
-    totalStations: stations.length || 12,
-    activeStations: stations.filter(s => s.status === 'active').length || 10,
-    criticalStations: stations.filter(s => s.current_level > s.threshold).length || 2,
-    averageLevel: mockMetricData.length > 0
-      ? mockMetricData.reduce((sum, point) => sum + point.waterLevel, 0) / mockMetricData.length
-      : 2.3
+    totalStations: stations.length || 0,
+    activeStations: stations.filter(s => s.status === 'active').length || 0,
+    criticalStations: stations.filter(s => s.current_level > s.threshold).length || 0,
+    averageLevel: metricData.length > 0
+      ? metricData.reduce((sum, point) => sum + point.waterLevel, 0) / metricData.length
+      : 0
   };
 
   const handleRefresh = async () => {
@@ -116,7 +116,7 @@ export function useDashboardData() {
     // Data
     stations,
     measurements,
-    mockMetricData,
+    metricData,
     stats,
 
     // Actions
