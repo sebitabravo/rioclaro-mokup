@@ -6,7 +6,6 @@ import {
   X,
   Zap,
   Bell,
-  CheckCircle,
   Info,
   AlertCircle
 } from 'lucide-react';
@@ -260,7 +259,7 @@ export function EnhancedAlert({
       </Card>
 
       {/* CSS personalizado para animaciones */}
-      <style jsx>{`
+      <style>{`
         @keyframes slide-in-right {
           from {
             transform: translateX(100%);

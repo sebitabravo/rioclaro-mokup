@@ -1,5 +1,6 @@
 import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
+import path from 'path';
 
 export default defineConfig({
   plugins: [react()],
@@ -17,13 +18,25 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      "@": "/src",
-      "@domain": "/src/domain",
-      "@application": "/src/application",
-      "@infrastructure": "/src/infrastructure",
-      "@presentation": "/src/presentation",
-      "@shared": "/src/shared",
-      "@features": "/src/features",
+      "@": path.resolve(__dirname, "./src"),
+      "@domain": path.resolve(__dirname, "./src/domain"),
+      "@application": path.resolve(__dirname, "./src/application"),
+      "@infrastructure": path.resolve(__dirname, "./src/infrastructure"),
+      "@presentation": path.resolve(__dirname, "./src/presentation"),
+      "@shared": path.resolve(__dirname, "./src/shared"),
+      "@features": path.resolve(__dirname, "./src/features"),
+    },
+  },
+  define: {
+    // Forzar modo desarrollo para React en tests
+    'process.env.NODE_ENV': JSON.stringify('development'),
+    'import.meta.env.DEV': true,
+    'import.meta.env.PROD': false,
+  },
+  // Asegurar que React use el build de desarrollo
+  esbuild: {
+    define: {
+      'process.env.NODE_ENV': '"development"',
     },
   },
 });

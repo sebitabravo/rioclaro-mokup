@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { HelpCircle, X } from 'lucide-react';
 import { Button } from '@shared/components/ui/button';
 
@@ -33,7 +33,7 @@ export function Tooltip({
   };
 
   // Calcular posición del tooltip
-  const calculatePosition = () => {
+  const calculatePosition = useCallback(() => {
     if (!triggerRef.current || !tooltipRef.current) return;
 
     const triggerRect = triggerRef.current.getBoundingClientRect();
@@ -72,7 +72,7 @@ export function Tooltip({
     if (top < padding) top = padding;
 
     setTooltipPosition({ top, left });
-  };
+  }, [position]);
 
   // Mostrar tooltip
   const showTooltip = () => {
@@ -102,7 +102,7 @@ export function Tooltip({
         window.removeEventListener('resize', calculatePosition);
       };
     }
-  }, [isVisible, position]);
+  }, [isVisible, calculatePosition]);
 
   // Manejar eventos según el trigger
   const triggerProps = trigger === 'hover'

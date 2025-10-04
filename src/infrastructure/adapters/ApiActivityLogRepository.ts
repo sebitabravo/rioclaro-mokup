@@ -8,7 +8,7 @@ export class ApiActivityLogRepository implements ActivityLogRepository {
   async findAll(filter?: ActivityLogFilter): Promise<ActivityLog[]> {
     try {
       // Construir query params si hay filtros
-      const queryParams = filter ? new URLSearchParams(Object.entries(filter).filter(([_, v]) => v !== undefined).map(([k, v]) => [k, String(v)])).toString() : '';
+      const queryParams = filter ? new URLSearchParams(Object.entries(filter).filter(([, v]) => v !== undefined).map(([k, v]) => [k, String(v)])).toString() : '';
       const endpoint = queryParams ? `/activity-logs/?${queryParams}` : '/activity-logs/';
       const response = await this.apiClient.get<ActivityLog[]>(endpoint);
       return response;
@@ -66,7 +66,7 @@ export class ApiActivityLogRepository implements ActivityLogRepository {
   }> {
     try {
       // Construir query params si hay filtros
-      const queryParams = filter ? new URLSearchParams(Object.entries(filter).filter(([_, v]) => v !== undefined).map(([k, v]) => [k, String(v)])).toString() : '';
+      const queryParams = filter ? new URLSearchParams(Object.entries(filter).filter(([, v]) => v !== undefined).map(([k, v]) => [k, String(v)])).toString() : '';
       const endpoint = queryParams ? `/activity-logs/stats/?${queryParams}` : '/activity-logs/stats/';
       const response = await this.apiClient.get<{
         total: number;

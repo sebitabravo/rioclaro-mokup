@@ -45,11 +45,8 @@ import {
 	Settings
 } from 'lucide-react';
 import { ActivityLog, ActivityLogFilter } from '@domain/entities/ActivityLog';
-import { MockActivityLogRepository } from '@infrastructure/adapters/MockActivityLogRepository';
+import { Container } from '@infrastructure/di/Container';
 import { formatDateTime } from '@shared/utils/formatters';
-
-// Repositorio mock
-const activityLogRepo = new MockActivityLogRepository();
 
 // Mapeo de tipos de actividad a íconos y colores gubernamentales
 const activityTypeConfig = {
@@ -195,8 +192,8 @@ export function ActivityReportPage() {
 			if (selectedType) filter.activityTypes = [selectedType as ActivityType];
 
 			const [logsData, statsData] = await Promise.all([
-				activityLogRepo.findAll(filter),
-				activityLogRepo.getStats(filter)
+				Container.activityLogRepository.findAll(filter),
+				Container.activityLogRepository.getStats(filter)
 			]);
 
 			setLogs(logsData);
@@ -265,7 +262,7 @@ export function ActivityReportPage() {
 
 		setIsDeleting(true);
 		try {
-			const deleted = await activityLogRepo.deleteById(logPendingDeletion.id);
+			const deleted = await Container.activityLogRepository.deleteById(logPendingDeletion.id);
 
 			if (deleted) {
 				setActionFeedback('Actividad eliminada correctamente.');

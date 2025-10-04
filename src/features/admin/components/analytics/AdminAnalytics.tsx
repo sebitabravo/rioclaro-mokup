@@ -20,7 +20,7 @@ import {
 import { useUserStore } from '@features/admin/stores/UserStore';
 import { useStationStore } from '@features/admin/stores/StationStore';
 import { useSystemSettingsStore } from '@features/admin/stores/SystemSettingsStore';
-import { MockActivityLogRepository } from '@infrastructure/adapters/MockActivityLogRepository';
+import { Container } from '@infrastructure/di/Container';
 import type { ActivityLog } from '@domain/entities/ActivityLog';
 
 interface ActivityStats {
@@ -100,12 +100,6 @@ export const AdminAnalytics: React.FC = () => {
 	const [activityLoading, setActivityLoading] = useState(true);
 	const [activityError, setActivityError] = useState<string | null>(null);
 
-	const activityRepoRef = useRef<MockActivityLogRepository>();
-
-	if (!activityRepoRef.current) {
-		activityRepoRef.current = new MockActivityLogRepository();
-	}
-
 	useEffect(() => {
 		if (!users.length && !usersLoading) {
 			void fetchUsers();
@@ -133,7 +127,7 @@ export const AdminAnalytics: React.FC = () => {
 			setActivityLoading(true);
 			setActivityError(null);
 			try {
-				const stats = await activityRepoRef.current!.getStats();
+				const stats = await Container.activityLogRepository.getStats();
 				if (isMounted) {
 					setActivityStats(stats);
 				}

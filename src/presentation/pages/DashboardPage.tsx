@@ -27,7 +27,6 @@ export function DashboardPage() {
 
 		// Data
 		stations,
-		mockMetricData,
 		stats,
 
 		// Actions
@@ -152,13 +151,7 @@ export function DashboardPage() {
 									</div>
 									<div className='bg-gov-white rounded-lg border border-gov-accent shadow-sm'>
 										<MetricsDashboard
-											measurementData={mockMetricData.map((point) => ({
-												timestamp: point.timestamp,
-												value: point.value,
-												water_level: point.waterLevel,
-												station_id: point.stationId,
-												station: point.stationName
-											}))}
+											measurementData={[]}
 										/>
 									</div>
 								</section>

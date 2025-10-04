@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Settings, Bell, BellOff, Volume2, VolumeX, X, CheckCircle } from 'lucide-react';
 import { EnhancedAlert } from '@shared/components/ui/EnhancedAlert';
 import { Button } from '@shared/components/ui/button';
@@ -78,8 +78,7 @@ export function AlertContainer({
               variant="ghost"
               size="sm"
               onClick={() => {
-                // Mostrar todas las alertas o navegar a página de alertas
-                console.log('Ver todas las alertas');
+                // TODO: Navegar a página de alertas
               }}
               className="text-xs"
             >
@@ -244,41 +243,4 @@ export function AlertContainer({
       )}
     </div>
   );
-}
-
-// Hook para mostrar alertas de ejemplo (para testing)
-export function useExampleAlerts() {
-  const { showInfo, showWarning, showCritical, showEmergency } = useAlerts();
-
-  const showExamples = () => {
-    showInfo(
-      'Sistema Actualizado',
-      'Los datos han sido actualizados correctamente.'
-    );
-
-    setTimeout(() => {
-      showWarning(
-        'Estación Desconectada',
-        'La estación río-norte-01 no responde desde hace 5 minutos.'
-      );
-    }, 1000);
-
-    setTimeout(() => {
-      showCritical(
-        'Nivel Crítico Detectado',
-        'La estación río-sur-02 reporta niveles críticos de agua.',
-        1
-      );
-    }, 2000);
-
-    setTimeout(() => {
-      showEmergency(
-        'EMERGENCIA MÚLTIPLE',
-        'Múltiples estaciones en estado crítico simultáneo.',
-        3
-      );
-    }, 3000);
-  };
-
-  return { showExamples };
 }

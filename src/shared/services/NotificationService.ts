@@ -1,5 +1,5 @@
 export type NotificationLevel = 'info' | 'warning' | 'critical' | 'emergency';
-export type SoundType = 'alert' | 'warning' | 'critical' | 'emergency' | 'success';
+export type SoundType = 'info' | 'warning' | 'critical' | 'emergency' | 'success' | 'alert';
 
 export interface NotificationOptions {
   title: string;
@@ -50,6 +50,7 @@ class NotificationService {
   // Inicializar contexto de audio para sonidos
   private async initializeAudio() {
     try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
       await this.loadSounds();
     } catch (error) {
@@ -158,13 +159,6 @@ class NotificationService {
       emergency: '🚨'
     };
 
-    const priorityMap: Record<NotificationLevel, 'low' | 'normal' | 'high'> = {
-      info: 'low',
-      warning: 'normal',
-      critical: 'high',
-      emergency: 'high'
-    };
-
     try {
       const notification = new Notification(options.title, {
         body: options.body,
@@ -173,11 +167,10 @@ class NotificationService {
         tag: `rioclaro-${options.level}-${Date.now()}`,
         requireInteraction: options.level === 'critical' || options.level === 'emergency',
         silent: false,
-        vibrate: options.level === 'critical' || options.level === 'emergency' ? [200, 100, 200] : undefined,
-        actions: options.actions,
         data: {
           level: options.level,
-          timestamp: Date.now()
+          timestamp: Date.now(),
+          actions: options.actions
         }
       });
 
