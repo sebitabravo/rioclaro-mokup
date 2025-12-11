@@ -28,6 +28,17 @@ import { ApiAuthRepository } from '../adapters/ApiAuthRepository';
 import { ApiActivityLogRepository } from '../adapters/ApiActivityLogRepository';
 import { apiClient } from '../adapters/ApiClient';
 
+// Mock Implementations para desarrollo
+import {
+  MockStationRepository,
+  MockUserRepository,
+  MockMeasurementRepository,
+  MockAlertRepository,
+  MockVariableModuleRepository,
+  MockActivityLogRepository,
+  MockReportRepository
+} from '../adapters/MockRepositories';
+
 
 export class DIContainer {
   private static instance: DIContainer;
@@ -77,15 +88,30 @@ export class DIContainer {
   }
 
   private initializeRepositories(): void {
-    // Usar siempre implementaciones API reales
-    this._stationRepository = new ApiStationRepository(apiClient);
-    this._userRepository = new ApiUserRepository(apiClient);
-    this._measurementRepository = new ApiMeasurementRepository(apiClient);
-    this._alertRepository = new ApiAlertRepository(apiClient);
-    this._variableModuleRepository = new ApiVariableModuleRepository(apiClient);
-    this._reportRepository = new ApiReportRepository(apiClient);
-    this._authRepository = new ApiAuthRepository(apiClient);
-    this._activityLogRepository = new ApiActivityLogRepository(apiClient);
+    // MODO DESARROLLO: Usar implementaciones Mock sin backend
+    const USE_MOCK = true; // Cambiar a false cuando el backend esté disponible
+
+    if (USE_MOCK) {
+      console.log('🎭 Usando repositorios MOCK - Modo desarrollo sin backend');
+      this._stationRepository = new MockStationRepository();
+      this._userRepository = new MockUserRepository();
+      this._measurementRepository = new MockMeasurementRepository();
+      this._alertRepository = new MockAlertRepository();
+      this._variableModuleRepository = new MockVariableModuleRepository();
+      this._reportRepository = new MockReportRepository();
+      this._authRepository = new ApiAuthRepository(apiClient); // Auth se maneja en AuthStore
+      this._activityLogRepository = new MockActivityLogRepository();
+    } else {
+      // Usar implementaciones API reales
+      this._stationRepository = new ApiStationRepository(apiClient);
+      this._userRepository = new ApiUserRepository(apiClient);
+      this._measurementRepository = new ApiMeasurementRepository(apiClient);
+      this._alertRepository = new ApiAlertRepository(apiClient);
+      this._variableModuleRepository = new ApiVariableModuleRepository(apiClient);
+      this._reportRepository = new ApiReportRepository(apiClient);
+      this._authRepository = new ApiAuthRepository(apiClient);
+      this._activityLogRepository = new ApiActivityLogRepository(apiClient);
+    }
   }
 
   private initializeUseCases(): void {

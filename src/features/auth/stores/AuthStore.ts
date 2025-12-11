@@ -23,10 +23,25 @@ interface AuthActions {
 
 type AuthStore = AuthState & AuthActions;
 
+// MODO DESARROLLO: Usuario mock para ver todas las vistas sin backend
+const MOCK_USER: User = {
+  id: 1,
+  username: "admin",
+  email: "admin@rioclaro.com",
+  first_name: "Admin",
+  last_name: "Usuario",
+  role: "Administrador",
+  is_staff: true,
+  is_superuser: true,
+  assigned_stations: [],
+  created_at: new Date().toISOString(),
+  updated_at: new Date().toISOString(),
+};
+
 const initialState: AuthState = {
-  user: null,
-  token: null,
-  isAuthenticated: false,
+  user: MOCK_USER, // Usuario mock para desarrollo
+  token: "mock-token-development",
+  isAuthenticated: true, // Autenticado por defecto en desarrollo
   isLoading: false,
   error: null,
 };
@@ -36,7 +51,20 @@ export const useAuthStore = create<AuthStore>()(
     (set, get) => ({
       ...initialState,
 
-      login: async (credentials: LoginCredentials) => {
+      login: async (_credentials: LoginCredentials) => {
+        // MODO DESARROLLO: Login automático sin backend
+        console.log('🔓 Login en modo desarrollo - sin backend');
+        set({
+          user: MOCK_USER,
+          token: "mock-token-development",
+          isAuthenticated: true,
+          isLoading: false,
+          error: null,
+        });
+        return;
+
+        // Código original comentado para cuando tengas backend
+        /*
         try {
           set({ isLoading: true, error: null });
 
@@ -62,6 +90,7 @@ export const useAuthStore = create<AuthStore>()(
           });
           throw error;
         }
+        */
       },
 
       register: async (userData: RegisterData) => {
@@ -112,7 +141,12 @@ export const useAuthStore = create<AuthStore>()(
       },
 
       validateSession: async () => {
-        const { token } = get();
+        const { token, isAuthenticated } = get();
+
+        // MODO DESARROLLO: Si ya está autenticado con mock, no validar
+        if (token === "mock-token-development" && isAuthenticated) {
+          return;
+        }
 
         if (!token) {
           set({ isAuthenticated: false, user: null });
@@ -141,9 +175,11 @@ export const useAuthStore = create<AuthStore>()(
             });
           }
         } catch (error) {
+          // En desarrollo, mantener el mock si falla la validación
+          console.warn('Error al validar sesión (usando mock):', error);
           set({
-            ...initialState,
-            error: error instanceof Error ? error.message : 'Error al validar sesión',
+            ...initialState, // Esto incluye el mock user
+            isLoading: false,
           });
         }
       },

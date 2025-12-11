@@ -80,10 +80,10 @@ export const AlertConfigurationDashboard: React.FC = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">
+          <h1 className="text-3xl font-bold text-foreground dark:text-white">
             Configuración de Alertas
           </h1>
-          <p className="text-gray-600 mt-1">
+          <p className="text-muted-foreground mt-1">
             Configura umbrales y niveles de alerta para sensores por estación
           </p>
         </div>
@@ -129,47 +129,47 @@ export const AlertConfigurationDashboard: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-gray-600">
+                <CardTitle className="text-sm font-medium text-muted-foreground">
                   Estación Seleccionada
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-lg font-semibold">{selectedStation.name}</div>
-                <div className="text-sm text-gray-500">{selectedStation.code}</div>
+                <div className="text-lg font-semibold text-foreground">{selectedStation.name}</div>
+                <div className="text-sm text-muted-foreground">{selectedStation.code}</div>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-gray-600">
+                <CardTitle className="text-sm font-medium text-muted-foreground">
                   Configuraciones
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-blue-600">
+                <div className="text-2xl font-bold text-blue-500 dark:text-blue-400">
                   {stationConfigurations.length}
                 </div>
-                <div className="text-sm text-gray-500">Sensores configurados</div>
+                <div className="text-sm text-muted-foreground">Sensores configurados</div>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-gray-600">
+                <CardTitle className="text-sm font-medium text-muted-foreground">
                   Umbrales Activos
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-green-600">
+                <div className="text-2xl font-bold text-green-500 dark:text-green-400">
                   {getActiveThresholds()}
                 </div>
-                <div className="text-sm text-gray-500">En monitoreo</div>
+                <div className="text-sm text-muted-foreground">En monitoreo</div>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-gray-600">
+                <CardTitle className="text-sm font-medium text-muted-foreground">
                   Estado
                 </CardTitle>
               </CardHeader>
@@ -213,7 +213,7 @@ export const AlertConfigurationDashboard: React.FC = () => {
           )}
 
           {/* Alert Settings Panel */}
-          <Card className="border border-gray-200 shadow-sm">
+          <Card className="border border-border shadow-sm">
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <Settings className="h-5 w-5" />
@@ -227,13 +227,13 @@ export const AlertConfigurationDashboard: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
                   {globalSettings.soundEnabled ? (
-                    <Volume2 className="h-5 w-5 text-blue-600" />
+                    <Volume2 className="h-5 w-5 text-blue-500 dark:text-blue-400" />
                   ) : (
-                    <VolumeX className="h-5 w-5 text-gray-400" />
+                    <VolumeX className="h-5 w-5 text-muted-foreground" />
                   )}
                   <div>
-                    <p className="text-sm font-medium text-gray-900">Sonidos</p>
-                    <p className="text-xs text-gray-500">Reproduce una alerta audible cuando se emitan notificaciones.</p>
+                    <p className="text-sm font-medium text-foreground">Sonidos</p>
+                    <p className="text-xs text-muted-foreground">Reproduce una alerta audible cuando se emitan notificaciones.</p>
                   </div>
                 </div>
                 <Button
@@ -248,13 +248,13 @@ export const AlertConfigurationDashboard: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
                   {globalSettings.pushNotificationsEnabled ? (
-                    <Bell className="h-5 w-5 text-blue-600" />
+                    <Bell className="h-5 w-5 text-blue-500 dark:text-blue-400" />
                   ) : (
-                    <BellOff className="h-5 w-5 text-gray-400" />
+                    <BellOff className="h-5 w-5 text-muted-foreground" />
                   )}
                   <div>
-                    <p className="text-sm font-medium text-gray-900">Notificaciones Push</p>
-                    <p className="text-xs text-gray-500">Envía avisos en el navegador incluso fuera del panel.</p>
+                    <p className="text-sm font-medium text-foreground">Notificaciones Push</p>
+                    <p className="text-xs text-muted-foreground">Envía avisos en el navegador incluso fuera del panel.</p>
                   </div>
                 </div>
                 {notificationPermission === 'granted' ? (
@@ -266,7 +266,7 @@ export const AlertConfigurationDashboard: React.FC = () => {
                     {globalSettings.pushNotificationsEnabled ? 'Activado' : 'Desactivado'}
                   </Button>
                 ) : notificationPermission === 'denied' ? (
-                  <span className="text-xs text-red-600">Permiso denegado en el navegador</span>
+                  <span className="text-xs text-red-500 dark:text-red-400">Permiso denegado en el navegador</span>
                 ) : (
                   <Button variant="default" size="sm" onClick={requestNotificationPermission}>
                     Permitir
@@ -276,8 +276,8 @@ export const AlertConfigurationDashboard: React.FC = () => {
 
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-900">Auto-ocultar información</p>
-                  <p className="text-xs text-gray-500">Las alertas informativas se cierran automáticamente tras unos segundos.</p>
+                  <p className="text-sm font-medium text-foreground">Auto-ocultar información</p>
+                  <p className="text-xs text-muted-foreground">Las alertas informativas se cierran automáticamente tras unos segundos.</p>
                 </div>
                 <Button
                   variant="outline"
@@ -290,8 +290,8 @@ export const AlertConfigurationDashboard: React.FC = () => {
 
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-900">Auto-ocultar advertencias</p>
-                  <p className="text-xs text-gray-500">Desaparecen automáticamente las alertas de nivel advertencia.</p>
+                  <p className="text-sm font-medium text-foreground">Auto-ocultar advertencias</p>
+                  <p className="text-xs text-muted-foreground">Desaparecen automáticamente las alertas de nivel advertencia.</p>
                 </div>
                 <Button
                   variant="outline"
@@ -339,11 +339,11 @@ export const AlertConfigurationDashboard: React.FC = () => {
       {!selectedStationId && !isLoadingStations && (
         <Card>
           <CardContent className="text-center py-12">
-            <MapPin className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
+            <MapPin className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+            <h3 className="text-lg font-medium text-foreground dark:text-white mb-2">
               Selecciona una Estación
             </h3>
-            <p className="text-gray-500">
+            <p className="text-muted-foreground">
               Para comenzar a configurar alertas, selecciona una estación de monitoreo
             </p>
           </CardContent>
