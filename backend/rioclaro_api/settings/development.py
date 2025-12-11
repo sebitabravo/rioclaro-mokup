@@ -4,6 +4,10 @@ Development settings for rioclaro_api project.
 
 from .base import *
 
+# Remove apps that require Redis for development
+INSTALLED_APPS = [app for app in INSTALLED_APPS if app not in ['axes', 'django_ratelimit']]
+MIDDLEWARE = [mw for mw in MIDDLEWARE if 'axes' not in mw.lower()]
+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
@@ -61,7 +65,8 @@ if 'django_extensions' in INSTALLED_APPS:
 # Performance settings for development
 CACHES = {
     'default': {
-        'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'rioclaro-dev-cache',
     }
 }
 
