@@ -17,7 +17,15 @@
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:headed": "playwright test --headed",
     "test:full": "pnpm test:unit && pnpm test:e2e",
-    "test:full:parallel": "pnpm run test:unit & pnpm run test:e2e & wait"
+    "test:full:parallel": "pnpm run test:unit & pnpm run test:e2e & wait",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "docker:logs": "docker-compose logs -f",
+    "docker:build": "docker-compose build",
+    "docker:rebuild": "docker-compose build --no-cache",
+    "docker:ps": "docker-compose ps",
+    "docker:restart": "docker-compose restart",
+    "security:check": "pnpm lint && pnpm test:coverage"
   },
   "dependencies": {
     "@radix-ui/react-alert-dialog": "1.1.4",
