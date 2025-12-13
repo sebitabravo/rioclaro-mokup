@@ -9,7 +9,16 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.pagination import PageNumberPagination
 from django_filters.rest_framework import DjangoFilterBackend
 from django_filters import rest_framework as filters_rf
+from django.http import HttpResponse
 import datetime
+import io
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import letter, A4
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.units import inch
+import openpyxl
+from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 
 from .models import (
     Measurement,
@@ -1023,3 +1032,364 @@ def comparative_report(request):
         },
         'results': serializer.data
     })
+
+
+# ===================================================================
+# EXPORT REPORTS (PDF/Excel)
+# ===================================================================
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def export_report_pdf(request):
+    """
+    Exporta reportes a PDF
+
+    Endpoint: GET /api/measurements/reports/export/pdf/
+
+    Parámetros:
+    - report_type: Tipo de reporte (daily-averages, critical-events, comparative)
+    - date_from: Fecha desde (YYYY-MM-DD)
+    - date_to: Fecha hasta (YYYY-MM-DD)
+    - station_id: ID de estación (opcional)
+    - measurement_type: Tipo de medición (opcional)
+    - level: Nivel de alerta (para critical-events, opcional)
+    - stations: IDs separados por coma (para comparative)
+    - aggregation: daily/hourly (para comparative, opcional)
+    """
+    report_type = request.GET.get('report_type')
+    if not report_type:
+        return Response(
+            {'error': 'El parámetro report_type es requerido'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    # Obtener datos del reporte según el tipo
+    if report_type == 'daily-averages':
+        response = daily_average_report(request._request)
+        if response.status_code != 200:
+            return response
+        data = response.data
+        report_data = data['results']
+        report_info = data['report_info']
+
+    elif report_type == 'critical-events':
+        response = critical_events_report(request._request)
+        if response.status_code != 200:
+            return response
+        data = response.data
+        report_data = data['results']
+        report_info = data['report_info']
+
+    elif report_type == 'comparative':
+        response = comparative_report(request._request)
+        if response.status_code != 200:
+            return response
+        data = response.data
+        report_data = data['results']
+        report_info = data['report_info']
+
+    else:
+        return Response(
+            {'error': 'Tipo de reporte no válido. Use: daily-averages, critical-events, comparative'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    # Crear buffer para el PDF
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=A4)
+    elements = []
+    styles = getSampleStyleSheet()
+
+    # Título del reporte
+    title_style = ParagraphStyle(
+        'CustomTitle',
+        parent=styles['Heading1'],
+        fontSize=16,
+        spaceAfter=30,
+        alignment=1  # Center
+    )
+
+    report_titles = {
+        'daily-averages': 'Reporte de Promedios Diarios',
+        'critical-events': 'Reporte de Eventos Críticos',
+        'comparative': 'Reporte Comparativo entre Estaciones'
+    }
+
+    title = Paragraph(report_titles.get(report_type, 'Reporte'), title_style)
+    elements.append(title)
+
+    # Información del reporte
+    info_style = styles['Normal']
+    info_text = f"""
+    <b>Período:</b> {report_info.get('date_from', 'N/A')} - {report_info.get('date_to', 'N/A')}<br/>
+    <b>Tipo de Medición:</b> {report_info.get('measurement_type', 'N/A')}<br/>
+    <b>Total de Registros:</b> {report_info.get('total_records', 0)}<br/>
+    """
+
+    if report_type == 'critical-events' and report_info.get('level_filter'):
+        info_text += f"<b>Nivel de Alerta:</b> {report_info['level_filter']}<br/>"
+
+    if report_info.get('station_filter'):
+        info_text += f"<b>Estación:</b> {report_info['station_filter']}<br/>"
+
+    elements.append(Paragraph(info_text, info_style))
+    elements.append(Spacer(1, 20))
+
+    # Crear tabla según el tipo de reporte
+    if report_type == 'daily-averages':
+        headers = ['Fecha', 'Estación', 'Código', 'Promedio', 'Mínimo', 'Máximo', 'Conteo', 'Unidad']
+        table_data = [headers]
+
+        for item in report_data:
+            row = [
+                str(item['date']),
+                item['station_name'],
+                item['station_code'],
+                f"{item['avg_value']:.2f}" if item['avg_value'] else 'N/A',
+                f"{item['min_value']:.2f}" if item['min_value'] else 'N/A',
+                f"{item['max_value']:.2f}" if item['max_value'] else 'N/A',
+                str(item['count']),
+                item['unit']
+            ]
+            table_data.append(row)
+
+    elif report_type == 'critical-events':
+        headers = ['Fecha/Hora', 'Estación', 'Tipo', 'Valor', 'Unidad', 'Nivel', 'Estado', 'Mensaje']
+        table_data = [headers]
+
+        for item in report_data:
+            row = [
+                item['timestamp'].strftime('%Y-%m-%d %H:%M') if hasattr(item['timestamp'], 'strftime') else str(item['timestamp']),
+                item['station_name'],
+                item['measurement_type_display'],
+                item['measured_value'] or 'N/A',
+                item['unit'],
+                item['threshold_level_display'],
+                item['alert_status_display'],
+                item['alert_message'][:50] + '...' if len(item['alert_message']) > 50 else item['alert_message']
+            ]
+            table_data.append(row)
+
+    elif report_type == 'comparative':
+        # Para reporte comparativo, mostrar estadísticas por estación
+        headers = ['Estación', 'Código', 'Conteo Total', 'Promedio', 'Mínimo', 'Máximo', 'Unidad']
+        table_data = [headers]
+
+        for station in report_data['stations_data']:
+            stats = station['statistics']
+            row = [
+                station['station_name'],
+                station['station_code'],
+                str(stats['count']),
+                f"{stats['avg']:.2f}" if stats['avg'] else 'N/A',
+                f"{stats['min']:.2f}" if stats['min'] is not None else 'N/A',
+                f"{stats['max']:.2f}" if stats['max'] is not None else 'N/A',
+                station['unit']
+            ]
+            table_data.append(row)
+
+    # Crear tabla
+    table = Table(table_data, repeatRows=1)
+    table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, 0), 10),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+        ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+        ('GRID', (0, 0), (-1, -1), 1, colors.black),
+        ('FONTSIZE', (0, 1), (-1, -1), 8),
+    ]))
+
+    elements.append(table)
+
+    # Generar PDF
+    doc.build(elements)
+
+    # Preparar respuesta
+    buffer.seek(0)
+    response = HttpResponse(buffer.getvalue(), content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="{report_type}_report_{datetime.date.today()}.pdf"'
+
+    return response
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def export_report_excel(request):
+    """
+    Exporta reportes a Excel
+
+    Endpoint: GET /api/measurements/reports/export/excel/
+
+    Parámetros: Mismos que export_report_pdf
+    """
+    report_type = request.GET.get('report_type')
+    if not report_type:
+        return Response(
+            {'error': 'El parámetro report_type es requerido'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    # Obtener datos del reporte según el tipo (mismo código que PDF)
+    if report_type == 'daily-averages':
+        response = daily_average_report(request._request)
+        if response.status_code != 200:
+            return response
+        data = response.data
+        report_data = data['results']
+        report_info = data['report_info']
+
+    elif report_type == 'critical-events':
+        response = critical_events_report(request._request)
+        if response.status_code != 200:
+            return response
+        data = response.data
+        report_data = data['results']
+        report_info = data['report_info']
+
+    elif report_type == 'comparative':
+        response = comparative_report(request._request)
+        if response.status_code != 200:
+            return response
+        data = response.data
+        report_data = data['results']
+        report_info = data['report_info']
+
+    else:
+        return Response(
+            {'error': 'Tipo de reporte no válido. Use: daily-averages, critical-events, comparative'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    # Crear workbook de Excel
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = report_type.replace('-', '_').title()
+
+    # Estilos
+    header_font = Font(bold=True, color="FFFFFF")
+    header_fill = PatternFill(start_color="366092", end_color="366092", fill_type="solid")
+    border = Border(left=Side(style='thin'), right=Side(style='thin'), top=Side(style='thin'), bottom=Side(style='thin'))
+
+    # Título del reporte
+    report_titles = {
+        'daily-averages': 'Reporte de Promedios Diarios',
+        'critical-events': 'Reporte de Eventos Críticos',
+        'comparative': 'Reporte Comparativo entre Estaciones'
+    }
+
+    ws['A1'] = report_titles.get(report_type, 'Reporte')
+    ws['A1'].font = Font(size=14, bold=True)
+    ws.merge_cells('A1:H1')
+
+    # Información del reporte
+    row = 3
+    ws[f'A{row}'] = f'Período: {report_info.get("date_from", "N/A")} - {report_info.get("date_to", "N/A")}'
+    row += 1
+    ws[f'A{row}'] = f'Tipo de Medición: {report_info.get("measurement_type", "N/A")}'
+    row += 1
+    ws[f'A{row}'] = f'Total de Registros: {report_info.get("total_records", 0)}'
+    row += 1
+
+    if report_type == 'critical-events' and report_info.get('level_filter'):
+        ws[f'A{row}'] = f'Nivel de Alerta: {report_info["level_filter"]}'
+        row += 1
+
+    if report_info.get('station_filter'):
+        ws[f'A{row}'] = f'Estación: {report_info["station_filter"]}'
+        row += 1
+
+    # Espacio
+    row += 2
+
+    # Headers y datos según tipo de reporte
+    if report_type == 'daily-averages':
+        headers = ['Fecha', 'Estación', 'Código', 'Promedio', 'Mínimo', 'Máximo', 'Conteo', 'Unidad']
+        for col, header in enumerate(headers, 1):
+            cell = ws.cell(row=row, column=col, value=header)
+            cell.font = header_font
+            cell.fill = header_fill
+            cell.border = border
+            cell.alignment = Alignment(horizontal='center')
+
+        row += 1
+
+        for item in report_data:
+            ws.cell(row=row, column=1, value=str(item['date']))
+            ws.cell(row=row, column=2, value=item['station_name'])
+            ws.cell(row=row, column=3, value=item['station_code'])
+            ws.cell(row=row, column=4, value=round(item['avg_value'], 2) if item['avg_value'] else None)
+            ws.cell(row=row, column=5, value=round(item['min_value'], 2) if item['min_value'] else None)
+            ws.cell(row=row, column=6, value=round(item['max_value'], 2) if item['max_value'] else None)
+            ws.cell(row=row, column=7, value=item['count'])
+            ws.cell(row=row, column=8, value=item['unit'])
+            row += 1
+
+    elif report_type == 'critical-events':
+        headers = ['Fecha/Hora', 'Estación', 'Tipo', 'Valor', 'Unidad', 'Nivel', 'Estado', 'Mensaje']
+        for col, header in enumerate(headers, 1):
+            cell = ws.cell(row=row, column=col, value=header)
+            cell.font = header_font
+            cell.fill = header_fill
+            cell.border = border
+            cell.alignment = Alignment(horizontal='center')
+
+        row += 1
+
+        for item in report_data:
+            timestamp = item['timestamp']
+            if hasattr(timestamp, 'strftime'):
+                timestamp_str = timestamp.strftime('%Y-%m-%d %H:%M')
+            else:
+                timestamp_str = str(timestamp)
+
+            ws.cell(row=row, column=1, value=timestamp_str)
+            ws.cell(row=row, column=2, value=item['station_name'])
+            ws.cell(row=row, column=3, value=item['measurement_type_display'])
+            ws.cell(row=row, column=4, value=item['measured_value'] or 'N/A')
+            ws.cell(row=row, column=5, value=item['unit'])
+            ws.cell(row=row, column=6, value=item['threshold_level_display'])
+            ws.cell(row=row, column=7, value=item['alert_status_display'])
+            ws.cell(row=row, column=8, value=item['alert_message'])
+            row += 1
+
+    elif report_type == 'comparative':
+        headers = ['Estación', 'Código', 'Conteo Total', 'Promedio', 'Mínimo', 'Máximo', 'Unidad']
+        for col, header in enumerate(headers, 1):
+            cell = ws.cell(row=row, column=col, value=header)
+            cell.font = header_font
+            cell.fill = header_fill
+            cell.border = border
+            cell.alignment = Alignment(horizontal='center')
+
+        row += 1
+
+        for station in report_data['stations_data']:
+            stats = station['statistics']
+            ws.cell(row=row, column=1, value=station['station_name'])
+            ws.cell(row=row, column=2, value=station['station_code'])
+            ws.cell(row=row, column=3, value=stats['count'])
+            ws.cell(row=row, column=4, value=round(stats['avg'], 2) if stats['avg'] else None)
+            ws.cell(row=row, column=5, value=round(stats['min'], 2) if stats['min'] is not None else None)
+            ws.cell(row=row, column=6, value=round(stats['max'], 2) if stats['max'] is not None else None)
+            ws.cell(row=row, column=7, value=station['unit'])
+            row += 1
+
+    # Ajustar ancho de columnas
+    for col in range(1, 9):
+        ws.column_dimensions[openpyxl.utils.get_column_letter(col)].width = 15
+
+    # Crear respuesta
+    buffer = io.BytesIO()
+    wb.save(buffer)
+    buffer.seek(0)
+
+    response = HttpResponse(
+        buffer.getvalue(),
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    response['Content-Disposition'] = f'attachment; filename="{report_type}_report_{datetime.date.today()}.xlsx"'
+
+    return response

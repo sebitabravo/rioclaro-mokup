@@ -21,6 +21,7 @@ from rest_framework.authtoken.views import obtain_auth_token
 
 # Import ViewSets
 from users.views import UserViewSet
+from users.views_activity import ActivityLogViewSet
 from stations.views import StationViewSet, StationAssignmentViewSet
 
 # Import health check views
@@ -32,6 +33,7 @@ from .monitoring import metrics, system_info
 # Configure DRF Router
 router = DefaultRouter()
 router.register(r'users', UserViewSet)
+router.register(r'activity-logs', ActivityLogViewSet, basename='activity-log')
 router.register(r'stations', StationViewSet)
 router.register(r'station-assignments', StationAssignmentViewSet)
 

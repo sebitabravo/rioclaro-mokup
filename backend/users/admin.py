@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from .models import CustomUser
+from .models_activity import ActivityLog
 
 
 @admin.register(CustomUser)
@@ -20,5 +21,30 @@ class CustomUserAdmin(UserAdmin):
     add_fieldsets = UserAdmin.add_fieldsets + (
         ('Información Adicional', {
             'fields': ('email', 'first_name', 'last_name', 'role')
+        }),
+    )
+
+
+@admin.register(ActivityLog)
+class ActivityLogAdmin(admin.ModelAdmin):
+    list_display = ['id', 'user', 'action_type', 'entity_type', 'severity', 'timestamp']
+    list_filter = ['action_type', 'entity_type', 'severity', 'timestamp']
+    search_fields = ['user__email', 'description', 'entity_id']
+    readonly_fields = ['timestamp', 'created_at']
+    date_hierarchy = 'timestamp'
+
+    fieldsets = (
+        ('Información Principal', {
+            'fields': ('user', 'action_type', 'entity_type', 'entity_id', 'severity')
+        }),
+        ('Detalles', {
+            'fields': ('description', 'details')
+        }),
+        ('Metadata', {
+            'fields': ('ip_address', 'user_agent')
+        }),
+        ('Fechas', {
+            'fields': ('timestamp', 'created_at'),
+            'classes': ('collapse',)
         }),
     )

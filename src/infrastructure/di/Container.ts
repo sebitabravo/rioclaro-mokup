@@ -89,7 +89,9 @@ export class DIContainer {
 
   private initializeRepositories(): void {
     // MODO DESARROLLO: Usar implementaciones Mock sin backend
-    const USE_MOCK = true; // Cambiar a false cuando el backend esté disponible
+    // Se controla con la variable de entorno VITE_DATA_SOURCE
+    const DATA_SOURCE = import.meta.env.VITE_DATA_SOURCE || 'MOCK';
+    const USE_MOCK = DATA_SOURCE === 'MOCK';
 
     if (USE_MOCK) {
       console.log('🎭 Usando repositorios MOCK - Modo desarrollo sin backend');

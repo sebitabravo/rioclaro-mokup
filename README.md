@@ -62,19 +62,170 @@ pnpm dev
 
 ---
 
-## 📚 Documentación Completa
+## ⚙️ Configuración de Entorno
 
-### 📖 **[Ver Documentación →](docs/README.md)**
+### Variables de Entorno
 
-**Rutas rápidas:**
-- 🚀 [Getting Started](docs/getting-started/) - Setup e instalación
-- 🏗️ [Architecture](docs/architecture/overview.md) - Clean Architecture explicada
-- 🛠️ [Development](docs/development/setup.md) - Guía de desarrollo
-- 🔌 [API Reference](docs/api/) - Documentación de REST API
-- ✨ [Features](docs/features/) - Funcionalidades específicas
+Copia `.env.example` a `.env` y configura:
 
-**¿Primera vez?** Sigue esta ruta:
-1. [Quick Start](docs/getting-started/) → 2. [Architecture Overview](docs/architecture/overview.md) → 3. [Development Setup](docs/development/setup.md)
+```bash
+# Base
+NODE_ENV=development
+VITE_API_URL=http://localhost:8000/api
+
+# Backend
+DJANGO_SETTINGS_MODULE=rioclaro_api.settings
+SECRET_KEY=tu-clave-secreta-super-segura
+DEBUG=True
+
+# Base de Datos
+DB_HOST=localhost
+DB_PORT=3306
+DB_NAME=rioclaro_db
+DB_USER=rioclaro_user
+DB_PASSWORD=tu-password
+
+# Redis
+REDIS_URL=redis://localhost:6379/0
+
+# Modo API/MOCK
+USE_REAL_API=True  # False para usar mocks
+```
+
+### Base de Datos
+
+```bash
+# Crear base de datos MySQL
+mysql -u root -p
+CREATE DATABASE rioclaro_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE USER 'rioclaro_user'@'localhost' IDENTIFIED BY 'tu-password';
+GRANT ALL PRIVILEGES ON rioclaro_db.* TO 'rioclaro_user'@'localhost';
+FLUSH PRIVILEGES;
+```
+
+---
+
+## 🔌 Endpoints Principales de API
+
+### Autenticación
+- `POST /api/auth/login/` - Login
+- `POST /api/auth/logout/` - Logout
+- `GET /api/auth/me/` - Usuario actual
+
+### Mediciones
+- `GET /api/measurements/` - Lista de mediciones (con filtros)
+- `POST /api/measurements/` - Crear medición
+- `GET /api/measurements/{id}/` - Detalle de medición
+
+### Estaciones
+- `GET /api/stations/` - Lista de estaciones
+- `POST /api/stations/` - Crear estación
+- `GET /api/stations/{id}/` - Detalle de estación
+
+### Sensores
+- `GET /api/sensors/` - Lista de tipos de sensores
+- `POST /api/sensors/` - Crear tipo de sensor
+
+### Reportes
+- `GET /api/measurements/reports/` - Reportes con filtros
+- `GET /api/measurements/reports/export/pdf/` - Exportar PDF
+- `GET /api/measurements/reports/export/excel/` - Exportar Excel
+
+### Activity Logs
+- `GET /api/activity-logs/` - Lista de logs de actividad
+- `GET /api/activity-logs/stats/` - Estadísticas de actividad
+
+### Admin Panel
+- `/admin/` - Panel de administración Django
+
+---
+
+## 🛠️ Comandos Útiles
+
+### Desarrollo
+```bash
+# Frontend
+pnpm install          # Instalar dependencias
+pnpm dev             # Servidor de desarrollo
+pnpm build           # Build de producción
+pnpm preview         # Preview del build
+pnpm lint            # Linting
+pnpm test:unit       # Tests unitarios
+
+# Backend
+cd backend
+python manage.py runserver    # Servidor Django
+python manage.py makemigrations  # Crear migraciones
+python manage.py migrate      # Aplicar migraciones
+python manage.py createsuperuser  # Crear admin
+python manage.py setup_initial_data  # Datos iniciales
+
+# Docker
+docker-compose up -d          # Levantar stack completo
+docker-compose down           # Detener stack
+docker-compose logs -f        # Ver logs
+```
+
+### Testing
+```bash
+# E2E completo
+pnpm test:e2e
+
+# Tests específicos
+npx playwright test dashboard-performance.spec.ts
+npx playwright test reports-chart.spec.ts
+
+# Con UI de Playwright
+npx playwright test --ui
+```
+
+### Simulador
+```bash
+cd arduino/simulator
+python mock_arduino.py --station 1 --interval 30
+```
+
+---
+
+## 🐛 Troubleshooting
+
+### Problema: "Module not found" en frontend
+```bash
+rm -rf node_modules pnpm-lock.yaml
+pnpm install
+```
+
+### Problema: Base de datos no conecta
+- Verificar credenciales en `.env`
+- Asegurar MySQL esté corriendo: `brew services start mysql`
+- Crear DB manualmente si falla
+
+### Problema: Tests fallan
+```bash
+# Limpiar cache
+npx playwright install
+pnpm test:e2e --headed  # Ver qué pasa
+```
+
+### Problema: Docker no inicia
+```bash
+docker system prune -a  # Limpiar todo
+docker-compose up --build
+```
+
+### Problema: Arduino no envía datos
+- Verificar WiFi credentials en `river_sensor.ino`
+- Revisar IP del backend en el script
+- Ver logs del simulador: `python mock_arduino.py --debug`
+
+---
+
+## 📚 Documentación Adicional
+
+- [Arquitectura Clean](docs/architecture/overview.md)
+- [Setup de Desarrollo](docs/development/setup.md)
+- [API Reference](docs/api/)
+- [Performance](docs/performance/)
 
 ---
 

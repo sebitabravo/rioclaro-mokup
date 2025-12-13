@@ -41,6 +41,10 @@ from .views import (
     critical_events_report,
     comparative_report,
 
+    # Export Reports
+    export_report_pdf,
+    export_report_excel,
+
     # Configuraciones
     MeasurementConfigurationListCreateView,
     MeasurementConfigurationDetailView,
@@ -183,6 +187,20 @@ urlpatterns = [
         'reports/comparative/',
         comparative_report,
         name='comparative-report'
+    ),
+
+    # Export Reports - PDF
+    path(
+        'reports/export/pdf/',
+        export_report_pdf,
+        name='export-report-pdf'
+    ),
+
+    # Export Reports - Excel
+    path(
+        'reports/export/excel/',
+        export_report_excel,
+        name='export-report-excel'
     ),
 
     # ========================================

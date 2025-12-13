@@ -56,10 +56,16 @@ backend/db.sqlite3
 backend/*.sqlite3
 backend/env/
 backend/.env
+backend/.env.production
 backend/staticfiles/
 backend/media/
 backend/*.pyc
 backend/**/migrations/__pycache__/
+*.py[cod]
+*$py.class
+__pycache__/
+*.so
+.Python
 
 # Arduino
 arduino/hardware/config/secrets.h

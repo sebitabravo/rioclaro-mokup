@@ -25,8 +25,8 @@ export class ApiReportRepository implements ReportRepository {
     }
 
     const endpoint = queryParams.toString()
-      ? `/api/reports/daily-average/?${queryParams}`
-      : '/api/reports/daily-average/';
+      ? `/api/measurements/reports/daily-averages/?${queryParams}`
+      : '/api/measurements/reports/daily-averages/';
 
     return await this.apiClient.get<DailyAverageData[]>(endpoint);
   }
@@ -51,8 +51,8 @@ export class ApiReportRepository implements ReportRepository {
     }
 
     const endpoint = queryParams.toString()
-      ? `/api/reports/critical-events/?${queryParams}`
-      : '/api/reports/critical-events/';
+      ? `/api/measurements/reports/critical-events/?${queryParams}`
+      : '/api/measurements/reports/critical-events/';
 
     return await this.apiClient.get<CriticalEvent[]>(endpoint);
   }
