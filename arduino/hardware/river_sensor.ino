@@ -28,7 +28,7 @@ const char* WIFI_PASSWORD = "TU_WIFI_PASSWORD";
 
 // ========== CONFIGURACIÓN BACKEND ==========
 const char* BACKEND_URL = "http://192.168.1.100:8000";  // Cambia por tu IP
-const char* AUTH_TOKEN = "1cfcc2538f74c3b1f39e1b7d88fc3c5319a0e415";  // Token del admin
+const char* AUTH_TOKEN = "REPLACE_WITH_BACKEND_TOKEN";  // Generar con create_simulator_token
 
 // ========== CONFIGURACIÓN DEL DISPOSITIVO ==========
 const char* DEVICE_ID = "ARDUINO_SENSOR_001";

@@ -4,7 +4,7 @@ import { Buffer } from 'node:buffer';
 export const adminUser = {
   id: 2,
   username: 'admin',
-  email: 'admin@rioclaro.gov.co',
+  email: 'admin@example.invalid',
   first_name: 'Administrador',
   last_name: 'Sistema',
   role: 'Administrador' as const,

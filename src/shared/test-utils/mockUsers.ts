@@ -7,7 +7,7 @@ export const mockUsers = {
   administrador: {
     id: 1,
     username: 'admin_user',
-    email: 'admin@rioclaro.gov',
+    email: 'admin@example.invalid',
     first_name: 'Carlos',
     last_name: 'Administrador',
     role: 'Administrador' as const,
@@ -20,7 +20,7 @@ export const mockUsers = {
   tecnico: {
     id: 2,
     username: 'tech_user',
-    email: 'tecnico@rioclaro.gov',
+    email: 'tech@example.invalid',
     first_name: 'María',
     last_name: 'Técnico',
     role: 'Técnico' as const,
@@ -33,7 +33,7 @@ export const mockUsers = {
   observador: {
     id: 3,
     username: 'observer_user',
-    email: 'observador@rioclaro.gov',
+    email: 'observer@example.invalid',
     first_name: 'Ana',
     last_name: 'Observador',
     role: 'Observador' as const,
@@ -46,7 +46,7 @@ export const mockUsers = {
   inactiveUser: {
     id: 4,
     username: 'inactive_user',
-    email: 'inactive@rioclaro.gov',
+    email: 'inactive@example.invalid',
     first_name: 'Luis',
     last_name: 'Inactivo',
     role: 'Observador' as const,
@@ -90,23 +90,23 @@ export const mockAuthResponses = {
 export const mockCredentials = {
   administrador: {
     username: 'admin_user',
-    password: 'admin123',
+    password: 'test-pass-admin',
   },
   tecnico: {
     username: 'tech_user',
-    password: 'tech123',
+    password: 'test-pass-tech',
   },
   observador: {
     username: 'observer_user',
-    password: 'observer123',
+    password: 'test-pass-observer',
   },
   inactiveUser: {
     username: 'inactive_user',
-    password: 'inactive123',
+    password: 'test-pass-inactive',
   },
   invalid: {
     username: 'invalid_user',
-    password: 'wrong_password',
+    password: 'not-valid-pass',
   },
 };
 

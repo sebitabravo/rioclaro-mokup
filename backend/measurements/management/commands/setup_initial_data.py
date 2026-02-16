@@ -1,6 +1,9 @@
 """Management command to setup initial data"""
+import os
+
 from django.core.management.base import BaseCommand
 from django.contrib.auth import get_user_model
+from django.utils.crypto import get_random_string
 from stations.models import Station
 from measurements.models_dynamic import SensorTypeCategory, DynamicSensorType, ModuleConfiguration
 
@@ -22,16 +25,32 @@ class Command(BaseCommand):
 
     def create_admin_user(self):
         self.stdout.write('Creating admin user...')
-        if not User.objects.filter(email='admin@rioclaro.com').exists():
+        admin_username = os.environ.get('RIOCLARO_INITIAL_ADMIN_USERNAME', 'admin')
+        admin_email = os.environ.get('RIOCLARO_INITIAL_ADMIN_EMAIL', 'admin@example.invalid')
+        admin_password = os.environ.get('RIOCLARO_INITIAL_ADMIN_PASSWORD')
+        generated_password = False
+
+        if not User.objects.filter(username=admin_username).exists():
+            if not admin_password:
+                admin_password = get_random_string(24)
+                generated_password = True
+
             User.objects.create_superuser(
-                username='admin',
-                email='admin@rioclaro.com',
-                password='admin123',
+                username=admin_username,
+                email=admin_email,
+                password=admin_password,
                 first_name='Admin',
                 last_name='RioClaro',
                 role='ADMIN'
             )
             self.stdout.write(self.style.SUCCESS('✓ Admin user created'))
+            if generated_password:
+                self.stdout.write(
+                    self.style.WARNING(
+                        f'  Temporary admin password generated: {admin_password}\n'
+                        '  Set RIOCLARO_INITIAL_ADMIN_PASSWORD to control this value.'
+                    )
+                )
         else:
             self.stdout.write('  Admin user already exists')
 

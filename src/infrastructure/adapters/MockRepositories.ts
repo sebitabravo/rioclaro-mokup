@@ -325,7 +325,7 @@ export class MockAuthRepository implements AuthRepository {
       return {
         id: payload.userId ?? 1,
         username,
-        email: `${username}@rioclaro.com`,
+        email: `${username}@example.invalid`,
         first_name: role === 'Administrador' ? 'Admin' : 'Usuario',
         last_name: 'Mock',
         role,
@@ -406,7 +406,7 @@ export class MockUserRepository implements UserRepository {
     {
       id: 1,
       username: "admin",
-      email: "admin@rioclaro.com",
+      email: "admin@example.invalid",
       first_name: "Admin",
       last_name: "Usuario",
       role: "Administrador",
@@ -419,7 +419,7 @@ export class MockUserRepository implements UserRepository {
     {
       id: 2,
       username: "tecnico1",
-      email: "tecnico@rioclaro.com",
+      email: "tecnico@example.invalid",
       first_name: "Juan",
       last_name: "Pérez",
       role: "Técnico",

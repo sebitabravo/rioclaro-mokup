@@ -68,7 +68,7 @@ const char* WIFI_PASSWORD = "TU_WIFI_PASSWORD";
 
 // ========== CONFIGURACIÓN BACKEND ==========
 const char* BACKEND_URL = "http://192.168.1.100:8000";  // IP de tu servidor
-const char* AUTH_TOKEN = "1cfcc2538f74c3b1f39e1b7d88fc3c5319a0e415";  // Token del admin
+const char* AUTH_TOKEN = "REPLACE_WITH_BACKEND_TOKEN";  // Token generado por backend
 
 // ========== CONFIGURACIÓN DEL DISPOSITIVO ==========
 const char* DEVICE_ID = "ARDUINO_SENSOR_001";
@@ -281,7 +281,7 @@ El Arduino imprime información detallada:
 
 ```bash
 # Ver mediciones del Arduino
-curl -H "Authorization: Token 1cfcc2538f74c3b1f39e1b7d88fc3c5319a0e415" \
+curl -H "Authorization: Token ${SIMULATOR_TOKEN}" \
      http://localhost:8000/api/measurements/module4/extensible-measurements/ | jq
 ```
 

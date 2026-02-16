@@ -211,9 +211,9 @@ export function LoginPage() {
             {/* Demo credentials info */}
             <div className="mt-4 p-3 bg-muted/50 rounded-lg text-xs text-muted-foreground">
               <p className="font-medium mb-1">Credenciales de prueba:</p>
-              <p>Admin: admin@rioclaro.com / admin123</p>
-              <p>Técnico: tecnico1@rioclaro.com / password</p>
-              <p>Test: test@example.com / password</p>
+              <p>Admin: admin_user / demo-password</p>
+              <p>Técnico: tecnico_user / demo-password</p>
+              <p>En modo MOCK puedes usar cualquier password no vacío.</p>
             </div>
           </div>
         </div>
