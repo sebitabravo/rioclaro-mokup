@@ -1,4 +1,21 @@
-import { Page } from '@playwright/test';
+import { Locator, Page } from '@playwright/test';
+
+async function isVisibleQuick(locator: Locator, timeout = 250): Promise<boolean> {
+  try {
+    return await locator.first().isVisible({ timeout });
+  } catch {
+    return false;
+  }
+}
+
+async function clickQuick(locator: Locator, timeout = 1000): Promise<boolean> {
+  try {
+    await locator.first().click({ timeout });
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 export async function dismissOnboardingIfPresent(page: Page) {
   const overlay = page.locator('div.fixed.inset-0.bg-black.bg-opacity-50');
@@ -8,29 +25,29 @@ export async function dismissOnboardingIfPresent(page: Page) {
 
   let promptWasVisible = false;
 
-  for (let attempt = 0; attempt < 12; attempt += 1) {
-    const isDismissPromptVisible = await dismissPromptButton.isVisible();
-    const isSkipTourVisible = await skipTourButton.isVisible();
-    const isCloseTourVisible = await closeTourButton.isVisible();
-    const isOverlayVisible = await overlay.isVisible();
+  for (let attempt = 0; attempt < 15; attempt += 1) {
+    const isDismissPromptVisible = await isVisibleQuick(dismissPromptButton);
+    const isSkipTourVisible = await isVisibleQuick(skipTourButton);
+    const isCloseTourVisible = await isVisibleQuick(closeTourButton);
+    const isOverlayVisible = await isVisibleQuick(overlay);
 
     if (isDismissPromptVisible) {
       promptWasVisible = true;
-      await dismissPromptButton.click();
+      await clickQuick(dismissPromptButton);
       await page.waitForTimeout(200);
       continue;
     }
 
     if (isSkipTourVisible) {
       promptWasVisible = true;
-      await skipTourButton.click();
+      await clickQuick(skipTourButton);
       await page.waitForTimeout(200);
       continue;
     }
 
     if (isCloseTourVisible) {
       promptWasVisible = true;
-      await closeTourButton.click();
+      await clickQuick(closeTourButton);
       await page.waitForTimeout(200);
       continue;
     }
