@@ -1,7 +1,11 @@
 import { defineConfig, devices } from '@playwright/test';
 
-if (!process.env.VITE_USE_API) {
-	process.env.VITE_USE_API = 'false';
+if (!process.env.VITE_DATA_SOURCE) {
+	process.env.VITE_DATA_SOURCE = 'MOCK';
+}
+
+if (!process.env.VITE_ENVIRONMENT) {
+	process.env.VITE_ENVIRONMENT = 'development';
 }
 
 /**
@@ -22,7 +26,7 @@ export default defineConfig({
 	/* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
 	use: {
 		/* Base URL to use in actions like `await page.goto('/')`. */
-		baseURL: 'http://localhost:5173',
+		baseURL: 'http://localhost:4173',
 
 		/* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
 		trace: 'on-first-retry'
@@ -58,8 +62,8 @@ export default defineConfig({
 
 	/* Run your local dev server before starting the tests */
 	webServer: {
-		command: 'pnpm dev',
-		port: 5173,
-		reuseExistingServer: !process.env.CI
+		command: 'VITE_DATA_SOURCE=MOCK VITE_ENVIRONMENT=development pnpm dev --port 4173 --strictPort',
+		port: 4173,
+		reuseExistingServer: false
 	}
 });

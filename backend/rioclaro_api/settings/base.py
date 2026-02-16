@@ -24,10 +24,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent
 # Take environment variables from .env file if it exists
 environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 
+DJANGO_ENVIRONMENT = os.getenv('DJANGO_ENVIRONMENT', 'development')
+
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = env('SECRET_KEY')
-if not SECRET_KEY:
-    raise ValueError("SECRET_KEY must be set in environment variables")
+DEFAULT_DEV_SECRET_KEY = 'django-insecure-rioclaro-dev-only-change-in-production'
+SECRET_KEY = env('SECRET_KEY', default=DEFAULT_DEV_SECRET_KEY)
+if DJANGO_ENVIRONMENT == 'production' and SECRET_KEY == DEFAULT_DEV_SECRET_KEY:
+    raise ValueError("SECRET_KEY must be set in environment variables for production")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env('DEBUG')

@@ -5,13 +5,18 @@ import { UserRepository } from '@domain/repositories/UserRepository';
 import { AlertRepository, VariableModuleRepository } from '@domain/repositories/AlertRepository';
 import { ActivityLogRepository } from '@domain/repositories/ActivityLogRepository';
 import { ReportRepository } from '@domain/repositories/ReportRepository';
+import { AuthRepository, AuthResponse, LoginCredentials, RegisterData } from '@domain/repositories/AuthRepository';
 import { Station } from '@domain/entities/Station';
 import { Measurement, MeasurementFilters } from '@domain/entities/Measurement';
 import { User, CreateUserData, UpdateUserData } from '@domain/entities/User';
 import { Alert, VariableModule } from '@domain/entities/Alert';
 import { ActivityLog, ActivityLogFilter } from '@domain/entities/ActivityLog';
-import { ReportFilters, ExportFormat } from '@domain/entities/Report';
+import { ReportFilters, ExportFormat, DailyAverageData, CriticalEvent } from '@domain/entities/Report';
 import { PaginationParams, PaginatedResult, StationFilters } from '@shared/types/pagination';
+
+type MockAuthUser = User & {
+  is_active: boolean;
+};
 
 // Datos mock de estaciones
 const mockStations: Station[] = [
@@ -144,7 +149,8 @@ export class MockStationRepository implements StationRepository {
     return Promise.resolve(false);
   }
 
-  async findPaginated(params: PaginationParams, _filters?: StationFilters): Promise<PaginatedResult<Station>> {
+  async findPaginated(params: PaginationParams, filters?: StationFilters): Promise<PaginatedResult<Station>> {
+    void filters;
     const start = (params.page - 1) * params.limit;
     const end = start + params.limit;
     const totalPages = Math.ceil(mockStations.length / params.limit);
@@ -159,6 +165,203 @@ export class MockStationRepository implements StationRepository {
         hasPrev: params.page > 1
       }
     });
+  }
+}
+
+// Mock Auth Repository
+export class MockAuthRepository implements AuthRepository {
+  private activeSessions = new Map<string, User>();
+
+  private mockUsers: MockAuthUser[] = [
+    {
+      id: 1,
+      username: 'admin_user',
+      email: 'admin@example.invalid',
+      first_name: 'Carlos',
+      last_name: 'Administrador',
+      role: 'Administrador',
+      is_staff: true,
+      is_superuser: true,
+      assigned_stations: [1, 2, 3, 4, 5],
+      created_at: '2024-01-01T00:00:00Z',
+      updated_at: '2024-09-28T00:00:00Z',
+      is_active: true,
+    },
+    {
+      id: 2,
+      username: 'tecnico_user',
+      email: 'tecnico@example.invalid',
+      first_name: 'Ana',
+      last_name: 'Técnica',
+      role: 'Técnico',
+      is_staff: true,
+      is_superuser: false,
+      assigned_stations: [1, 2, 3],
+      created_at: '2024-01-01T00:00:00Z',
+      updated_at: '2024-09-28T00:00:00Z',
+      is_active: true,
+    },
+    {
+      id: 3,
+      username: 'observador_user',
+      email: 'observador@example.invalid',
+      first_name: 'Luis',
+      last_name: 'Observador',
+      role: 'Observador',
+      is_staff: true,
+      is_superuser: false,
+      assigned_stations: [1],
+      created_at: '2024-01-01T00:00:00Z',
+      updated_at: '2024-09-28T00:00:00Z',
+      is_active: true,
+    },
+    {
+      id: 4,
+      username: 'inactive_user',
+      email: 'inactive@example.invalid',
+      first_name: 'Usuario',
+      last_name: 'Inactivo',
+      role: 'Observador',
+      is_staff: true,
+      is_superuser: false,
+      assigned_stations: [2],
+      created_at: '2024-01-01T00:00:00Z',
+      updated_at: '2024-09-28T00:00:00Z',
+      is_active: false,
+    },
+  ];
+
+  async login(credentials: LoginCredentials): Promise<AuthResponse> {
+    const account = this.mockUsers.find((u) => u.username === credentials.username);
+
+    if (!account || !credentials.password?.trim()) {
+      throw new Error('Invalid credentials');
+    }
+
+    if (!account.is_active) {
+      throw new Error('User account is inactive');
+    }
+
+    const user = this.toPublicUser(account);
+    const token = this.createToken(user);
+    this.activeSessions.set(token, user);
+
+    return { user, token };
+  }
+
+  async register(userData: RegisterData): Promise<AuthResponse> {
+    const exists = this.mockUsers.some((u) => u.username === userData.username || u.email === userData.email);
+    if (exists) {
+      throw new Error('User already exists');
+    }
+
+    const now = new Date().toISOString();
+    const newUser: MockAuthUser = {
+      id: this.mockUsers.length + 1,
+      username: userData.username,
+      email: userData.email,
+      first_name: userData.first_name,
+      last_name: userData.last_name,
+      role: 'Técnico',
+      is_staff: true,
+      is_superuser: false,
+      assigned_stations: [1],
+      created_at: now,
+      updated_at: now,
+      is_active: true,
+    };
+
+    this.mockUsers.push(newUser);
+
+    const user = this.toPublicUser(newUser);
+    const token = this.createToken(user);
+    this.activeSessions.set(token, user);
+
+    return { user, token };
+  }
+
+  async logout(): Promise<void> {
+    this.activeSessions.clear();
+  }
+
+  async refreshToken(token: string): Promise<string> {
+    return token;
+  }
+
+  async validateToken(token: string): Promise<User | null> {
+    if (!token) {
+      return null;
+    }
+
+    const sessionUser = this.activeSessions.get(token);
+    if (sessionUser) {
+      return sessionUser;
+    }
+
+    try {
+      const payload = JSON.parse(atob(token)) as Partial<{ userId: number; username: string; role: string }>;
+      const role = this.normalizeRole(payload.role);
+      const knownUser = this.mockUsers.find(
+        (u) => (payload.userId && u.id === payload.userId) || (payload.username && u.username === payload.username)
+      );
+
+      if (knownUser) {
+        const user = this.toPublicUser(knownUser);
+        const username = payload.username && payload.username.length > 0 ? payload.username : user.username;
+
+        return {
+          ...user,
+          username,
+          role,
+          is_staff: true,
+          is_superuser: role === 'Administrador',
+          assigned_stations: role === 'Administrador' ? [1, 2, 3, 4, 5] : user.assigned_stations.length > 0 ? user.assigned_stations : [1],
+        };
+      }
+
+      const username = payload.username && payload.username.length > 0 ? payload.username : 'admin';
+      const now = new Date().toISOString();
+
+      return {
+        id: payload.userId ?? 1,
+        username,
+        email: `${username}@rioclaro.com`,
+        first_name: role === 'Administrador' ? 'Admin' : 'Usuario',
+        last_name: 'Mock',
+        role,
+        is_staff: true,
+        is_superuser: role === 'Administrador',
+        assigned_stations: role === 'Administrador' ? [1, 2, 3, 4, 5] : [1],
+        created_at: now,
+        updated_at: now,
+      };
+    } catch {
+      return null;
+    }
+  }
+
+  private createToken(user: User): string {
+    return btoa(
+      JSON.stringify({
+        userId: user.id,
+        username: user.username,
+        role: user.role,
+        timestamp: Date.now(),
+      })
+    );
+  }
+
+  private toPublicUser(user: MockAuthUser): User {
+    const { is_active, ...publicUser } = user;
+    void is_active;
+    return publicUser;
+  }
+
+  private normalizeRole(role: string | undefined): User['role'] {
+    if (role === 'Administrador' || role === 'Técnico' || role === 'Observador') {
+      return role;
+    }
+    return 'Administrador';
   }
 }
 
@@ -418,7 +621,8 @@ export class MockActivityLogRepository implements ActivityLogRepository {
     }
   ];
 
-  async findAll(_filter?: ActivityLogFilter): Promise<ActivityLog[]> {
+  async findAll(filter?: ActivityLogFilter): Promise<ActivityLog[]> {
+    void filter;
     return Promise.resolve(this.mockLogs);
   }
 
@@ -452,12 +656,13 @@ export class MockActivityLogRepository implements ActivityLogRepository {
     return Promise.resolve(initialCount - this.mockLogs.length);
   }
 
-  async getStats(_filter?: ActivityLogFilter): Promise<{
+  async getStats(filter?: ActivityLogFilter): Promise<{
     total: number;
     byType: Record<string, number>;
     byStatus: Record<string, number>;
     recentActivity: ActivityLog[];
   }> {
+    void filter;
     const byType: Record<string, number> = {};
     const byStatus: Record<string, number> = {};
 
@@ -477,25 +682,29 @@ export class MockActivityLogRepository implements ActivityLogRepository {
 
 // Mock Report Repository
 export class MockReportRepository implements ReportRepository {
-  async getDailyAverage(_filters: ReportFilters): Promise<any[]> {
+  async getDailyAverage(filters: ReportFilters): Promise<DailyAverageData[]> {
+    void filters;
     return Promise.resolve([
       {
         date: new Date().toISOString(),
-        averages: {
-          water_level: 1.75,
-          temperature: 17.5,
-          ph: 7.2
-        }
+        station_name: 'Estación Río Norte',
+        average_value: 1.75,
+        min_value: 1.2,
+        max_value: 2.1,
+        measurement_count: 24,
       }
     ]);
   }
 
-  async getCriticalEvents(_filters: ReportFilters): Promise<any[]> {
+  async getCriticalEvents(filters: ReportFilters): Promise<CriticalEvent[]> {
+    void filters;
     return Promise.resolve([]);
   }
 
-  async exportReport(_type: string, _filters: ReportFilters, _format: ExportFormat): Promise<void> {
-    console.log('Mock export report');
+  async exportReport(type: string, filters: ReportFilters, format: ExportFormat): Promise<void> {
+    void type;
+    void filters;
+    void format;
     return Promise.resolve();
   }
 }

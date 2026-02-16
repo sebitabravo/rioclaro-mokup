@@ -5,6 +5,9 @@ Optimized for fast test execution.
 
 from .base import *
 
+# Disable django-ratelimit system checks in tests; no integration tests rely on shared cache here.
+INSTALLED_APPS = [app for app in INSTALLED_APPS if app != 'django_ratelimit']
+
 # Test settings
 DEBUG = False
 PASSWORD_HASHERS = [
@@ -29,10 +32,11 @@ class DisableMigrations:
 
 MIGRATION_MODULES = DisableMigrations()
 
-# Dummy cache for tests
+# In-memory cache for tests (compatible with django-ratelimit checks)
 CACHES = {
     'default': {
-        'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'rioclaro-test-cache',
     }
 }
 

@@ -18,11 +18,21 @@ git clone https://github.com/sebitabravo/rioclaro-mokup.git
 cd rioclaro-mokup
 pnpm install
 
-# Ejecutar
-pnpm dev
+# Ejecutar en modo demo/mockup (sin backend)
+pnpm dev:demo
 ```
 
 **¡Listo!** Abre [http://localhost:5173](http://localhost:5173) 🎉
+
+### Modos de ejecución
+
+```bash
+# Demo / Mockup (usa repositorios mock)
+pnpm dev:demo
+
+# API real (requiere backend disponible)
+pnpm dev:api
+```
 
 ### Con Docker (Stack Completo)
 
@@ -70,8 +80,12 @@ Copia `.env.example` a `.env` y configura:
 
 ```bash
 # Base
-NODE_ENV=development
+VITE_ENVIRONMENT=development
 VITE_API_URL=http://localhost:8000/api
+
+# Frontend data source
+# Valores válidos: MOCK | DEMO | MOCKUP | API
+VITE_DATA_SOURCE=MOCK
 
 # Backend
 DJANGO_SETTINGS_MODULE=rioclaro_api.settings
@@ -87,9 +101,6 @@ DB_PASSWORD=tu-password
 
 # Redis
 REDIS_URL=redis://localhost:6379/0
-
-# Modo API/MOCK
-USE_REAL_API=True  # False para usar mocks
 ```
 
 ### Base de Datos
@@ -146,8 +157,10 @@ FLUSH PRIVILEGES;
 ```bash
 # Frontend
 pnpm install          # Instalar dependencias
-pnpm dev             # Servidor de desarrollo
+pnpm dev:demo        # Servidor de desarrollo en modo demo/mockup
+pnpm dev:api         # Servidor de desarrollo con API real
 pnpm build           # Build de producción
+pnpm build:production # Build forzado para despliegue (API + production)
 pnpm preview         # Preview del build
 pnpm lint            # Linting
 pnpm test:unit       # Tests unitarios

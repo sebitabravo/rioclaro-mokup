@@ -41,7 +41,7 @@ export class ApiStationAssignmentRepository implements StationAssignmentReposito
     try {
       const response = await this.apiClient.get<ApiStationAssignmentData>(`/api/stations/assignments/${id}/`);
       return this.convertApiToStationAssignment(response);
-    } catch (error) {
+    } catch {
       return null;
     }
   }

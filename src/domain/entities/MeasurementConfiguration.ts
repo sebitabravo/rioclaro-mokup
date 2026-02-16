@@ -22,4 +22,4 @@ export interface CreateMeasurementConfigurationData {
   notification_email?: string;
 }
 
-export interface UpdateMeasurementConfigurationData extends Partial<CreateMeasurementConfigurationData> {}
+export type UpdateMeasurementConfigurationData = Partial<CreateMeasurementConfigurationData>;
