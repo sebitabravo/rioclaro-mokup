@@ -27,6 +27,7 @@ import { ApiReportRepository } from '../adapters/ApiReportRepository';
 import { ApiAuthRepository } from '../adapters/ApiAuthRepository';
 import { ApiActivityLogRepository } from '../adapters/ApiActivityLogRepository';
 import { apiClient } from '../adapters/ApiClient';
+import { getRuntimeDataSourceConfig } from '@shared/config/dataSource';
 
 // Mock Implementations para desarrollo
 import {
@@ -89,12 +90,15 @@ export class DIContainer {
   }
 
   private initializeRepositories(): void {
-    // MODO DESARROLLO: Usar implementaciones Mock sin backend
-    // Se controla con la variable de entorno VITE_DATA_SOURCE
-    const DATA_SOURCE = import.meta.env.VITE_DATA_SOURCE || 'MOCK';
-    const USE_MOCK = DATA_SOURCE === 'MOCK';
+    const { useMock, isProduction } = getRuntimeDataSourceConfig();
 
-    if (USE_MOCK) {
+    if (isProduction && useMock) {
+      console.warn(
+        '[Config] VITE_DATA_SOURCE está en MOCK en entorno production. Se recomienda API para despliegue real.'
+      );
+    }
+
+    if (useMock) {
       this._stationRepository = new MockStationRepository();
       this._userRepository = new MockUserRepository();
       this._measurementRepository = new MockMeasurementRepository();

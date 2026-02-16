@@ -1,7 +1,11 @@
 import { defineConfig, devices } from '@playwright/test';
 
-if (!process.env.VITE_USE_API) {
-	process.env.VITE_USE_API = 'false';
+if (!process.env.VITE_DATA_SOURCE) {
+	process.env.VITE_DATA_SOURCE = 'MOCK';
+}
+
+if (!process.env.VITE_ENVIRONMENT) {
+	process.env.VITE_ENVIRONMENT = 'development';
 }
 
 /**
@@ -58,7 +62,7 @@ export default defineConfig({
 
 	/* Run your local dev server before starting the tests */
 	webServer: {
-		command: 'pnpm dev --port 4173 --strictPort',
+		command: 'VITE_DATA_SOURCE=MOCK VITE_ENVIRONMENT=development pnpm dev --port 4173 --strictPort',
 		port: 4173,
 		reuseExistingServer: false
 	}
