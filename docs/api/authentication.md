@@ -6,8 +6,8 @@
 - **POST** `/api/auth/token/`
   ```json
   {
-    "username": "admin@rioclaro.com",
-    "password": "admin123"
+    "username": "admin@example.invalid",
+    "password": "<DEMO_PASSWORD>"
   }
   ```
 
@@ -104,7 +104,7 @@ Content-Type: application/json
 ```bash
 curl -X POST http://localhost:8000/api/auth/token/ \
   -H "Content-Type: application/json" \
-  -d '{"username": "admin@rioclaro.com", "password": "admin123"}'
+  -d '{"username": "admin@example.invalid", "password": "<DEMO_PASSWORD>"}'
 ```
 
 ### 2. Crear una Estación
@@ -152,8 +152,8 @@ curl -X POST http://localhost:8000/api/stations/1/assign_user/ \
 ## 🛠️ Panel de Administración
 
 Accede al panel de Django Admin en: `http://localhost:8000/admin/`
-- Usuario: `admin@rioclaro.com`
-- Contraseña: `admin123`
+- Usuario: `admin@example.invalid`
+- Contraseña: `<DEMO_PASSWORD>`
 
 ## ⚡ Iniciar Servidor
 

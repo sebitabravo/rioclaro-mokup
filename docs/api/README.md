@@ -231,7 +231,7 @@ const newStation = await apiClient.post<Station>('/stations/', stationData);
 # Obtener token
 curl -X POST http://localhost:8000/api/auth/token/ \
   -H "Content-Type: application/json" \
-  -d '{"username":"admin","password":"admin123"}'
+  -d '{"username":"admin@example.invalid","password":"<DEMO_PASSWORD>"}'
 
 # Usar token
 curl -X GET http://localhost:8000/api/stations/ \
