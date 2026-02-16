@@ -15,7 +15,6 @@ import { ReportFilters, ExportFormat, DailyAverageData, CriticalEvent } from '@d
 import { PaginationParams, PaginatedResult, StationFilters } from '@shared/types/pagination';
 
 type MockAuthUser = User & {
-  password: string;
   is_active: boolean;
 };
 
@@ -177,7 +176,7 @@ export class MockAuthRepository implements AuthRepository {
     {
       id: 1,
       username: 'admin_user',
-      email: 'admin@rioclaro.gov',
+      email: 'admin@example.invalid',
       first_name: 'Carlos',
       last_name: 'Administrador',
       role: 'Administrador',
@@ -186,13 +185,12 @@ export class MockAuthRepository implements AuthRepository {
       assigned_stations: [1, 2, 3, 4, 5],
       created_at: '2024-01-01T00:00:00Z',
       updated_at: '2024-09-28T00:00:00Z',
-      password: 'admin123',
       is_active: true,
     },
     {
       id: 2,
       username: 'tecnico_user',
-      email: 'tecnico@rioclaro.gov',
+      email: 'tecnico@example.invalid',
       first_name: 'Ana',
       last_name: 'Técnica',
       role: 'Técnico',
@@ -201,13 +199,12 @@ export class MockAuthRepository implements AuthRepository {
       assigned_stations: [1, 2, 3],
       created_at: '2024-01-01T00:00:00Z',
       updated_at: '2024-09-28T00:00:00Z',
-      password: 'tecnico123',
       is_active: true,
     },
     {
       id: 3,
       username: 'observador_user',
-      email: 'observador@rioclaro.gov',
+      email: 'observador@example.invalid',
       first_name: 'Luis',
       last_name: 'Observador',
       role: 'Observador',
@@ -216,13 +213,12 @@ export class MockAuthRepository implements AuthRepository {
       assigned_stations: [1],
       created_at: '2024-01-01T00:00:00Z',
       updated_at: '2024-09-28T00:00:00Z',
-      password: 'observador123',
       is_active: true,
     },
     {
       id: 4,
       username: 'inactive_user',
-      email: 'inactive@rioclaro.gov',
+      email: 'inactive@example.invalid',
       first_name: 'Usuario',
       last_name: 'Inactivo',
       role: 'Observador',
@@ -231,7 +227,6 @@ export class MockAuthRepository implements AuthRepository {
       assigned_stations: [2],
       created_at: '2024-01-01T00:00:00Z',
       updated_at: '2024-09-28T00:00:00Z',
-      password: 'inactive123',
       is_active: false,
     },
   ];
@@ -239,7 +234,7 @@ export class MockAuthRepository implements AuthRepository {
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
     const account = this.mockUsers.find((u) => u.username === credentials.username);
 
-    if (!account || account.password !== credentials.password) {
+    if (!account || !credentials.password?.trim()) {
       throw new Error('Invalid credentials');
     }
 
@@ -273,7 +268,6 @@ export class MockAuthRepository implements AuthRepository {
       assigned_stations: [1],
       created_at: now,
       updated_at: now,
-      password: userData.password,
       is_active: true,
     };
 
@@ -358,8 +352,7 @@ export class MockAuthRepository implements AuthRepository {
   }
 
   private toPublicUser(user: MockAuthUser): User {
-    const { password, is_active, ...publicUser } = user;
-    void password;
+    const { is_active, ...publicUser } = user;
     void is_active;
     return publicUser;
   }
