@@ -21,4 +21,4 @@ export interface CreateStationAssignmentData {
   station: number;
 }
 
-export interface UpdateStationAssignmentData extends Partial<CreateStationAssignmentData> {}
+export type UpdateStationAssignmentData = Partial<CreateStationAssignmentData>;

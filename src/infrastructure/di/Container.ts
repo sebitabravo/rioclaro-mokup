@@ -35,6 +35,7 @@ import {
   MockMeasurementRepository,
   MockAlertRepository,
   MockVariableModuleRepository,
+  MockAuthRepository,
   MockActivityLogRepository,
   MockReportRepository
 } from '../adapters/MockRepositories';
@@ -94,14 +95,13 @@ export class DIContainer {
     const USE_MOCK = DATA_SOURCE === 'MOCK';
 
     if (USE_MOCK) {
-      console.log('🎭 Usando repositorios MOCK - Modo desarrollo sin backend');
       this._stationRepository = new MockStationRepository();
       this._userRepository = new MockUserRepository();
       this._measurementRepository = new MockMeasurementRepository();
       this._alertRepository = new MockAlertRepository();
       this._variableModuleRepository = new MockVariableModuleRepository();
       this._reportRepository = new MockReportRepository();
-      this._authRepository = new ApiAuthRepository(apiClient); // Auth se maneja en AuthStore
+      this._authRepository = new MockAuthRepository();
       this._activityLogRepository = new MockActivityLogRepository();
     } else {
       // Usar implementaciones API reales

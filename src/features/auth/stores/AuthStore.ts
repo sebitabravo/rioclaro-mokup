@@ -23,25 +23,10 @@ interface AuthActions {
 
 type AuthStore = AuthState & AuthActions;
 
-// MODO DESARROLLO: Usuario mock para ver todas las vistas sin backend
-const MOCK_USER: User = {
-  id: 1,
-  username: "admin",
-  email: "admin@rioclaro.com",
-  first_name: "Admin",
-  last_name: "Usuario",
-  role: "Administrador",
-  is_staff: true,
-  is_superuser: true,
-  assigned_stations: [],
-  created_at: new Date().toISOString(),
-  updated_at: new Date().toISOString(),
-};
-
 const initialState: AuthState = {
-  user: MOCK_USER, // Usuario mock para desarrollo
-  token: "mock-token-development",
-  isAuthenticated: true, // Autenticado por defecto en desarrollo
+  user: null,
+  token: null,
+  isAuthenticated: false,
   isLoading: false,
   error: null,
 };
@@ -51,26 +36,12 @@ export const useAuthStore = create<AuthStore>()(
     (set, get) => ({
       ...initialState,
 
-      login: async (_credentials: LoginCredentials) => {
-        // MODO DESARROLLO: Login automático sin backend
-        console.log('🔓 Login en modo desarrollo - sin backend');
-        set({
-          user: MOCK_USER,
-          token: "mock-token-development",
-          isAuthenticated: true,
-          isLoading: false,
-          error: null,
-        });
-        return;
-
-        // Código original comentado para cuando tengas backend
-        /*
+      login: async (credentials: LoginCredentials) => {
         try {
           set({ isLoading: true, error: null });
 
           const container = DIContainer.getInstance();
           const loginUseCase = container.loginUseCase;
-
           const authResponse = await loginUseCase.execute(credentials);
 
           set({
@@ -81,16 +52,18 @@ export const useAuthStore = create<AuthStore>()(
             error: null,
           });
         } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : 'Error al iniciar sesión';
+
           set({
             user: null,
             token: null,
             isAuthenticated: false,
             isLoading: false,
-            error: error instanceof Error ? error.message : 'Error al iniciar sesión',
+            error: errorMessage,
           });
-          throw error;
+
+          throw error instanceof Error ? error : new Error(errorMessage);
         }
-        */
       },
 
       register: async (userData: RegisterData) => {
@@ -99,7 +72,6 @@ export const useAuthStore = create<AuthStore>()(
 
           const container = DIContainer.getInstance();
           const registerUseCase = container.registerUseCase;
-
           const authResponse = await registerUseCase.execute(userData);
 
           set({
@@ -110,46 +82,40 @@ export const useAuthStore = create<AuthStore>()(
             error: null,
           });
         } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : 'Error al registrar usuario';
+
           set({
             user: null,
             token: null,
             isAuthenticated: false,
             isLoading: false,
-            error: error instanceof Error ? error.message : 'Error al registrar usuario',
+            error: errorMessage,
           });
-          throw error;
+
+          throw error instanceof Error ? error : new Error(errorMessage);
         }
       },
 
       logout: async () => {
+        let errorMessage: string | null = null;
+
         try {
           const container = DIContainer.getInstance();
           const logoutUseCase = container.logoutUseCase;
-
           await logoutUseCase.execute();
-
-          set({
-            ...initialState,
-          });
         } catch (error) {
-          // Incluso si hay error en el logout del servidor, limpiamos el estado local
-          set({
-            ...initialState,
-            error: error instanceof Error ? error.message : 'Error al cerrar sesión',
-          });
+          errorMessage = error instanceof Error ? error.message : 'Error al cerrar sesión';
+        } finally {
+          // Always clear local session, even if server-side logout fails.
+          set({ ...initialState, error: errorMessage });
         }
       },
 
       validateSession: async () => {
-        const { token, isAuthenticated } = get();
-
-        // MODO DESARROLLO: Si ya está autenticado con mock, no validar
-        if (token === "mock-token-development" && isAuthenticated) {
-          return;
-        }
+        const { token } = get();
 
         if (!token) {
-          set({ isAuthenticated: false, user: null });
+          set({ ...initialState });
           return;
         }
 
@@ -158,29 +124,22 @@ export const useAuthStore = create<AuthStore>()(
 
           const container = DIContainer.getInstance();
           const validateTokenUseCase = container.validateTokenUseCase;
-
           const user = await validateTokenUseCase.execute(token);
 
           if (user) {
             set({
               user,
+              token,
               isAuthenticated: true,
               isLoading: false,
               error: null,
             });
-          } else {
-            // Token inválido, limpiar estado
-            set({
-              ...initialState,
-            });
+            return;
           }
-        } catch (error) {
-          // En desarrollo, mantener el mock si falla la validación
-          console.warn('Error al validar sesión (usando mock):', error);
-          set({
-            ...initialState, // Esto incluye el mock user
-            isLoading: false,
-          });
+
+          set({ ...initialState });
+        } catch {
+          set({ ...initialState });
         }
       },
 
@@ -204,9 +163,9 @@ export const useAuthStore = create<AuthStore>()(
   )
 );
 
-// Hooks adicionales para facilitar el uso
 export const useAuth = () => {
   const store = useAuthStore();
+
   return {
     user: store.user,
     isAuthenticated: store.isAuthenticated,

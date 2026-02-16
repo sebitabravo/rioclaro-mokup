@@ -51,7 +51,7 @@ export class ApiThresholdRepository implements ThresholdRepository {
     try {
       const response = await this.apiClient.get<ApiThresholdData>(`/api/measurements/thresholds/${id}/`);
       return this.convertApiToThreshold(response);
-    } catch (error) {
+    } catch {
       return null;
     }
   }

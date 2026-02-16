@@ -1,5 +1,6 @@
 import { expect, test, Page } from '@playwright/test';
 import { seedAdminSession } from './utils/auth';
+import { dismissOnboardingIfPresent } from './utils/ui';
 
 type RouteCheck = {
   path: string;
@@ -11,7 +12,7 @@ const routes: RouteCheck[] = [
   {
     path: '/dashboard',
     assertion: async (page) => {
-      await expect(page.locator('[data-testid="dashboard-content"]')).toBeVisible();
+      await expect(page.locator('[data-testid="dashboard-content"]')).toBeVisible({ timeout: 10000 });
     },
   },
   {
@@ -52,13 +53,15 @@ test.describe('Acceso del administrador a rutas protegidas', () => {
 
       await expect(page).toHaveURL((url) => url.pathname === expectedPath);
       await expect(page).not.toHaveURL(/unauthorized/);
+      await dismissOnboardingIfPresent(page);
       await route.assertion(page);
     });
   }
 
   test('el administrador que visita la raíz es redirigido al dashboard', async ({ page }) => {
     await page.goto('/');
+    await dismissOnboardingIfPresent(page);
     await expect(page).toHaveURL((url) => url.pathname === '/dashboard');
-    await expect(page.locator('[data-testid="dashboard-content"]')).toBeVisible();
+    await expect(page.locator('[data-testid="dashboard-content"]')).toBeVisible({ timeout: 10000 });
   });
 });

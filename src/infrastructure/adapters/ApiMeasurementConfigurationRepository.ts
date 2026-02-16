@@ -36,7 +36,7 @@ export class ApiMeasurementConfigurationRepository implements MeasurementConfigu
     try {
       const response = await this.apiClient.get<ApiMeasurementConfigurationData>(`/api/measurements/configurations/${id}/`);
       return this.convertApiToMeasurementConfiguration(response);
-    } catch (error) {
+    } catch {
       return null;
     }
   }
